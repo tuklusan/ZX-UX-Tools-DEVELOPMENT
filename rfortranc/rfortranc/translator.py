@@ -871,15 +871,32 @@ def convert(units):
                         # At this stage only named fixed-size whole arrays
                         # are supported; adjustable bound expressions and
                         # element designators need separate checks.
-                        info = u.vars.get(actual)
+                        # A whole array or an array element can designate a
+                        # sequence of storage elements. For element actuals,
+                        # constant subscripts let us prove the remaining
+                        # extent before emitting a by-reference pointer.
+                        # Non-constant starting subscripts require a later
+                        # runtime extent check and are rejected for now.
+                        element = re.fullmatch(r'(' + NAME + r')\s*\((.*)\)', actual)
+                        actual_name = element.group(1) if element else actual
+                        info = u.vars.get(actual_name)
                         if not info or info[1] is None:
-                            raise FortranError(line, 'dummy array needs an array variable actual: ' + dummy)
+                            raise FortranError(line, 'dummy array needs an array variable or element actual: ' + dummy)
                         if info[0] != ty:
                             raise FortranError(line, 'array argument type mismatch: ' + actual)
-                        from .arrays import size as total_extent
-                        if total_extent(info[1]) < total_extent(dims):
+                        from .arrays import size as total_extent, literal_offset
+                        start = 0
+                        if element:
+                            subscripts = split_items(element.group(2))
+                            if not all(re.fullmatch(r'\d+', sub.strip()) for sub in subscripts):
+                                raise FortranError(line, 'array-element dummy sequence requires constant subscripts: ' + actual)
+                            start = literal_offset([int(sub.strip()) for sub in subscripts], info[1], line)
+                        if total_extent(info[1]) - start < total_extent(dims):
                             raise FortranError(line, 'array actual shorter than dummy: ' + actual)
-                        refs.append('F_' + actual)
+                        if element:
+                            refs.append('&F_' + actual_name + '[' + str(start) + ']')
+                        else:
+                            refs.append('F_' + actual_name)
                     else:
                         refs.append(reference_actual(E(actual, line), u, ty))
                 add(['f_' + f + '(' + ', '.join(refs) + ');'])

@@ -61,6 +61,7 @@ PROGRAMS = {
     'f77s_dmreal': '  42',
     'f77s_burkvec': '  65',
     'f77s_burksort': '  -1',
+    'f77s_dmseq': '  42',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',

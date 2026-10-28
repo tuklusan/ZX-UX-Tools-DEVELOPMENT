@@ -56,3 +56,7 @@ review, so do not redistribute a copy without permission. The ZX-UX SDK
 archive includes its own restrictive non-commercial licence and third-party
 notices; **do not strip or replace either**. This folder does not vendor the
 ZX-UX kernel, runtime archive, ROM, or original EWVM compiler.
+
+## F77S array-element storage sequence checkpoint
+
+Fixed-size dummy numeric arrays now accept a constant-subscript actual array element, as in `CALL SUB(A(3))`, passing the address of that element and the subsequent column-major storage. Static extent checks reject actuals with fewer trailing elements than the dummy needs. A variable-index element actual remains explicitly unsupported (until runtime sequence checks are added). `f77s_dmseq.f` tests this with actual gfortran and ZX-UX SSX/RVM execution.

@@ -109,6 +109,28 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(declaration=declaration,actual_decl=actual_decl), self.assertRaises(FortranError):
                 convert(parse(src, std='f77s'))
 
+    def test_constant_array_element_sequence_actual(self):
+        src = (ROOT/'tests/fortran/f77s_dmseq.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        self.assertIn('f_ADDSEQ(&F_A[2]);', convert(units))
+
+    def test_element_sequence_too_short_rejected(self):
+        src = ('      PROGRAM BAD\n      INTEGER A(5)\n'
+               '      CALL SUB(A(4))\n      END\n'
+               '      SUBROUTINE SUB(B)\n      INTEGER B(3)\n'
+               '      RETURN\n      END\n')
+        with self.assertRaisesRegex(FortranError, 'array actual shorter'):
+            convert(parse(src, std='f77s'))
+
+    def test_element_sequence_nonconstant_rejected(self):
+        src = ('      PROGRAM BAD\n      INTEGER A(5),I\n'
+               '      I=3\n      CALL SUB(A(I))\n      END\n'
+               '      SUBROUTINE SUB(B)\n      INTEGER B(3)\n'
+               '      RETURN\n      END\n')
+        with self.assertRaisesRegex(FortranError, 'constant subscripts'):
+            convert(parse(src, std='f77s'))
+
     def test_implicit_dummy_dimension_kept(self):
         src=('      PROGRAM DIMT\n      REAL A(3)\n      CALL SUB(A)\n'
              '      END\n      SUBROUTINE SUB(X)\n      DIMENSION X(3)\n'
