@@ -1,0 +1,83 @@
+"""ANSI X3.9-1978 subset-specific *partial* validation, Appendix D.
+
+This is an opt-in compatibility gate, not an assertion of F77S conformance.
+Keep the original ZX-UX extension mode for the existing source corpus.
+"""
+from __future__ import annotations
+import re
+from .translator import FortranError, split_items
+
+_WORD = r'[A-Z][A-Z0-9_]*'
+_INT = r'[+-]?\d+|[A-Z][A-Z0-9_]*'
+
+
+def validate_source(source, units):
+    """Reject known full-F77/ZX-UX-only forms and subset constraint violations.
+
+    A source accepted by this gate is NOT necessarily conforming to F77S;
+    unsupported required features are still rejected by the compiler.
+    """
+    continuation = 0
+    previous_comment = False
+    for number, raw in enumerate(source.splitlines(), 1):
+        raw = raw.expandtabs(8)
+        if not raw.strip():
+            previous_comment = False
+            continue
+        if raw[0] in '*Cc':
+            previous_comment = True
+            continue
+        if raw[0] == '!':
+            raise FortranError(number, 'F77S uses fixed-form C/* comments, not ! comments')
+        if len(raw) < 6:
+            raise FortranError(number, 'F77S requires fixed-form columns 1-6')
+        if not re.fullmatch(r'[ 0-9]{5}', raw[:5]):
+            raise FortranError(number, 'F77S requires a numeric label in columns 1-5')
+        if raw[5] != ' ' and raw[5] != '0':
+            if previous_comment:
+                raise FortranError(number, 'F77S prohibits comment immediately before continuation')
+            continuation += 1
+            if continuation > 9:
+                raise FortranError(number, 'F77S permits at most nine continuation lines')
+        else:
+            continuation = 0
+        previous_comment = False
+        body = raw[6:72]
+        # Strip character literals before checking punctuation (except fixed comments).
+        clean = re.sub(r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"", '', body)
+        if '!' in clean or '$' in clean or ':' in clean:
+            raise FortranError(number, 'non-F77S source character in statement')
+    for unit in units:
+        if len(unit.name) > 6 or '_' in unit.name:
+            raise FortranError(unit.line, 'F77S names have at most six letters/digits')
+        for name in unit.vars:
+            if len(name) > 6 or '_' in name:
+                raise FortranError(unit.line, 'F77S names have at most six letters/digits: ' + name)
+        for name in unit.args:
+            if len(name) > 6 or '_' in name:
+                raise FortranError(unit.line, 'F77S dummy name exceeds six characters')
+        for st in unit.statements:
+            s = st.text.strip()
+            if re.match(r'^PRINT\b', s):
+                raise FortranError(st.line, 'PRINT is excluded from ANSI F77S (use formatted WRITE)')
+            if re.match(r'^READ\s*\*\s*,', s) or re.match(r'^WRITE\s*\(\s*[^,]+,\s*\*', s):
+                raise FortranError(st.line, 'list-directed I/O is excluded from ANSI F77S')
+            if s == 'IMPLICIT NONE':
+                raise FortranError(st.line, 'IMPLICIT NONE is not ANSI F77S')
+            if re.match(r'^(PARAMETER|BLOCK DATA|ENTRY|CLOSE|INQUIRE|DOUBLE PRECISION|COMPLEX)\b', s):
+                raise FortranError(st.line, 'statement excluded from ANSI F77S: ' + s.split()[0])
+            m = re.fullmatch(r'DO\s+(\d+)\s+(' + _WORD + r')\s*=\s*(.+)', s)
+            if m:
+                vals = split_items(m.group(3))
+                if len(vals) not in (2, 3) or any(not re.fullmatch(_INT, v.strip()) for v in vals):
+                    raise FortranError(st.line, 'F77S DO limits must be INTEGER constants or scalar variables')
+            m = re.fullmatch(r'GO\s*TO\s*\([^()]*\)\s*,?\s*(.*)', s)
+            if m and not re.fullmatch(_WORD, m.group(1)):
+                raise FortranError(st.line, 'F77S computed GO TO selector must be an INTEGER variable')
+            m = re.fullmatch(r'WRITE\s*\(\s*([^,]*)\s*,\s*(\d+)\s*\)\s*(.*)', s)
+            if m:
+                for item in split_items(m.group(3)) if m.group(3).strip() else []:
+                    if not re.fullmatch(_WORD + r'(?:\s*\(\s*[^()]*\s*\))?', item):
+                        raise FortranError(st.line, 'F77S WRITE items must be variables or array names/elements')
+                    if len(re.match(_WORD, item).group()) > 6:
+                        raise FortranError(st.line, 'F77S names have at most six letters/digits')

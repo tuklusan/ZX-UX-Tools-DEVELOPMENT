@@ -36,7 +36,7 @@ class Unit:
 NAME = r'[A-Z][A-Z0-9_]*'
 NAME_RE = re.compile(r'^' + NAME + r'$')
 UNSUPPORTED = ('COMMON', 'EQUIVALENCE', 'SAVE', 'DATA', 'BLOCK DATA', 'EXTERNAL',
-               'INTRINSIC', 'FORMAT', 'OPEN', 'CLOSE', 'REWIND', 'BACKSPACE',
+               'INTRINSIC', 'OPEN', 'CLOSE', 'REWIND', 'BACKSPACE',
                'ENDFILE', 'ENTRY', 'PAUSE', 'WRITE', 'INQUIRE', 'NAMELIST',
                'CHARACTER', 'COMPLEX', 'DOUBLE PRECISION', 'ASSIGN ', 'ASSIGNED ',
                'BLOCK ', 'PARAMETER')
@@ -85,7 +85,10 @@ def lines(source):
         if raw[0] in '*!' or (raw[0] in 'cC' and
             (fixed_form or len(raw) == 1 or raw[1].isspace())):
             continue
-        fixed = bool(re.match(r'^ {5}[ \d]', raw)) or bool(len(raw) >= 6 and raw[:5].strip().isdigit() and raw[5] == ' ')
+        fixed = (bool(re.match(r'^ {5}[ \d]', raw))
+                 or bool(len(raw) >= 6 and raw[:5].strip().isdigit() and raw[5] == ' ')
+                 or bool(fixed_form and len(raw) >= 6 and raw[:5].strip() == ''
+                         and raw[5] not in ' 0'))
         if fixed:
             lab = raw[:5].strip() or None
             continuation = raw[5] not in ' 0'
@@ -104,6 +107,8 @@ def lines(source):
         if body:
             if lab and (not lab.isdecimal() or int(lab) > 99999):
                 raise FortranError(no, 'invalid statement label')
+            if lab:
+                lab = str(int(lab))  # 00010 and 10 name the same statement
             out.append(Statement(no, lab, body.upper() if not re.search(r"['\"]", body) else _keywords_upper(body)))
     return out
 
@@ -382,6 +387,22 @@ static void f_outint(int n) {
     }
     putchar('0' + u);
 }
+/* FORMAT Iw: leading blanks, asterisks if the value overflows. */
+static void f_outintw(int value, int width) {
+    int chars;
+    int n;
+    int k;
+    n = value;
+    if (n < 0) chars = 2;
+    else chars = 1;
+    while (n <= -10 || n >= 10) { n = n / 10; chars++; }
+    if (chars > width) {
+        for (k = 0; k < width; k++) putchar('*');
+    } else {
+        for (k = chars; k < width; k++) putchar(' ');
+        f_outint(value);
+    }
+}
 static int f_inint(void) {
     int ch;
     int sign;
@@ -409,6 +430,34 @@ def c_string(s):
     return '"' + ''.join(('\\\\' if c == '\\' else '\\"' if c == '"' else
                           '\\n' if c == '\n' else '\\x%02x' % ord(c) if ord(c) < 32
                           else c) for c in chars) + '"'
+
+
+def subset_format(source, line):
+    """Read the implemented **small** subset of F77S FORMAT descriptors.
+
+    Deliberately reject unsupported descriptors; treating them as whitespace
+    or silently ignoring them would produce incorrect ZX-UX programs.
+    """
+    ops = []
+    for token in split_items(source):
+        token = token.strip()
+        if re.fullmatch(r"'(?:[^']|'')*'", token):
+            ops.append(('literal', token))
+        elif re.fullmatch(r'I[1-9][0-9]*', token):
+            width = int(token[1:])
+            if width > 255:
+                raise FortranError(line, 'I field width exceeds supported output limit')
+            ops.append(('integer', width))
+        elif re.fullmatch(r'(?:[1-9][0-9]*)?X', token):
+            count = int(token[:-1]) if len(token) > 1 else 1
+            if count > 255:
+                raise FortranError(line, 'X spacing exceeds supported output limit')
+            ops.append(('space', count))
+        elif token == '/':
+            ops.append(('newline', None))
+        else:
+            raise FortranError(line, 'unsupported FORMAT descriptor: ' + token)
+    return ops
 
 
 def convert(units):
@@ -443,7 +492,17 @@ def convert(units):
         code = []
         labels = {}
         gotos = []
+        conditional_gotos = []  # (pc, condition, true_label, false_pc, source_line)
         blocks = []
+        formats = {}
+        for st in u.statements:
+            fm = re.fullmatch(r'FORMAT\s*\((.*)\)', st.text)
+            if fm:
+                if not st.label:
+                    raise FortranError(st.line, 'FORMAT requires a statement label')
+                if st.label in formats:
+                    raise FortranError(st.line, 'duplicate FORMAT label: ' + st.label)
+                formats[st.label] = subset_format(fm.group(1), st.line)
         def add(lines, tail=None):
             code.append((list(lines), tail))
             return len(code) - 1
@@ -454,6 +513,37 @@ def convert(units):
         def ret_stmt():
             return 'return ' + ('0' if is_main else 'F_' + u.name if u.kind == 'function' else '') + ';'
         def stmt(s, line):
+            if re.fullmatch(r'FORMAT\s*\((.*)\)', s):
+                return  # FORMAT is a non-executable specification statement
+            fm = re.fullmatch(r'WRITE\s*\(\s*(6|\*)\s*,\s*(\d{1,5})\s*\)\s*(.*)', s)
+            if fm:
+                _, format_label, arguments = fm.groups()
+                format_label = str(int(format_label))
+                if format_label not in formats:
+                    raise FortranError(line, 'undefined FORMAT label: ' + format_label)
+                values = split_items(arguments) if arguments.strip() else []
+                operations = []
+                pos = 0
+                for mode, item in formats[format_label]:
+                    if mode == 'literal':
+                        operations.append('f_outstr(' + c_string(item) + ');')
+                    elif mode == 'space':
+                        operations.extend(["putchar(' ');"] * item)
+                    elif mode == 'newline':
+                        operations.append('putchar(10);')
+                    elif mode == 'integer':
+                        if pos == len(values):
+                            raise FortranError(line, 'WRITE has fewer items than FORMAT')
+                        arg = values[pos]
+                        if re.search(r'\d+\.\d*', arg) or any(re.search(r'\b' + re.escape(k) + r'\b', arg) for k, v in u.vars.items() if v[0] == 'REAL'):
+                            raise FortranError(line, 'FORMAT I requires INTEGER item')
+                        operations.append('f_outintw(' + E(arg, line) + ', ' + str(item) + ');')
+                        pos += 1
+                if pos != len(values):
+                    raise FortranError(line, 'WRITE has more items than FORMAT')
+                operations.append('putchar(10);')
+                add(operations)
+                return
             if s.startswith(UNSUPPORTED):
                 raise FortranError(line, 'unsupported FORTRAN statement: ' + s.split()[0])
             if re.match(r'^(INTEGER|REAL|LOGICAL)\s+', s) or s == 'IMPLICIT NONE':
@@ -466,7 +556,26 @@ def convert(units):
                 add([ret_stmt()], 'return'); return
             m = re.fullmatch(r'GO\s*TO\s+(\d+)', s)
             if m:
-                n = add([]); gotos.append((n, m.group(1), line)); return
+                n = add([]); gotos.append((n, str(int(m.group(1))), line)); return
+            # F77S computed GO TO accepts an INTEGER name or constant as
+            # its selector; an out-of-range selector falls through.
+            m = re.fullmatch(r'GO\s*TO\s*\(([^()]*)\)\s*,?\s*(.+)', s)
+            if m:
+                targets = [item.strip() for item in split_items(m.group(1))]
+                selector = m.group(2).strip()
+                if (not targets or any(not re.fullmatch(r'\d{1,5}', x) for x in targets)
+                        or not re.fullmatch(r'(?:\d+|' + NAME + r')', selector)):
+                    raise FortranError(line, 'computed GO TO needs labels and an INTEGER selector')
+                if NAME_RE.fullmatch(selector) and u.vars.get(selector) != ('INTEGER', None):
+                    raise FortranError(line, 'computed GO TO selector must be INTEGER')
+                key = 'f_select_' + str(len(code))
+                decl('int ' + key + ';')
+                add([key + ' = ' + E(selector, line) + ';'])
+                for index, label in enumerate(targets, 1):
+                    pc = add([])
+                    conditional_gotos.append((pc, key + ' == ' + str(index),
+                                              str(int(label)), pc + 1, line))
+                return
             if s.startswith('CALL '):
                 m = re.fullmatch(r'CALL\s+(' + NAME + r')\s*\((.*)\)', s)
                 if not m or m.group(1) not in known or known[m.group(1)].kind != 'subroutine':
@@ -568,17 +677,32 @@ def convert(units):
                     i += 1
                 if depth:
                     raise FortranError(st.line, 'IF condition not closed')
-                cond = E(s[m.end():i - 1], st.line)
+                raw_condition = s[m.end():i - 1]
                 tail = s[i:].strip()
-                check = add([])
-                if tail == 'THEN':
-                    blocks.append({'kind': 'if', 'check': check, 'cond': cond, 'start': len(code)})
-                elif tail:
-                    start = len(code)
-                    stmt(tail, st.line)
-                    update(check, ('cond', cond, start, len(code)))
+                # Arithmetic IF is an F77S control statement, distinct from
+                # logical IF. Evaluate the expression exactly once before
+                # choosing its negative/zero/positive label.
+                arithmetic_labels = re.fullmatch(r'(\d{1,5})\s*,\s*(\d{1,5})\s*,\s*(\d{1,5})', tail)
+                if arithmetic_labels:
+                    value = 'f_arth_' + str(len(code))
+                    decl('float ' + value + ';')
+                    add([value + ' = ' + E(raw_condition, st.line) + ';'])
+                    neg_pc = add([])
+                    zero_pc = add([])
+                    minus, zero, plus = (str(int(n)) for n in arithmetic_labels.groups())
+                    conditional_gotos.append((neg_pc, value + ' < 0', minus, zero_pc, st.line))
+                    conditional_gotos.append((zero_pc, value + ' == 0', zero, ('label', plus), st.line))
                 else:
-                    raise FortranError(st.line, 'IF must have THEN or following statement')
+                    cond = E(raw_condition, st.line)
+                    check = add([])
+                    if tail == 'THEN':
+                        blocks.append({'kind': 'if', 'check': check, 'cond': cond, 'start': len(code)})
+                    elif tail:
+                        start = len(code)
+                        stmt(tail, st.line)
+                        update(check, ('cond', cond, start, len(code)))
+                    else:
+                        raise FortranError(st.line, 'IF must have THEN or following statement')
             else:
                 stmt(s, st.line)
             # The DO terminal statement executes before increment. Repeat for
@@ -592,7 +716,24 @@ def convert(units):
         for n, lab, ln in gotos:
             if lab not in labels:
                 raise FortranError(ln, 'undefined statement label: ' + lab)
+            if lab in formats:
+                raise FortranError(ln, 'control transfer to FORMAT label: ' + lab)
             update(n, ('jump', labels[lab]))
+        for n, condition, lab, alternative, ln in conditional_gotos:
+            if lab not in labels:
+                raise FortranError(ln, 'undefined statement label: ' + lab)
+            if lab in formats:
+                raise FortranError(ln, 'control transfer to FORMAT label: ' + lab)
+            if lab in formats:
+                raise FortranError(ln, 'control transfer to FORMAT label: ' + lab)
+            if isinstance(alternative, tuple):
+                other = alternative[1]
+                if other not in labels:
+                    raise FortranError(ln, 'undefined statement label: ' + other)
+                if other in formats:
+                    raise FortranError(ln, 'control transfer to FORMAT label: ' + other)
+                alternative = labels[other]
+            update(n, ('cond', condition, labels[lab], alternative))
         for temp, ty in u.temps:
             decl(ctype(ty) + ' ' + temp + ';')
         decl('f_pc = 0;')

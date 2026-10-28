@@ -30,6 +30,8 @@ def main(argv=None):
     p.add_argument('source', help='FORTRAN source .f or .for')
     p.add_argument('-o', '--output', help='output file (default SOURCE.ssx)')
     p.add_argument('--sdk', help='ZX-UX source SDK root or packaged SDK bin')
+    p.add_argument('--std', choices=('zxux', 'f77s'), default='zxux',
+                   help='zxux extensions (default) or partial ANSI subset validation')
     modes = p.add_mutually_exclusive_group()
     modes.add_argument('-S', action='store_true', help='output Z80 assembly')
     modes.add_argument('-c', action='store_true', help='output SSO relocatable object')
@@ -52,7 +54,11 @@ def main(argv=None):
         if target == source:
             raise ValueError('output would overwrite FORTRAN source')
         program = source.read_text(encoding='utf-8')
-        c48 = convert(parse(program))
+        units = parse(program)
+        if args.std == 'f77s':
+            from .f77s import validate_source
+            validate_source(program, units)
+        c48 = convert(units)
         if args.emit_c:
             target.write_text(c48, encoding='utf-8')
             return 0

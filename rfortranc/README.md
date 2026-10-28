@@ -1,12 +1,12 @@
-# rfortranc — FORTRAN for ZX-UX (experimental)
+# rfortranc — ANSI FORTRAN SUBSET for ZX-UX (experimental)
 
-A FORTRAN 77 **subset** compiler for the ZX Spectrum / ZX-UX. It lives in
+An **ANSI X3.9-1978 FORTRAN SUBSET (F77S)** compiler project for the ZX Spectrum / ZX-UX. It lives in
 `rfortranc/` at the root of `ZX-UX-Tools-DEVELOPMENT` and can be installed as
 a **sibling of `rcc`** in the host ZX-UX SDK. This work follows the language
 coverage of [tuklusan/fortran77-compiler](https://github.com/tuklusan/fortran77-compiler),
 which targets the **EPL Web Virtual Machine**, not Z80. We replace that EWVM
 backend with a FORTRAN -> C48 lowering pass, then call the verified SDK tools.
-The production FORTRAN 77 standard is **not** yet implemented.
+The goal is the **standard SUBSET language, not full F77**; the subset is **not yet fully implemented**.
 
 ## Use
 
@@ -17,6 +17,7 @@ python rfortranc/bin/rfortranc --sdk /path/to/src/zx-ux-sdk --tzx hello.f
 python rfortranc/bin/rfortranc --sdk /path/to/src/zx-ux-sdk -S hello.f
 python rfortranc/bin/rfortranc --sdk /path/to/src/zx-ux-sdk -c hello.f
 python rfortranc/bin/rfortranc --emit-c hello.f
+python rfortranc/bin/rfortranc --std f77s --emit-c rfortranc/tests/fortran/f77s_fmt.f
 
 # Install into the source SDK (its usual packaging then includes rfortranc):
 python rfortranc/tools/install_into_sdk.py /path/to/src/zx-ux-sdk
@@ -59,7 +60,7 @@ logical single-line IF, numbered `DO` including negative increments,
 passed by reference; expression/literal actuals are copied to temporary storage
 (as in conventional FORTRAN calls). Array dummy arguments are not supported.
 
-**Not production grade.** No full F77 implicit typing, COMMON/EQUIVALENCE,
+**Not production grade.** F77S requires implicit typing, COMMON/EQUIVALENCE,
 DATA, formatted I/O, DIMENSION in a separate statement, multidimensional
 arrays, CHARACTER, COMPLEX, array dummy arguments, full call aliasing validation, RECURSIVE, full
 floating-point semantics, or REAL printing. Unsupported syntax fails with
@@ -88,3 +89,7 @@ The release tool selects collision-safe names and writes SHA-256 manifests.
 
 See `docs/PORTING.md` and `docs/TEST-CORPUS.md` for the upstream comparison,
 testing plan, source licences, and release blockers.
+
+## Exact subset scope
+
+Read [docs/F77S-MATRIX.md](docs/F77S-MATRIX.md) before declaring any language feature out of scope. ANSI subset **includes** DATA, COMMON, EQUIVALENCE, numeric implicit typing, character data, and formatted I/O. It **excludes** PRINT and list-directed I/O; legacy PRINT-based examples are ZX-UX compatibility extensions, not subset conformance. Use `--std f77s` for the current **partial** subset restriction checks; `--std zxux` remains the default.

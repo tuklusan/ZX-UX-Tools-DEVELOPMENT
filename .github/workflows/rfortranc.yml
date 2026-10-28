@@ -22,5 +22,7 @@ jobs:
           python-version: '3.12'
       - name: Compile frontend and tools
         run: python -m compileall -q rfortranc/rfortranc rfortranc/tests rfortranc/tools
+      - name: Check ANSI F77S partial restriction tests
+        run: python -m unittest discover -s rfortranc/tests -p test_f77s.py
       - name: Check FORTRAN lowering and expected rejections
         run: python rfortranc/tests/run_tests.py --frontend-only
