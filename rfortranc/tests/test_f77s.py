@@ -232,6 +232,23 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_index(F_J, 2)', c)
         self.assertIn('static char f_sd1_T[6];', c)
 
+    def test_formatted_real_input_output_fields(self):
+        src = (ROOT/'tests/fortran/f77s_realio.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        c = convert(units)
+        self.assertIn('f_outrealw(F_A, 8, 2);', c)
+        self.assertIn('F_B = f_fmt_real(8, 2);', c)
+        self.assertIn('f_outrealw(F_C[', c)
+        self.assertEqual(c.count('f_outrealw('), 5)
+
+    def test_real_format_type_diagnostics(self):
+        src = ('      PROGRAM BAD\n      INTEGER I\n'
+               '      I=2\n      WRITE(6,10) I\n'
+               '   10 FORMAT(F8.2)\n      END\n')
+        with self.assertRaisesRegex(FortranError, 'REAL variable/element'):
+            convert(parse(src, std='f77s'))
+
     def test_formatted_character_array_element_read(self):
         src = (ROOT/'tests/fortran/f77s_arrread.f').read_text()
         units = parse(src, std='f77s')
@@ -239,6 +256,13 @@ class F77SChecks(unittest.TestCase):
         code = convert(units)
         self.assertIn('f_fmt_inchar((F_A +', code)
         self.assertIn('f_outcharw((F_A +', code)
+
+    def test_rank3_character_column_major_storage(self):
+        src = (ROOT/'tests/fortran/f77s_chr3d.f').read_text()
+        c = convert(parse(src, std='f77s'))
+        self.assertIn('char F_A[24];', c)
+        self.assertIn('f_char_copy(F_A + 7 * 3, 2, "HH");', c)
+        self.assertIn('f_index(F_K, 2)', c)
 
     def test_character_array_dummy_sequence_and_element_actual(self):
         src = (ROOT/'tests/fortran/f77s_chdummy.f').read_text()
@@ -536,7 +560,7 @@ class F77SChecks(unittest.TestCase):
 
     def test_format_unsupported_or_excess_nesting(self):
         from rfortranc.translator import subset_format
-        for fmt in ('I4.2', '3(2(2(I4)))', '256(I3)', '2F8.2'):
+        for fmt in ('I4.2', '3(2(2(I4)))', '256(I3)', 'F8.6'):
             with self.subTest(fmt=fmt), self.assertRaises(FortranError):
                 subset_format(fmt, 10)
 

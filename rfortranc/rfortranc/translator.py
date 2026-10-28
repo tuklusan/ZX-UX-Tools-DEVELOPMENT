@@ -523,6 +523,53 @@ static void f_outintw(int value, int width) {
         f_outint(value);
     }
 }
+/* Restricted ANSI F77S Fw.d decimal output for 16-bit-scale REAL values.
+   Values outside this target's represented decimal range show stars. */
+static void f_outrealw(float value, int width, int places) {
+    int i;
+    int negative;
+    int integer_part;
+    int fraction;
+    int scale;
+    int divisor;
+    int digits;
+    int chars;
+    float x;
+    x = value;
+    negative = x < 0.0;
+    if (negative) x = -x;
+    if (x > 32766.0) {
+        for (i = 0; i < width; i++) putchar('*');
+        return;
+    }
+    integer_part = (int)x;
+    scale = 1;
+    for (i = 0; i < places; i++) scale = scale * 10;
+    fraction = (int)((x - (float)integer_part) * (float)scale + 0.5);
+    if (fraction >= scale) { integer_part++; fraction = 0; }
+    if (integer_part > 32767) {
+        for (i = 0; i < width; i++) putchar('*');
+        return;
+    }
+    digits = 1;
+    divisor = integer_part;
+    while (divisor >= 10) { digits++; divisor = divisor / 10; }
+    chars = digits + negative + 1 + places;
+    if (chars > width) {
+        for (i = 0; i < width; i++) putchar('*');
+        return;
+    }
+    for (i = chars; i < width; i++) putchar(' ');
+    if (negative) putchar('-');
+    f_outint(integer_part);
+    putchar('.');
+    divisor = scale / 10;
+    while (divisor > 0) {
+        putchar('0' + fraction / divisor);
+        fraction = fraction % divisor;
+        divisor = divisor / 10;
+    }
+}
 /* ANSI F77S formatted INTEGER input (limited Iw/X/slash subset).
    Fields are blank-padded to the end of each input record. */
 static int f_fmt_eor;
@@ -568,6 +615,39 @@ static int f_fmt_int(int width) {
         digits = 1;
     }
     return value * sign;
+}
+/* Restricted Fw.d READ: decimal fields, optional sign/point; no exponent. */
+static float f_fmt_real(int width, int places) {
+    int i;
+    int ch;
+    int sign;
+    int after;
+    int point;
+    int started;
+    float v;
+    v = 0.0;
+    sign = 1;
+    after = 0;
+    point = 0;
+    started = 0;
+    for (i = 0; i < width; i++) {
+        ch = f_fmt_get();
+        if (ch == ' ') continue;
+        if ((ch == '-' || ch == '+') && !started) {
+            if (ch == '-') sign = -1;
+            started = 1;
+            continue;
+        }
+        if (ch == '.' && !point) { point = 1; started = 1; continue; }
+        if (ch < '0' || ch > '9') exit(2);
+        v = v * 10.0 + (float)(ch - '0');
+        started = 1;
+        if (point) after++;
+    }
+    if (!point) after = places;
+    for (i = 0; i < after; i++) v = v / 10.0;
+    if (sign < 0) v = -v;
+    return v;
 }
 static void f_fmt_end(void) {
     int ch;
@@ -724,6 +804,14 @@ def subset_format(source, line):
                 if width > 255:
                     raise FortranError(line, 'I field width exceeds 255')
                 append(('integer', width), repeat)
+                continue
+            real = re.fullmatch(r'([1-9][0-9]*)?F([1-9][0-9]*)\.([0-9]+)', token)
+            if real:
+                repeat = int(real.group(1) or 1)
+                width, places = int(real.group(2)), int(real.group(3))
+                if width > 255 or places > 4 or width < places + 2:
+                    raise FortranError(line, 'F field size/decimal places exceed supported limits')
+                append(('real', (width, places)), repeat)
                 continue
             character = re.fullmatch(r'([1-9][0-9]*)?A([1-9][0-9]*)?', token)
             if character:
@@ -902,6 +990,16 @@ def convert(units):
                         pointer, length = char_value
                         operations.append('f_outcharw(' + pointer + ', ' + str(length) + ', ' + str(item or length) + ');')
                         pos += 1
+                    elif mode == 'real':
+                        if pos == len(values):
+                            raise FortranError(line, 'WRITE has fewer items than FORMAT')
+                        name = values[pos].strip()
+                        m = re.fullmatch(r'(' + NAME + r')(?:\s*\(([^()]*)\))?', name)
+                        info = u.vars.get(m.group(1)) if m else None
+                        if not info or info[0] != 'REAL' or (info[1] is None) != (m.group(2) is None):
+                            raise FortranError(line, 'FORMAT F needs REAL variable/element')
+                        operations.append('f_outrealw(' + E(name, line) + ', ' + str(item[0]) + ', ' + str(item[1]) + ');')
+                        pos += 1
                     elif mode == 'integer':
                         if pos == len(values):
                             raise FortranError(line, 'WRITE has fewer items than FORMAT')
@@ -938,6 +1036,16 @@ def convert(units):
                             raise FortranError(line, 'FORMAT A requires CHARACTER scalar/array element')
                         pointer, length = char_value
                         operations.append('f_fmt_inchar(' + pointer + ', ' + str(length) + ', ' + str(item or length) + ');')
+                        pos += 1
+                    elif mode == 'real':
+                        if pos == len(values):
+                            raise FortranError(line, 'READ has fewer items than FORMAT')
+                        name = values[pos].strip()
+                        m = re.fullmatch(r'(' + NAME + r')(?:\s*\(([^()]*)\))?', name)
+                        info = u.vars.get(m.group(1)) if m else None
+                        if not info or info[0] != 'REAL' or (info[1] is None) != (m.group(2) is None):
+                            raise FortranError(line, 'FORMAT F needs REAL variable/element')
+                        operations.append(E(name, line) + ' = f_fmt_real(' + str(item[0]) + ', ' + str(item[1]) + ');')
                         pos += 1
                     elif mode == 'integer':
                         if pos == len(values):

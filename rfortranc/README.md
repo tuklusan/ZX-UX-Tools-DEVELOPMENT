@@ -139,3 +139,7 @@ Fixed-size 1D/2D/3D CHARACTER arrays now support contiguous column-major storage
 Fixed-size CHARACTER dummy arrays now support same-width by-reference whole-array and array-element sequence association, nested forwarding and checked trailing capacity at call sites. CHARACTER array elements can be passed to same-length writable scalar CHARACTER dummies. Adjustable CHARACTER dummy extents and mismatched widths are rejected; byte array allocations exceeding 16-bit addressable extent are also rejected. See `tests/fortran/f77s_chdummy.f`.
 
 Fixed CHARACTER array element formatted READ(Aw) is tested against host gfortran with input `XYZ` in `f77s_arrread.f`; the normal emulator harness injects the same input through RVM keys.
+
+A strict rank-three CHARACTER*2 A(2,2,2) test `f77s_chr3d.f` checks column-major DATA ordering and variable (I,J,K) element addressing; expected formatted text `42GG`, checked against host gfortran.
+
+The numeric FORMAT subset now includes restricted REAL `Fw.d` descriptors (width at most 255, at most 4 decimals) for formatted READ(5,label) and WRITE(6,label). It supports signed plain decimal fields and fixed-size numeric array elements; exponent forms, scale controls, full numeric range and complete Fortran blank behavior remain unsupported. Reference sample: `tests/fortran/f77s_realio.f`, validated against host gfortran and actual SSX/RVM.

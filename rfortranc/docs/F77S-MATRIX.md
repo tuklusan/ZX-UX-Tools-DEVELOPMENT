@@ -43,3 +43,7 @@ are tracked below rather than discarded as full-F77-only work.
 Fixed-bound CHARACTER arrays (up to rank 3) are now lowered with column-major element storage, bounded per-dimension indexing and fixed-length element operations. `f77s_charray.f` covers array DATA, assignment, comparison, WRITE and persistent subprogram array DATA. CHARACTER dummy arrays, COMMON/EQUIVALENCE association, and full CHARACTER I/O remain outstanding.
 
 Fixed-size same-width CHARACTER dummy arrays and array-element actual sequences now alias caller storage by reference with checked remaining physical element count; nested forwarding and scalar element dummy actuals are covered in `f77s_chdummy.f`. Still missing adjustable CHARACTER dummy sizes, differing-length character actual association and CHARACTER COMMON/EQUIVALENCE.
+
+Rank-three CHARACTER fixed arrays are independently exercised by `tests/fortran/f77s_chr3d.f`, including per-dimension checked variable indices and column-major sequence slots.
+
+Restricted decimal Fw.d REAL input/output (up to 4 decimal places, plain signed decimal fields) is now implemented and represented by `f77s_realio.f`; it is intentionally NOT full numeric FORMAT coverage (E/G, scale, exponent and record controls remain incomplete).
