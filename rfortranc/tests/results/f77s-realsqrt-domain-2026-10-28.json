@@ -1,0 +1,49 @@
+{
+  "case": {
+    "compile": {
+      "argv": [
+        "/opt/pyvenv/bin/python",
+        "/mnt/data/work-f77s/rfortranc/bin/rfortranc",
+        "--std",
+        "f77s",
+        "--sdk",
+        "/mnt/data/zxwork/src/zx-ux-sdk",
+        "--native",
+        "-o",
+        "/tmp/f77s-sqrt-neg-0vg092e5/negative_sqrt.ssx",
+        "/tmp/f77s-sqrt-neg-0vg092e5/negative_sqrt.f"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    "emulator": {
+      "argv": [
+        "/opt/pyvenv/bin/python",
+        "/mnt/data/zxwork/dist/sdk/bin/rvm",
+        "--headless",
+        "--text",
+        "--frames",
+        "1000",
+        "/tmp/f77s-sqrt-neg-0vg092e5/negative_sqrt.ssx"
+      ],
+      "exit_code": 2,
+      "stderr": "rvm: negative_s: exit 2 (exit) after 210 frames, 29 system calls, started from the cache\n",
+      "stdout": "    5.00\n    4.00\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+    },
+    "passed": true,
+    "source_sha256": "febcd6f9904295e9fd053c612c7be70cca617f3de6123c7f5050d609e01449f6",
+    "ssx_sha256": "b937b4e20ea5a2658cbbc171cbef066677f50f4b400595e4c2c8d5b7943e4831"
+  },
+  "expected_exit_code": 2,
+  "not_f77s_conformance": true,
+  "result": {
+    "passed": 1,
+    "total": 1
+  },
+  "rvm_sha256": "e7cfb59b6c76e49faf4a0876520e44d3fcb34a5d9bce45831ae0d25242cc7830",
+  "schema": 1,
+  "scope": "REAL SQRT negative-domain ZX-UX runtime trap",
+  "sdk_archive_sha256": "42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17",
+  "translator_sha256": "aa867732d23033c9c74fa79742e92e50d2f80b11ffe16c0d2b16144671125d77"
+}
