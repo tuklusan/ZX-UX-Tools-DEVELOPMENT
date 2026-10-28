@@ -45,6 +45,20 @@ class F77SChecks(unittest.TestCase):
     def test_name_length(self):
         self.check(['INTEGER TOOLONG','TOOLONG=1'],False)
 
+    def test_data_array_and_scalar(self):
+        source=(ROOT / 'tests/fortran/f77s_data.f').read_text()
+        units=parse(source)
+        validate_source(source, units)
+        c=convert(units)
+        self.assertIn('F_A[0] = 1;', c)
+        self.assertIn('F_A[2] = 3;', c)
+        self.assertIn('F_N = 9;', c)
+
+    def test_data_count_error(self):
+        source=(ROOT / 'tests/negative/f77s_data_bad.f').read_text()
+        with self.assertRaises(FortranError):
+            convert(parse(source))
+
     def test_free_form_rejected(self):
         src='PROGRAM F77S\nINTEGER I\nEND\n'
         with self.assertRaises(FortranError):

@@ -489,6 +489,9 @@ def convert(units):
         decl('int f_pc;')
         if u.kind == 'function':
             decl('F_' + u.name + ' = 0;')
+        from .data_init import initializers
+        for target, value in initializers(u):
+            decl(target + ' = ' + value + ';')
         code = []
         labels = {}
         gotos = []
@@ -515,6 +518,8 @@ def convert(units):
         def stmt(s, line):
             if re.fullmatch(r'FORMAT\s*\((.*)\)', s):
                 return  # FORMAT is a non-executable specification statement
+            if re.match(r'^DATA\s+', s):
+                return  # initialized in function entry (main program only so far)
             fm = re.fullmatch(r'WRITE\s*\(\s*(6|\*)\s*,\s*(\d{1,5})\s*\)\s*(.*)', s)
             if fm:
                 _, format_label, arguments = fm.groups()

@@ -36,6 +36,8 @@ PROGRAMS = {
     'computed_goto': '  44',
     'format_write': 'N=****',
     'fixed_continue': '  15',
+    'f77s_fmt': '  42',
+    'f77s_data': '  9',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',

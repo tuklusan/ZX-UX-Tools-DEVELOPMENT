@@ -22,7 +22,7 @@ are tracked below rather than discarded as full-F77-only work.
 | No PRINT, CLOSE, INQUIRE, ENTRY, BLOCK DATA, PARAMETER, DOUBLE PRECISION, COMPLEX (D3.7) | Strict gate rejects a subset of forms | Enforce all excluded variants robustly |
 | COMMON, EQUIVALENCE, DIMENSION, IMPLICIT, EXTERNAL, INTRINSIC are **subset features** (D3.8, unchanged otherwise) | Mostly not implemented | Must implement where required; not full-F77 extras |
 | SAVE only names of common blocks in slash delimiters (D3.8) | Not implemented | Implement specified form |
-| DATA permitted without implied DO and without type conversion (D3.9) | Not implemented | Typed scalar/array initialization, proper ordering |
+| DATA permitted without implied DO and without type conversion (D3.9) | Partial: typed INTEGER/REAL/LOGICAL scalar and 1D arrays in main program; repeated values, strict type checks and initialization order. Subprogram DATA rejected | Saved subprogram storage, remaining types, numeric overflow cases |
 | Arithmetic IF, logical/block IF, computed GOTO. Computed selector must be integer variable (D3.11) | Arithmetic/computed GOTO implemented; selector gated | More flow edge cases and reference output checks |
 | DO variable INTEGER; all DO control values integer constants or variables (D3.11) | Numbered DO implemented; strict gate checks operand forms | More invalid control tests and overflow cases |
 | Formatted READ/WRITE; **no list-directed READ/WRITE or PRINT** (D3.12) | `WRITE(6,label)` limited Iw, X, literals, slash | Formatted READ; general permitted FORMAT and I/O |
