@@ -74,7 +74,7 @@ def lines(source):
             continue
         if raw[0] in 'cC*!' and (len(raw) == 1 or raw[1].isspace() or raw[0] in '*!'):
             continue
-        fixed = bool(re.match(r'^ {5}[ \d]', raw)) or bool(re.match(r'^\s{0,4}\d{1,5} ', raw) and len(raw) >= 7 and raw[5] == ' ')
+        fixed = bool(re.match(r'^ {5}[ \d]', raw)) or bool(len(raw) >= 6 and raw[:5].strip().isdigit() and raw[5] == ' ')
         if fixed:
             lab = raw[:5].strip() or None
             continuation = raw[5] not in ' 0'

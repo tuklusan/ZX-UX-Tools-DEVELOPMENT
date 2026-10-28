@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.sso
+*.ssx
+*.tzx
+*.z80
+.DS_Store
