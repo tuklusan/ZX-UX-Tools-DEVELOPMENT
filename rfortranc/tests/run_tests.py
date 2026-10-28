@@ -71,6 +71,7 @@ PROGRAMS = {
     'f77s_dm3ad': '  42',
     'f77s_dm2st': '  42',
     'f77s_dm3st': '  42',
+    'f77s_burkmm': '    7   22   23',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',

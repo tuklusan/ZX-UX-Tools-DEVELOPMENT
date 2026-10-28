@@ -367,6 +367,14 @@ class F77SChecks(unittest.TestCase):
                 self.assertIn(signature, c)
                 self.assertIn(limit, c)
 
+    def test_burkardt_matrix_multiplication_port(self):
+        source = (ROOT/'tests/fortran/f77s_burkmm.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        c = convert(units)
+        self.assertIn('f_MATMUL(int *F_K, int *F_N, int *F_A, int *F_B, int *F_C, int F__LEN_B, int F__LEN_C)', c)
+        self.assertIn('f_seqcheck(', c)
+
     def test_ranked_adjustable_bounds_invalid(self):
         cases = ('INTEGER N,A(N,2)', 'INTEGER N,A(2,0,N)', 'INTEGER N,A(2,3,4,N)')
         for decl in cases:
