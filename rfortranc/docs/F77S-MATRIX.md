@@ -47,3 +47,5 @@ Fixed-size same-width CHARACTER dummy arrays and array-element actual sequences 
 Rank-three CHARACTER fixed arrays are independently exercised by `tests/fortran/f77s_chr3d.f`, including per-dimension checked variable indices and column-major sequence slots.
 
 Restricted decimal Fw.d REAL input/output (up to 4 decimal places, plain signed decimal fields) is now implemented and represented by `f77s_realio.f`; it is intentionally NOT full numeric FORMAT coverage (E/G, scale, exponent and record controls remain incomplete).
+
+Partial LOGICAL format `Lw` READ/WRITE is implemented for fixed LOGICAL scalar/array elements, with T/F and optional dotted input; other record editing and multi-record I/O cases remain incomplete. See `tests/fortran/f77s_logio.f`.

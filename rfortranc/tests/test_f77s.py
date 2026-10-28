@@ -232,6 +232,43 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_index(F_J, 2)', c)
         self.assertIn('static char f_sd1_T[6];', c)
 
+    def test_logical_l_format_input_output(self):
+        source = (ROOT/'tests/fortran/f77s_logio.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        generated = convert(units)
+        self.assertIn('f_outlogw(', generated)
+        self.assertIn('f_fmt_logical(', generated)
+        self.assertEqual(generated.count('f_fmt_logical(4)'), 2)
+        self.assertIn('f_index(1, 2)', generated)
+
+    def test_logical_l_format_rejects_wrong_type(self):
+        from rfortranc.translator import subset_format
+        with self.assertRaises(FortranError):
+            subset_format('L256', 10)
+        self.check(['INTEGER I', 'WRITE(6,10) I', '10 FORMAT(L4)'], False)
+        self.check(['REAL X', 'READ(5,10) X', '10 FORMAT(L4)'], False)
+
+    def test_real_abs_intrinsic_and_burkardt_l1_norm(self):
+        source = (ROOT/'tests/fortran/f77s_burkl1.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        generated = convert(units)
+        self.assertIn('f_abs_real(', generated)
+        self.assertIn('f_RVNML1(', generated)
+        self.assertIn('f_extent(', generated)
+        self.assertIn('f_seqcheck(', generated)
+
+    def test_burkardt_real_dot_product_with_two_adjustable_tails(self):
+        source = (ROOT/'tests/fortran/f77s_burkreal.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        generated = convert(units)
+        self.assertIn('f_RVDOTP(', generated)
+        self.assertIn('f_extent(', generated)
+        self.assertGreaterEqual(generated.count('f_seqcheck('), 2)
+        self.assertIn('f_outrealw(', generated)
+
     def test_burkardt_real_minmax_adjustable_element_tail(self):
         source = (ROOT/'tests/fortran/f77s_burkmin.f').read_text()
         units = parse(source, std='f77s')

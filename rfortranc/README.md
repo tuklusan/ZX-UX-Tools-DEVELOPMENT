@@ -147,3 +147,9 @@ The numeric FORMAT subset now includes restricted REAL `Fw.d` descriptors (width
 `tests/fortran/f77s_burkmean.f` adapts Burkardt GNU LGPL `R4VEC_MEAN` to strict F77S adjustable REAL arrays (`A(N)`), REAL by-reference output and F8.2 formatting, comparing N=4 and N=3 means against host gfortran. Original LGPL file/blob are credited in `tests/ported/README.md`.
 
 GNU LGPL Burkardt real numerical examples `f77s_burkmean.f` and `f77s_burkmin.f` exercise adjustable REAL vectors, floating division, extrema, by-reference REAL result arguments, formatted `F8.2` output and array-element tail sequences. Original source attribution is in `tests/ported/README.md`.
+
+LGPL `f77s_burkreal.f` additionally executes John Burkardt real dot product over two adjustable REAL dummy arrays, including simultaneous element-tail sequences and fractional multiplication/addition. Strict F77S native and gfortran fixture.
+
+Restricted REAL absolute-value `ABS` intrinsic is implemented for REAL expressions as `f_abs_real`; INTEGER generic overload and complete FORTRAN intrinsic typing are still incomplete. LGPL `f77s_burkl1.f` exercises John Burkardt L1 norm over adjustable REAL vectors and element-tail associations.
+
+Subset FORMAT `Lw` for LOGICAL fixed-bound scalar/array elements now supports padded T/F WRITE and fixed-width READ T/F or dotted boolean input, with bounded width and type diagnostics. The strict `f77s_logio.f` fixture exercises L4 input/output. This is a restricted part of ANSI F77S formatted I/O.

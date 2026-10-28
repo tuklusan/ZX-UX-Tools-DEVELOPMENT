@@ -90,6 +90,9 @@ PROGRAMS = {
     'f77s_realio': '   -3.25',
     'f77s_burkmean': '    2.50',
     'f77s_burkmin': '   -3.25    4.00',
+    'f77s_burkreal': '   27.50',
+    'f77s_burkl1': '   12.00',
+    'f77s_logio': '   F   T',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',
@@ -199,9 +202,9 @@ def main(argv=None):
             if valid and args.rvm and not args.frontend_only:
                 emu_argv = [sys.executable, args.rvm, '--headless', '--text',
                             '--frames', str(args.rvm_frames)]
-                if name in ('f77s_read', 'f77s_repeat', 'f77s_charread', 'f77s_arrread', 'f77s_realio'):
+                if name in ('f77s_read', 'f77s_repeat', 'f77s_charread', 'f77s_arrread', 'f77s_realio', 'f77s_logio'):
                     keys = {'f77s_read': '0042 007\n', 'f77s_repeat': '003 005 010\n',
-                            'f77s_charread': 'XYZ\n', 'f77s_arrread': 'XYZ\n', 'f77s_realio': '   -3.25\n  001234\n'}
+                            'f77s_charread': 'XYZ\n', 'f77s_arrread': 'XYZ\n', 'f77s_realio': '   -3.25\n  001234\n', 'f77s_logio': '   F   T\n'}
                     emu_argv += ['--keys', keys[name]]
                 emu_argv += [str(binary)]
                 emu = command(emu_argv, args.timeout)

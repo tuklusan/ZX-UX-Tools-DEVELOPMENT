@@ -409,6 +409,8 @@ class Expr:
                     if self.unit.vars[t][0].startswith('CHARACTER*'):
                         raise FortranError(self.line, 'CHARACTER array element requires character assignment/comparison or A FORMAT')
                     lhs = 'F_' + t + '[' + array_subscript(params, t, self.unit, self.line) + ']'
+                elif t == 'ABS' and len(params) == 1:
+                    lhs = 'f_abs_real(' + params[0] + ')'
                 elif t == 'MOD' and len(params) == 2:
                     lhs = '((' + params[0] + ') % (' + params[1] + '))'
                 elif t in self.known and self.known[t].kind == 'function':
@@ -463,6 +465,8 @@ RUNTIME = '''#include <c48.h>
 /* FORTRAN words are 16-bit on this ZX Spectrum target. */
 static int *f_ref_int(int *p, int value) { *p = value; return p; }
 static float *f_ref_real(float *p, float value) { *p = value; return p; }
+/* F77S real absolute value (numeric generic typing remains partial). */
+static float f_abs_real(float x) { if (x < 0.0) return -x; return x; }
 static int f_index(int n, int size) {
     if (n < 1 || n > size) exit(2);
     return n - 1;
@@ -506,6 +510,12 @@ static void f_outint(int n) {
         div = div / 10;
     }
     putchar('0' + u);
+}
+/* Restricted standard F77S FORMAT Lw for LOGICAL values. */
+static void f_outlogw(int value, int width) {
+    int i;
+    for (i = 1; i < width; i++) putchar(' ');
+    if (value) putchar('T'); else putchar('F');
 }
 /* FORMAT Iw: leading blanks, asterisks if the value overflows. */
 static void f_outintw(int value, int width) {
@@ -615,6 +625,27 @@ static int f_fmt_int(int width) {
         digits = 1;
     }
     return value * sign;
+}
+/* Restricted F77S Lw READ: T/F, optional dots, blank padding. */
+static int f_fmt_logical(int width) {
+    int i;
+    int ch;
+    int found;
+    int result;
+    found = 0;
+    result = 0;
+    for (i = 0; i < width; i++) {
+        ch = f_fmt_get();
+        if (ch == ' ' || ch == '.') continue;
+        if (ch == 't') ch = 'T';
+        if (ch == 'f') ch = 'F';
+        if (ch != 'T' && ch != 'F') exit(2);
+        if (found) exit(2);
+        found = 1;
+        result = ch == 'T';
+    }
+    if (!found) exit(2);
+    return result;
 }
 /* Restricted Fw.d READ: decimal fields, optional sign/point; no exponent. */
 static float f_fmt_real(int width, int places) {
@@ -813,6 +844,13 @@ def subset_format(source, line):
                     raise FortranError(line, 'F field size/decimal places exceed supported limits')
                 append(('real', (width, places)), repeat)
                 continue
+            logical = re.fullmatch(r'([1-9][0-9]*)?L([1-9][0-9]*)', token)
+            if logical:
+                repeat, width = int(logical.group(1) or 1), int(logical.group(2))
+                if width > 255:
+                    raise FortranError(line, 'L field width exceeds 255')
+                append(('logical', width), repeat)
+                continue
             character = re.fullmatch(r'([1-9][0-9]*)?A([1-9][0-9]*)?', token)
             if character:
                 repeat = int(character.group(1) or 1)
@@ -990,6 +1028,16 @@ def convert(units):
                         pointer, length = char_value
                         operations.append('f_outcharw(' + pointer + ', ' + str(length) + ', ' + str(item or length) + ');')
                         pos += 1
+                    elif mode == 'logical':
+                        if pos == len(values):
+                            raise FortranError(line, 'WRITE has fewer items than FORMAT')
+                        name = values[pos].strip()
+                        m = re.fullmatch(r'(' + NAME + r')(?:\s*\(([^()]*)\))?', name)
+                        info = u.vars.get(m.group(1)) if m else None
+                        if not info or info[0] != 'LOGICAL' or (info[1] is None) != (m.group(2) is None):
+                            raise FortranError(line, 'FORMAT L needs LOGICAL scalar/array element')
+                        operations.append('f_outlogw(' + E(name, line) + ', ' + str(item) + ');')
+                        pos += 1
                     elif mode == 'real':
                         if pos == len(values):
                             raise FortranError(line, 'WRITE has fewer items than FORMAT')
@@ -1036,6 +1084,16 @@ def convert(units):
                             raise FortranError(line, 'FORMAT A requires CHARACTER scalar/array element')
                         pointer, length = char_value
                         operations.append('f_fmt_inchar(' + pointer + ', ' + str(length) + ', ' + str(item or length) + ');')
+                        pos += 1
+                    elif mode == 'logical':
+                        if pos == len(values):
+                            raise FortranError(line, 'READ has fewer items than FORMAT')
+                        name = values[pos].strip()
+                        m = re.fullmatch(r'(' + NAME + r')(?:\s*\(([^()]*)\))?', name)
+                        info = u.vars.get(m.group(1)) if m else None
+                        if not info or info[0] != 'LOGICAL' or (info[1] is None) != (m.group(2) is None):
+                            raise FortranError(line, 'FORMAT L needs LOGICAL scalar/array element')
+                        operations.append(E(name, line) + ' = f_fmt_logical(' + str(item) + ');')
                         pos += 1
                     elif mode == 'real':
                         if pos == len(values):
