@@ -1,0 +1,1928 @@
+{
+  "cases": [
+    {
+      "artifact": {
+        "bytes": 715,
+        "file": "/tmp/rfortranc-tests-hmen557l/hello.ssx",
+        "sha256": "6c3ab2692841d623c95fd192cf6203308b06f65fd4c84beed8f4b5a4f74b7777"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.648,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.481,
+        "stderr": "rvm: hello: exit 0 (exit) after 136 frames, 24 system calls, started from the cache\n",
+        "stdout": "Hello FORTRAN on ZX-UX\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "Hello FORTRAN on ZX-UX",
+      "kind": "positive",
+      "name": "hello",
+      "passed": true,
+      "source": "hello.f",
+      "source_sha256": "42d8cca97f912505bb3f6459b59d9709ffef0ca2ca4615ce29d3344c6504a1e1"
+    },
+    {
+      "artifact": {
+        "bytes": 1174,
+        "file": "/tmp/rfortranc-tests-hmen557l/factorial.ssx",
+        "sha256": "e731eb8695f1bc88760b6bf147119c36aab580aeaf4df302be0f94edd37aae33"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.607,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.385,
+        "stderr": "rvm: factorial: exit 0 (exit) after 159 frames, 28 system calls, started from the cache\n",
+        "stdout": "720\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "720",
+      "kind": "positive",
+      "name": "factorial",
+      "passed": true,
+      "source": "factorial.f",
+      "source_sha256": "b3a1e188582711b66c8f5902c2b2b162662b338a85edd493060de2d74c097d0f"
+    },
+    {
+      "artifact": {
+        "bytes": 1280,
+        "file": "/tmp/rfortranc-tests-hmen557l/arrays.ssx",
+        "sha256": "8d697b8f8f8eee6235073a1cb0566ce8be938add895e39035a516fe8d89c8266"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.591,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.318,
+        "stderr": "rvm: arrays: exit 0 (exit) after 147 frames, 25 system calls, started from the cache\n",
+        "stdout": "55\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "55",
+      "kind": "positive",
+      "name": "arrays",
+      "passed": true,
+      "source": "arrays.f",
+      "source_sha256": "32eed015f6b542f3c759910291efdca036a4a9dc247ad4edb2004f6dc9a1d726"
+    },
+    {
+      "artifact": {
+        "bytes": 825,
+        "file": "/tmp/rfortranc-tests-hmen557l/branch.ssx",
+        "sha256": "6ff21257d60b92fdaf2ea20803dc362995c61ce180ef6bc19d8ee0ac2bd1e057"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.556,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.376,
+        "stderr": "rvm: branch: exit 0 (exit) after 139 frames, 25 system calls, started from the cache\n",
+        "stdout": "NEG\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "NEG",
+      "kind": "positive",
+      "name": "branch",
+      "passed": true,
+      "source": "branch.f",
+      "source_sha256": "b4d3b54cff9db3f385108e3c8873767c64dd33dfe2a43f9612fe2c727dc1fa9c"
+    },
+    {
+      "artifact": {
+        "bytes": 1024,
+        "file": "/tmp/rfortranc-tests-hmen557l/function.ssx",
+        "sha256": "c4467cc259ef77bc467ff259fe9b6da344a71873c33bbe80d360a9b75a10754d"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.658,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.364,
+        "stderr": "rvm: function: exit 0 (exit) after 151 frames, 27 system calls, started from the cache\n",
+        "stdout": "14\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "14",
+      "kind": "positive",
+      "name": "function",
+      "passed": true,
+      "source": "function.f",
+      "source_sha256": "9c2e84335892d8a08512a0a48688062c2341f6c81fdb7baab47a834b6be157ec"
+    },
+    {
+      "artifact": {
+        "bytes": 1203,
+        "file": "/tmp/rfortranc-tests-hmen557l/prime.ssx",
+        "sha256": "e4f236c9f643b558e274fcd74ff0eb459cd573bcda7bf89f7d03c43145a91fa5"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.604,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.373,
+        "stderr": "rvm: prime: exit 0 (exit) after 138 frames, 24 system calls, started from the cache\n",
+        "stdout": "PRIME\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "PRIME",
+      "kind": "positive",
+      "name": "prime",
+      "passed": true,
+      "source": "prime.f",
+      "source_sha256": "66372c6f402a69d0d856ccff151f14557d10618134acadcd3e08191525074daa"
+    },
+    {
+      "artifact": {
+        "bytes": 1124,
+        "file": "/tmp/rfortranc-tests-hmen557l/backstep.ssx",
+        "sha256": "2ac0daaea144ebed8cd76f771996debc4b0d4425f6697800359b9636cae03bf8"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.689,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.451,
+        "stderr": "rvm: backstep: exit 0 (exit) after 152 frames, 27 system calls, started from the cache\n",
+        "stdout": "9\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "9",
+      "kind": "positive",
+      "name": "backstep",
+      "passed": true,
+      "source": "backstep.f",
+      "source_sha256": "cd64031653e43841cc7982adf70dc77fc9be5f144a796a9a85c9169530d58aad"
+    },
+    {
+      "artifact": {
+        "bytes": 1454,
+        "file": "/tmp/rfortranc-tests-hmen557l/bases.ssx",
+        "sha256": "7eff8894d3685bc5131a82043ce80a717c1c8b651c6402975a6980b72bacc1b9"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.47,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.213,
+        "stderr": "rvm: bases: exit 0 (exit) after 142 frames, 24 system calls, started from the cache\n",
+        "stdout": "1101\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "1101",
+      "kind": "positive",
+      "name": "bases",
+      "passed": true,
+      "source": "bases.f",
+      "source_sha256": "94bed94e811387b990a6958d90514fd7532a00b66982bc8222c1e20c022597cb"
+    },
+    {
+      "artifact": {
+        "bytes": 1329,
+        "file": "/tmp/rfortranc-tests-hmen557l/nested.ssx",
+        "sha256": "d6a9f7ffb9cfd5bb34b7505288d63ca8c23990357e5763f97eb1d09f0b401dd8"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.591,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.303,
+        "stderr": "rvm: nested: exit 0 (exit) after 144 frames, 25 system calls, started from the cache\n",
+        "stdout": "18\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "18",
+      "kind": "positive",
+      "name": "nested",
+      "passed": true,
+      "source": "nested.f",
+      "source_sha256": "0733d2b315b3efe893e366734d4cfa4e0bd60d184a0a7b93b1db2c9f8cf21b12"
+    },
+    {
+      "artifact": {
+        "bytes": 723,
+        "file": "/tmp/rfortranc-tests-hmen557l/strings.ssx",
+        "sha256": "b01d502512828aebcb2d1707740035882663a32682ecf95ed02ac0dbdbda2002"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.656,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.271,
+        "stderr": "rvm: strings: exit 0 (exit) after 142 frames, 26 system calls, started from the cache\n",
+        "stdout": "John's ZX-UX OK\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "John's ZX-UX OK",
+      "kind": "positive",
+      "name": "strings",
+      "passed": true,
+      "source": "strings.f",
+      "source_sha256": "a8cd382f1adc793b7af789e161d9ff72fa52383beb3ffa013387bf35cee02dd5"
+    },
+    {
+      "artifact": {
+        "bytes": 1209,
+        "file": "/tmp/rfortranc-tests-hmen557l/realcmp.ssx",
+        "sha256": "293e769f5717dab15d9c8b8b3adae57a9c8c1b7fb07e553e09d631e6d09dc7f9"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.791,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.698,
+        "stderr": "rvm: realcmp: exit 0 (exit) after 149 frames, 26 system calls, started from the cache\n",
+        "stdout": "REAL OK\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "REAL OK",
+      "kind": "positive",
+      "name": "realcmp",
+      "passed": true,
+      "source": "realcmp.f",
+      "source_sha256": "b58a7f882374d797c9f6b862655239f6bd21b609acc89afb6fbbcaa48e193572"
+    },
+    {
+      "artifact": {
+        "bytes": 952,
+        "file": "/tmp/rfortranc-tests-hmen557l/subcall.ssx",
+        "sha256": "e167ed00878136d6a448912ba7d620fda9f5e7d67a70bd6fb5afb05faaa045c0"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.969,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.502,
+        "stderr": "rvm: subcall: exit 0 (exit) after 148 frames, 26 system calls, started from the cache\n",
+        "stdout": "8\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "8",
+      "kind": "positive",
+      "name": "subcall",
+      "passed": true,
+      "source": "subcall.f",
+      "source_sha256": "2fe7ed7f4796f8ea233d7c80cd21ebfee84aa5a0a1db10d941155650610aadb2"
+    },
+    {
+      "artifact": {
+        "bytes": 987,
+        "file": "/tmp/rfortranc-tests-hmen557l/byref.ssx",
+        "sha256": "e81016a973734024c04c6023e298c186bb166c1726f85471c6c64f275f6d850a"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.946,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.334,
+        "stderr": "rvm: byref: exit 0 (exit) after 135 frames, 24 system calls, started from the cache\n",
+        "stdout": "8\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "8",
+      "kind": "positive",
+      "name": "byref",
+      "passed": true,
+      "source": "byref.f",
+      "source_sha256": "cf5aca22ea5cf3794092bbcceba0960b8253d12c5f0674501e115de1a095d9e7"
+    },
+    {
+      "artifact": {
+        "bytes": 1267,
+        "file": "/tmp/rfortranc-tests-hmen557l/realbyref.ssx",
+        "sha256": "0e6ab5def8a65f2931dc53dec5737f4f7818a061f60dd801014904525f51486a"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.823,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.701,
+        "stderr": "rvm: realbyref: exit 0 (exit) after 160 frames, 28 system calls, started from the cache\n",
+        "stdout": "REF REAL OK\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "REF REAL OK",
+      "kind": "positive",
+      "name": "realbyref",
+      "passed": true,
+      "source": "realbyref.f",
+      "source_sha256": "3e3936b0f61305eb9613549010f6b5fcb9e426e0edb7877077f058acfd0a01fb"
+    },
+    {
+      "artifact": {
+        "bytes": 897,
+        "file": "/tmp/rfortranc-tests-hmen557l/fixedcomment.ssx",
+        "sha256": "683984cc882524ff55520060ce7481412bec4d7e96fd7f9d65f53fad1738891c"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 2.027,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.538,
+        "stderr": "rvm: fixedcomme: exit 0 (exit) after 162 frames, 29 system calls, started from the cache\n",
+        "stdout": "3\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "3",
+      "kind": "positive",
+      "name": "fixedcomment",
+      "passed": true,
+      "source": "fixedcomment.f",
+      "source_sha256": "4c2139fb9adb6afb0482c53c9212cface0fe2cdf2f0fd60e6ed5e84b5a8ff29d"
+    },
+    {
+      "artifact": {
+        "bytes": 2455,
+        "file": "/tmp/rfortranc-tests-hmen557l/arithmetic_if.ssx",
+        "sha256": "e1606eed5b295b9f7eb86959375ec51ddb49323ab186acaae9527f645fb92fd7"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.881,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.609,
+        "stderr": "rvm: arithmetic: exit 0 (exit) after 180 frames, 29 system calls, started from the cache\n",
+        "stdout": "  11\n  55\n  99\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  99",
+      "kind": "positive",
+      "name": "arithmetic_if",
+      "passed": true,
+      "source": "arithmetic_if.f",
+      "source_sha256": "04f6e9f86a45266f1b4791d1edecb4cfaf985b70655e4dd2315557bc249de02a"
+    },
+    {
+      "artifact": {
+        "bytes": 1839,
+        "file": "/tmp/rfortranc-tests-hmen557l/computed_goto.ssx",
+        "sha256": "95eeda165cd70085f1436a70e55a8d0efef997c902217442ae76069364f0e88b"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.881,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.642,
+        "stderr": "rvm: computed_g: exit 0 (exit) after 174 frames, 29 system calls, started from the cache\n",
+        "stdout": "  22\n  44\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  44",
+      "kind": "positive",
+      "name": "computed_goto",
+      "passed": true,
+      "source": "computed_goto.f",
+      "source_sha256": "0655bc1ba04ff52a24d346eaef7771475d988814b05e8b43bfb64add70c7e68a"
+    },
+    {
+      "artifact": {
+        "bytes": 1369,
+        "file": "/tmp/rfortranc-tests-hmen557l/format_write.ssx",
+        "sha256": "304fd825b944e3473752b7eaa282c11772bfd51cdc9c995352dae56d51c32b0a"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.756,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.545,
+        "stderr": "rvm: format_wri: exit 0 (exit) after 166 frames, 29 system calls, started from the cache\n",
+        "stdout": "N=  42\nN=  -4\nN=****\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "N=****",
+      "kind": "positive",
+      "name": "format_write",
+      "passed": true,
+      "source": "format_write.f",
+      "source_sha256": "654c87a014de8127711ce2fa1c85485e35c2e332fe5675a374d9f5f548a459cb"
+    },
+    {
+      "artifact": {
+        "bytes": 1158,
+        "file": "/tmp/rfortranc-tests-hmen557l/fixed_continue.ssx",
+        "sha256": "5e8beee11cd007ba1137f5306bbaed838835a0edcab0b2819d7ea9a7d853373e"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.689,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.361,
+        "stderr": "rvm: fixed_cont: exit 0 (exit) after 162 frames, 24 system calls, started from the cache\n",
+        "stdout": "  15\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  15",
+      "kind": "positive",
+      "name": "fixed_continue",
+      "passed": true,
+      "source": "fixed_continue.f",
+      "source_sha256": "56106b0d0bf47231b054ce8a229f3d5f7728e7901d1d8733697c9674a17ab8ef"
+    },
+    {
+      "artifact": {
+        "bytes": 1158,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_fmt.ssx",
+        "sha256": "15baef488cded659993a081f7a22b8d10a3786c320661ff0356fae9cf975fb1b"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.731,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.459,
+        "stderr": "rvm: f77s_fmt: exit 0 (exit) after 156 frames, 27 system calls, started from the cache\n",
+        "stdout": "  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_fmt",
+      "passed": true,
+      "source": "f77s_fmt.f",
+      "source_sha256": "524a525fd8d6c58adf4f20003d28ec83a5dd9addc0c7a65140dee899d8810f58"
+    },
+    {
+      "artifact": {
+        "bytes": 1270,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_data.ssx",
+        "sha256": "161ec7364f38755a35aa29a348d0222d52fcf5959a847f4704480f0fcc888e8f"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.667,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.394,
+        "stderr": "rvm: f77s_data: exit 0 (exit) after 163 frames, 28 system calls, started from the cache\n",
+        "stdout": "  9\n  2\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  9",
+      "kind": "positive",
+      "name": "f77s_data",
+      "passed": true,
+      "source": "f77s_data.f",
+      "source_sha256": "bae5482e2dfbc239effb6eee312083eb6e82aba278027cb5ab88f10ebdb67980"
+    },
+    {
+      "artifact": {
+        "bytes": 1226,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_implicit.ssx",
+        "sha256": "7d338eec34d6a662c88d22fa0bee732376600fc8384a7e1bf055d2eefd43394f"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.665,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.484,
+        "stderr": "rvm: f77s_impli: exit 0 (exit) after 168 frames, 29 system calls, started from the cache\n",
+        "stdout": "  3\n  7\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  3",
+      "kind": "positive",
+      "name": "f77s_implicit",
+      "passed": true,
+      "source": "f77s_implicit.f",
+      "source_sha256": "601961e5444aaefb71a5cce1828281c2607cdfad232544d5572d03bad34dea8c"
+    },
+    {
+      "artifact": {
+        "bytes": 1582,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_real.ssx",
+        "sha256": "9b69906dc8e272008d39dcea0e6b2ef16bb1fdb426e3d857207e17001b1223fd"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.783,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.484,
+        "stderr": "rvm: f77s_real: exit 0 (exit) after 165 frames, 28 system calls, started from the cache\n",
+        "stdout": "  2\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  2",
+      "kind": "positive",
+      "name": "f77s_real",
+      "passed": true,
+      "source": "f77s_real.f",
+      "source_sha256": "a4dc02568ac1138d93b5ca06e78b18345b54a0a58123ad8a6375d05a7dee75ff"
+    },
+    {
+      "artifact": {
+        "bytes": 1728,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_2d.ssx",
+        "sha256": "836186e9b9957e532438b6cbbd167c06f540fec81278757f3d48277aa2f1474a"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.787,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.527,
+        "stderr": "rvm: f77s_2d: exit 0 (exit) after 157 frames, 26 system calls, started from the cache\n",
+        "stdout": "  43\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  43",
+      "kind": "positive",
+      "name": "f77s_2d",
+      "passed": true,
+      "source": "f77s_2d.f",
+      "source_sha256": "e7b5e6fc7a49c24257d5471d2327663c0cb68b5d3e07b8cb2b8f55f24123310c"
+    },
+    {
+      "artifact": {
+        "bytes": 1491,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_3d.ssx",
+        "sha256": "9e6763bbf8ecfc9f1791bec0a2ab91ef3cb49719302a377b717474559794ff9a"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.91,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.465,
+        "stderr": "rvm: f77s_3d: exit 0 (exit) after 154 frames, 26 system calls, started from the cache\n",
+        "stdout": " 11\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": " 11",
+      "kind": "positive",
+      "name": "f77s_3d",
+      "passed": true,
+      "source": "f77s_3d.f",
+      "source_sha256": "6556b770e6d13672d936896cf3110a8c99d7e9fdb9c1d2b400270f8df2a05d6a"
+    },
+    {
+      "artifact": {
+        "bytes": 1805,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_read.ssx",
+        "sha256": "4c6a39ac7afd794128d48c308512cc7f07a533007355cae6d24b5726b8111eb9"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.77,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.58,
+        "stderr": "rvm: f77s_read: exit 0 (exit) after 213 frames, 40 system calls, started from the cache\n",
+        "stdout": "  49\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  49",
+      "kind": "positive",
+      "name": "f77s_read",
+      "passed": true,
+      "source": "f77s_read.f",
+      "source_sha256": "856e2853c54f008525601e5cb71cc0f2ca7512852524e30a01c6ba533aa220ad"
+    },
+    {
+      "artifact": {
+        "bytes": 1888,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_repeat.ssx",
+        "sha256": "37ed5ba20ace014b8e956fc30b2a7bc70cd47a77bd4c4e31ce3349f04560f987"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.674,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.767,
+        "stderr": "rvm: f77s_repea: exit 0 (exit) after 237 frames, 44 system calls, started from the cache\n",
+        "stdout": "  3   5  10   18\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  18",
+      "kind": "positive",
+      "name": "f77s_repeat",
+      "passed": true,
+      "source": "f77s_repeat.f",
+      "source_sha256": "84b323f4fb1272e314d74e782e484fe0ed21dc387e5d78eb918b7eb98be8bc53"
+    },
+    {
+      "artifact": {
+        "bytes": 1341,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_dim.ssx",
+        "sha256": "7c91d351682f22687b964f5048576c81296adfe00c9935a41a18bc779d97ef30"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.572,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.461,
+        "stderr": "rvm: f77s_dim: exit 0 (exit) after 159 frames, 27 system calls, started from the cache\n",
+        "stdout": "  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dim",
+      "passed": true,
+      "source": "f77s_dim.f",
+      "source_sha256": "c2e73c925644799af8f3aabe38db02a4e9e8335dffe5a5be1c8e89688da12647"
+    },
+    {
+      "artifact": {
+        "bytes": 1255,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_common.ssx",
+        "sha256": "0022c7bfe8e4cd7bdc56194e033cd9a9240c79bdf9c35f0bc9cdc557f0085599"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.869,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.523,
+        "stderr": "rvm: f77s_commo: exit 0 (exit) after 171 frames, 29 system calls, started from the cache\n",
+        "stdout": "  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_common",
+      "passed": true,
+      "source": "f77s_common.f",
+      "source_sha256": "eff157fbeee8a7355ab4085dd31a42c85851386180dd75b9d12c1939ef868b12"
+    },
+    {
+      "artifact": {
+        "bytes": 1397,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_comarr.ssx",
+        "sha256": "85c7a36befc99ff8a3d12d38027377f06ff317750b2512acbb159f1590a8c7be"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.609,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.362,
+        "stderr": "rvm: f77s_comar: exit 0 (exit) after 170 frames, 29 system calls, started from the cache\n",
+        "stdout": "  43\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  43",
+      "kind": "positive",
+      "name": "f77s_comarr",
+      "passed": true,
+      "source": "f77s_comarr.f",
+      "source_sha256": "0ccd4208a4ee0e8a746deed70fd522d33e6b77e66d609d778b5088325328ff8d"
+    },
+    {
+      "artifact": {
+        "bytes": 1231,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_blank.ssx",
+        "sha256": "57f9bc18d90cb515a836bfcd45f0d0be4d2ddd81788aaabfa84931d254b9789b"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.717,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.409,
+        "stderr": "rvm: f77s_blank: exit 0 (exit) after 166 frames, 29 system calls, started from the cache\n",
+        "stdout": "  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_blank",
+      "passed": true,
+      "source": "f77s_blank.f",
+      "source_sha256": "17fbf930da8043263824a73c448adf7caf33cd358527562718f8505f3f1791ba"
+    },
+    {
+      "artifact": {
+        "bytes": 2356,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_fc3.ssx",
+        "sha256": "785cb8f93cb2bf83c757ac495c930a5cb16ee5747a689465a2078870e21492aa"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.512,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.435,
+        "stderr": "rvm: f77s_fc3: exit 0 (exit) after 171 frames, 27 system calls, started from the cache\n",
+        "stdout": "  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_fc3",
+      "passed": true,
+      "source": "f77s_fc3.f",
+      "source_sha256": "e9af623e4b749abc5ad3add18def922df8f16d5f6e058daaaf7aae2cc393f75c"
+    },
+    {
+      "artifact": {
+        "bytes": 2149,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_fc4.ssx",
+        "sha256": "19a023e9c7ecc8d8b865ea3ca05e64a61cf2dd9aca212e54cbdb5822387f87c9"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.631,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.373,
+        "stderr": "rvm: f77s_fc4: exit 0 (exit) after 168 frames, 27 system calls, started from the cache\n",
+        "stdout": "  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_fc4",
+      "passed": true,
+      "source": "f77s_fc4.f",
+      "source_sha256": "2807a3f7ed5c458495657991cd8a47b4669c9129a0d1e94b8f8d8d34cf31ea8e"
+    },
+    {
+      "artifact": {
+        "bytes": 1298,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_fc5.ssx",
+        "sha256": "45182b1d78551c1afd47a91a397bc59fb88a33ec932c9b584e9e5afa4bcd44c0"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.601,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.448,
+        "stderr": "rvm: f77s_fc5: exit 0 (exit) after 157 frames, 24 system calls, started from the cache\n",
+        "stdout": "7\n  42\n***\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "***",
+      "kind": "positive",
+      "name": "f77s_fc5",
+      "passed": true,
+      "source": "f77s_fc5.f",
+      "source_sha256": "1b0111af49fa836146c46968924dd8c70cdf5f89846944a4d16f2ee581b42aba"
+    },
+    {
+      "artifact": {
+        "bytes": 1525,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_equiv.ssx",
+        "sha256": "ccb0f502898622bbeded6f103a722c12584d66a9320a447682274aed552b97b0"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.581,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.411,
+        "stderr": "rvm: f77s_equiv: exit 0 (exit) after 172 frames, 29 system calls, started from the cache\n",
+        "stdout": "  42  42  11  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42  42  11  42",
+      "kind": "positive",
+      "name": "f77s_equiv",
+      "passed": true,
+      "source": "f77s_equiv.f",
+      "source_sha256": "c6e9f75c54615f48d727ed1be827d66588d1ac30b7f16b0611adbc3d6e22502b"
+    },
+    {
+      "artifact": {
+        "bytes": 1230,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_save.ssx",
+        "sha256": "69c967ec8f84f64e06ed387ec7a43700188901792b79a41aa3ca1187b3c697e1"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.578,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.358,
+        "stderr": "rvm: f77s_save: exit 0 (exit) after 161 frames, 28 system calls, started from the cache\n",
+        "stdout": "  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_save",
+      "passed": true,
+      "source": "f77s_save.f",
+      "source_sha256": "f5351bfd8071d73580db0182e1158f2af210d09313fdda96ddcee14545aec32c"
+    },
+    {
+      "artifact": {
+        "bytes": 1510,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_char.ssx",
+        "sha256": "e8d2da73b04ca16f24e32cd65306d60a6248de0a323fe178a2adc1513754ed69"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.637,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.514,
+        "stderr": "rvm: f77s_char: exit 0 (exit) after 165 frames, 28 system calls, started from the cache\n",
+        "stdout": ">  HI   <\n>ABC<\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": ">  HI   <",
+      "kind": "positive",
+      "name": "f77s_char",
+      "passed": true,
+      "source": "f77s_char.f",
+      "source_sha256": "57c3c4050a0d17041d1efc208373514076fea50222a0fc8d7fc7904475443f86"
+    },
+    {
+      "artifact": {
+        "bytes": 1298,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_charread.ssx",
+        "sha256": "853c65e126ba0ba352f6d46496b7b11fc1c8bbd0cefead552ea387d482b64a00"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.567,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.461,
+        "stderr": "rvm: f77s_charr: exit 0 (exit) after 186 frames, 36 system calls, started from the cache\n",
+        "stdout": ">XYZ  <\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": ">XYZ  <",
+      "kind": "positive",
+      "name": "f77s_charread",
+      "passed": true,
+      "source": "f77s_charread.f",
+      "source_sha256": "cc66b2d8973d68f986d17d284a5ccb0233603a269546103e6ccd7746915b9bfc"
+    },
+    {
+      "artifact": {
+        "bytes": 1936,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_burkprime.ssx",
+        "sha256": "12d128d3a90bcc13ff2c42d18eb52bc321941ddf511cac1654698dabc732771c"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.602,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 2.765,
+        "stderr": "rvm: f77s_burkp: exit 0 (exit) after 452 frames, 29 system calls, started from the cache\n",
+        "stdout": "   4\n  25\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  25",
+      "kind": "positive",
+      "name": "f77s_burkprime",
+      "passed": true,
+      "source": "f77s_burkprime.f",
+      "source_sha256": "89cabd8e6b4118863332b9c0010291f313cdda1605b8a514db2801825a20a036"
+    },
+    {
+      "artifact": {
+        "bytes": 1764,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_dmarr.ssx",
+        "sha256": "661e775aec829464a888ac692929424a33334e7b8f0179935b398d8860bfc6e9"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.526,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.386,
+        "stderr": "rvm: f77s_dmarr: exit 0 (exit) after 177 frames, 29 system calls, started from the cache\n",
+        "stdout": "  40\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  40",
+      "kind": "positive",
+      "name": "f77s_dmarr",
+      "passed": true,
+      "source": "f77s_dmarr.f",
+      "source_sha256": "c1ca2326f029fe6cb6efb3326066470d3c9b46363ac7397d0d8c6a93ad0c5960"
+    },
+    {
+      "artifact": {
+        "bytes": 1523,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_dmchain.ssx",
+        "sha256": "1d8f7701bdc6fd2a0a657581bce9966c9ddeb50f47853051cb038c96801a8073"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.527,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.276,
+        "stderr": "rvm: f77s_dmcha: exit 0 (exit) after 171 frames, 29 system calls, started from the cache\n",
+        "stdout": "  30\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  30",
+      "kind": "positive",
+      "name": "f77s_dmchain",
+      "passed": true,
+      "source": "f77s_dmchain.f",
+      "source_sha256": "9828bb5c877055c6be0141090bfc902d6786366ed7cf1eb1bf7450df05166d4c"
+    },
+    {
+      "artifact": {
+        "bytes": 1879,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_dmreal.ssx",
+        "sha256": "58c06a81375c2a36a4c86d732905e639b74c088e17d9782ed20e938e55f0b090"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.55,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.287,
+        "stderr": "rvm: f77s_dmrea: exit 0 (exit) after 176 frames, 29 system calls, started from the cache\n",
+        "stdout": "  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dmreal",
+      "passed": true,
+      "source": "f77s_dmreal.f",
+      "source_sha256": "f110984adc7e5b923af3b5c6383e7969af47620d5548c63ecf5d5e1d45df2cdc"
+    },
+    {
+      "artifact": {
+        "bytes": 2231,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_burkvec.ssx",
+        "sha256": "712c91ee6350622a9a26197185809f906c0b8d1a497fa7df5c39e889058a7514"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.645,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.556,
+        "stderr": "rvm: f77s_burkv: exit 0 (exit) after 181 frames, 29 system calls, started from the cache\n",
+        "stdout": "  15  13  11\n  65\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  65",
+      "kind": "positive",
+      "name": "f77s_burkvec",
+      "passed": true,
+      "source": "f77s_burkvec.f",
+      "source_sha256": "d9f4843e959cbbe9a14f593423900eecde38b52d12ad6468e26e33d254637641"
+    },
+    {
+      "artifact": {
+        "bytes": 2757,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_burksort.ssx",
+        "sha256": "97a2732dd5195f52c17a61248a558bf97427be685f41ce7efa59d7c6cc35e43b"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.707,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.678,
+        "stderr": "rvm: f77s_burks: exit 0 (exit) after 190 frames, 29 system calls, started from the cache\n",
+        "stdout": "   1   5   9\n   7\n  -1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  -1",
+      "kind": "positive",
+      "name": "f77s_burksort",
+      "passed": true,
+      "source": "f77s_burksort.f",
+      "source_sha256": "2b105baace10e9b4d507bd6f4e914d35e55e06e340e55039ae52fe8b7ac58aea"
+    },
+    {
+      "artifact": {
+        "bytes": 1366,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_dmseq.ssx",
+        "sha256": "2fb4e88952838a4e491fd239eb713514a3a1fcfcfca67cfe83d3a7b741578e25"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.923,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.501,
+        "stderr": "rvm: f77s_dmseq: exit 0 (exit) after 169 frames, 29 system calls, started from the cache\n",
+        "stdout": "  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dmseq",
+      "passed": true,
+      "source": "f77s_dmseq.f",
+      "source_sha256": "3c0fa8de8f71a115af08aa808c90dcfccd009018e3641043220db3fa0a3bf2c6"
+    },
+    {
+      "artifact": {
+        "bytes": 1491,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_dmidx.ssx",
+        "sha256": "5b11a23fc9ea8e1622aff9e76f9d7ef539b97d8f28d127a5290b2c1c58223eaa"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.78,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.477,
+        "stderr": "rvm: f77s_dmidx: exit 0 (exit) after 172 frames, 29 system calls, started from the cache\n",
+        "stdout": "  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dmidx",
+      "passed": true,
+      "source": "f77s_dmidx.f",
+      "source_sha256": "27142506842b4598977be932e528b4805b8f58ccc4447bea0ee754c7154da7eb"
+    },
+    {
+      "artifact": {
+        "bytes": 1632,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_dmadj.ssx",
+        "sha256": "cb423b38f180a45d7329948713a0753959cbfb73d02db8047badcf14f26e955c"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.708,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.361,
+        "stderr": "rvm: f77s_dmadj: exit 0 (exit) after 172 frames, 29 system calls, started from the cache\n",
+        "stdout": "  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dmadj",
+      "passed": true,
+      "source": "f77s_dmadj.f",
+      "source_sha256": "c539b8eb410f721e4164f6dfc30b8d591776714f645d8d3c2f823acc517e700b"
+    },
+    {
+      "artifact": {
+        "bytes": 1511,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_dmstar.ssx",
+        "sha256": "13a2c6a03101947c4cfa0799c2f3db196d9733e5c1a9c501260c373219bc2ebf"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.668,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.685,
+        "stderr": "rvm: f77s_dmsta: exit 0 (exit) after 171 frames, 29 system calls, started from the cache\n",
+        "stdout": "  38\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  38",
+      "kind": "positive",
+      "name": "f77s_dmstar",
+      "passed": true,
+      "source": "f77s_dmstar.f",
+      "source_sha256": "2bcf3de3438833129faec8d307961baa82f3ac5ae6300d3a569426ad8b4eb1e8"
+    },
+    {
+      "artifact": {
+        "bytes": 1780,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_dmalt.ssx",
+        "sha256": "fbc87e348e96e214fcf4a1727206940b4ea0dd7e19b00fdb1b7d44776d26b8b2"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.707,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.476,
+        "stderr": "rvm: f77s_dmalt: exit 0 (exit) after 175 frames, 29 system calls, started from the cache\n",
+        "stdout": "   9\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "   9",
+      "kind": "positive",
+      "name": "f77s_dmalt",
+      "passed": true,
+      "source": "f77s_dmalt.f",
+      "source_sha256": "b656296dc0936a29b90a8cbeb9798504d086f3a7fc177a3654d6b04916c747bc"
+    },
+    {
+      "artifact": {
+        "bytes": 2637,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_burkadj.ssx",
+        "sha256": "506dff502305fea71f86d13139d5155bef02e26b302cbe8e72b7fa69e71ba223"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.52,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.48,
+        "stderr": "rvm: f77s_burka: exit 0 (exit) after 186 frames, 29 system calls, started from the cache\n",
+        "stdout": "   5   1  15\n  28\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  28",
+      "kind": "positive",
+      "name": "f77s_burkadj",
+      "passed": true,
+      "source": "f77s_burkadj.f",
+      "source_sha256": "313a44dcd3be2eaac4acff90c81830d239107765cfe29fb0b61ea639c8288390"
+    },
+    {
+      "artifact": {
+        "bytes": 1691,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_dm2ad.ssx",
+        "sha256": "c2f4f5da3bb36f54c31f65b011a69323a1a9046d2a6743ca23a9da7d18df5cce"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.641,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.367,
+        "stderr": "rvm: f77s_dm2ad: exit 0 (exit) after 174 frames, 29 system calls, started from the cache\n",
+        "stdout": "  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dm2ad",
+      "passed": true,
+      "source": "f77s_dm2ad.f",
+      "source_sha256": "3de5fa81de10d1254ce8c639930fe1675f7e8d818bb6d0246cb1a53d0a913364"
+    },
+    {
+      "artifact": {
+        "bytes": 1756,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_dm3ad.ssx",
+        "sha256": "71e1919fe2879bb7d09c8030ae224326a2bb551c59224e745850e243c8d6ab5c"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.554,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.401,
+        "stderr": "rvm: f77s_dm3ad: exit 0 (exit) after 173 frames, 28 system calls, started from the cache\n",
+        "stdout": "  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dm3ad",
+      "passed": true,
+      "source": "f77s_dm3ad.f",
+      "source_sha256": "09dd904bb29f071c413585c2e62bc25d6f4353e6706b6ec50d8b34a11b8dca07"
+    },
+    {
+      "artifact": {
+        "bytes": 1552,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_dm2st.ssx",
+        "sha256": "e3427bfc4763e9df1f4e1d950a55f2ec94b5618c98775e21632ac55ef45f2c16"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.596,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.293,
+        "stderr": "rvm: f77s_dm2st: exit 0 (exit) after 171 frames, 29 system calls, started from the cache\n",
+        "stdout": "  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dm2st",
+      "passed": true,
+      "source": "f77s_dm2st.f",
+      "source_sha256": "87a62772cfafe85adfe5e0569519409d6d3c6add4d7f641a85fc4bdabaa68a3f"
+    },
+    {
+      "artifact": {
+        "bytes": 1623,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_dm3st.ssx",
+        "sha256": "5508f3fd8355103f9a27cfba9cd43e8da7a45dd743504486c9dec66f58270afb"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.569,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.382,
+        "stderr": "rvm: f77s_dm3st: exit 0 (exit) after 173 frames, 29 system calls, started from the cache\n",
+        "stdout": "  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dm3st",
+      "passed": true,
+      "source": "f77s_dm3st.f",
+      "source_sha256": "0c2a2951b4ccd0593aa9ef5c74a7c362ca470dfe1f834810821d69eb5163145f"
+    },
+    {
+      "artifact": {
+        "bytes": 2812,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_burkmm.ssx",
+        "sha256": "91728ce8373ad78f00f1e29426c297eb3eea73b872a9e2f6053468709aeaff7f"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.715,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.495,
+        "stderr": "rvm: f77s_burkm: exit 0 (exit) after 190 frames, 29 system calls, started from the cache\n",
+        "stdout": "    7   22   23\n    7\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "    7   22   23",
+      "kind": "positive",
+      "name": "f77s_burkmm",
+      "passed": true,
+      "source": "f77s_burkmm.f",
+      "source_sha256": "7c22e979376a0a5311f52f18e46fb9e53a055151b5159b5ace807dd7759ec481"
+    },
+    {
+      "artifact": {
+        "bytes": 3403,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_burkflip.ssx",
+        "sha256": "871cdf02ede5185000c0fb105e6b91f697218898aa4846237d39ddb819b7434d"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.625,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.455,
+        "stderr": "rvm: f77s_burkf: exit 0 (exit) after 197 frames, 29 system calls, started from the cache\n",
+        "stdout": "   6   5   2   1\n   1   6\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "   6   5   2   1",
+      "kind": "positive",
+      "name": "f77s_burkflip",
+      "passed": true,
+      "source": "f77s_burkflip.f",
+      "source_sha256": "ea9497a82225e34ddfb76ca9c4e322acb1e3b5ffa780f8dc8dd280e4beecd305"
+    },
+    {
+      "artifact": {
+        "bytes": 1581,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_dm2el.ssx",
+        "sha256": "cf95fae08719c0d5649f294a46116636e04e78f14e40447a5cd91878f16a3cab"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.507,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.421,
+        "stderr": "rvm: f77s_dm2el: exit 0 (exit) after 173 frames, 29 system calls, started from the cache\n",
+        "stdout": "  42   5\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42   5",
+      "kind": "positive",
+      "name": "f77s_dm2el",
+      "passed": true,
+      "source": "f77s_dm2el.f",
+      "source_sha256": "28d210b4414aa6027847f684a8b491fc1a4bf6475d2bbf366754de91e768939a"
+    },
+    {
+      "artifact": {
+        "bytes": 1772,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_dm3el.ssx",
+        "sha256": "bbfb5a6230cb413f491f236de54351afea324f7244e32b50bd5c81e5a26baaae"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.518,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.547,
+        "stderr": "rvm: f77s_dm3el: exit 0 (exit) after 175 frames, 28 system calls, started from the cache\n",
+        "stdout": "  42  10   8\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42  10   8",
+      "kind": "positive",
+      "name": "f77s_dm3el",
+      "passed": true,
+      "source": "f77s_dm3el.f",
+      "source_sha256": "e25712e60258a368f709cd09033929735ce72da0a5d54bc2ad802ee50212fa28"
+    },
+    {
+      "artifact": {
+        "bytes": 1368,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_subdata.ssx",
+        "sha256": "a09e2583e464f5e358ca1c6ed01dcbf81a7ee58d105cf45d4ef7253d914b59f5"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.597,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.468,
+        "stderr": "rvm: f77s_subda: exit 0 (exit) after 169 frames, 29 system calls, started from the cache\n",
+        "stdout": "  42\n  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_subdata",
+      "passed": true,
+      "source": "f77s_subdata.f",
+      "source_sha256": "b98481c754dc404ca741d95b15bfbddd1d68e057539bd48b8249d3ed536003e2"
+    },
+    {
+      "artifact": {
+        "bytes": 1519,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_subarr.ssx",
+        "sha256": "1ac26a5658c514665cfcf76ae0843157e05f7c6d5f67e06ad21cca49a9bb3ea7"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.785,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.591,
+        "stderr": "rvm: f77s_subar: exit 0 (exit) after 171 frames, 29 system calls, started from the cache\n",
+        "stdout": "   6\n   6\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "   6",
+      "kind": "positive",
+      "name": "f77s_subarr",
+      "passed": true,
+      "source": "f77s_subarr.f",
+      "source_sha256": "05a0b34ef784b17e8d8874a78923c6c0f3ae17ee3206f1ee10daced4c039188a"
+    },
+    {
+      "artifact": {
+        "bytes": 3554,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_burkcum.ssx",
+        "sha256": "7c196121e3939a0abfa1377d236ff174c5edaab3e8ec0cfab7fc6e34401b65de"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.866,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.535,
+        "stderr": "rvm: f77s_burkc: exit 0 (exit) after 200 frames, 29 system calls, started from the cache\n",
+        "stdout": "   3   6   9  -2   5\n   6  -1   4\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "   3   6   9  -2   5",
+      "kind": "positive",
+      "name": "f77s_burkcum",
+      "passed": true,
+      "source": "f77s_burkcum.f",
+      "source_sha256": "e4f0662516baf199e9a17d177c217ca690f1f272e28812e47a666de899101642"
+    },
+    {
+      "artifact": {
+        "bytes": 2143,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_burkdot.ssx",
+        "sha256": "29f0a12c03bc65ff764fb477d1a6d8d3809c1db97f788d8dba0ab3433f4c261b"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.675,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.447,
+        "stderr": "rvm: f77s_burkd: exit 0 (exit) after 179 frames, 29 system calls, started from the cache\n",
+        "stdout": "  35\n  30\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  35",
+      "kind": "positive",
+      "name": "f77s_burkdot",
+      "passed": true,
+      "source": "f77s_burkdot.f",
+      "source_sha256": "bb7d69df462d7fdb4df303f99ceea5c62bed26a7200a94d6f3423934e9db275a"
+    },
+    {
+      "artifact": {
+        "bytes": 2640,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_burkgcd.ssx",
+        "sha256": "faaf238beb6ad21fbc8a0e4c8e8c33c7ba0331b487e7c44dfa45b57ce4f50046"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.638,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.444,
+        "stderr": "rvm: f77s_burkg: exit 0 (exit) after 187 frames, 28 system calls, started from the cache\n",
+        "stdout": "   2\n   6\n  14\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "  14",
+      "kind": "positive",
+      "name": "f77s_burkgcd",
+      "passed": true,
+      "source": "f77s_burkgcd.f",
+      "source_sha256": "305fb33777677db42dc853cc82b173cd07d6eddda540d61478f862dd219cc1fa"
+    },
+    {
+      "artifact": {
+        "bytes": 1122,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_chdata.ssx",
+        "sha256": "d321b5a824bdaa742fc2749840e5adf5d1a1044a34aa4c9b522980e3382f7ceb"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.715,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.506,
+        "stderr": "rvm: f77s_chdat: exit 0 (exit) after 165 frames, 29 system calls, started from the cache\n",
+        "stdout": "A/B\nAB\nXY\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "XY",
+      "kind": "positive",
+      "name": "f77s_chdata",
+      "passed": true,
+      "source": "f77s_chdata.f",
+      "source_sha256": "4ccb5b8acbe7d045a2f9bde0ee170a761a9e10606660d71a635231dba7769a92"
+    },
+    {
+      "artifact": {
+        "bytes": 935,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_imchar.ssx",
+        "sha256": "938f62260805c9c972226aa404d6066982ee4954e986ddc9841644a0fad6903e"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 2.099,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.507,
+        "stderr": "rvm: f77s_imcha: exit 0 (exit) after 164 frames, 26 system calls, started from the cache\n",
+        "stdout": "A/B\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "A/B",
+      "kind": "positive",
+      "name": "f77s_imchar",
+      "passed": true,
+      "source": "f77s_imchar.f",
+      "source_sha256": "de2f38f3e03679fb79d1f3178f07e04d8e7623a2b5aee77ab0c1136fdec27d5e"
+    },
+    {
+      "artifact": {
+        "bytes": 1076,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_charg.ssx",
+        "sha256": "b625ba14a66d45d5950cc312dfc0052d4f8e24a7baf92e5f2631ca2aad66c888"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.619,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.421,
+        "stderr": "rvm: f77s_charg: exit 0 (exit) after 164 frames, 29 system calls, started from the cache\n",
+        "stdout": "HI\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "HI",
+      "kind": "positive",
+      "name": "f77s_charg",
+      "passed": true,
+      "source": "f77s_charg.f",
+      "source_sha256": "733f97fcd83346c2ac15d22bc8f2a4ae0e2cfac4daed74ba30a7752af47a523c"
+    },
+    {
+      "artifact": {
+        "bytes": 2535,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_charray.ssx",
+        "sha256": "f3555342cb2a21857e89ae57afe99698012cd17e7f2327397319efee4ada713b"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.543,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.51,
+        "stderr": "rvm: f77s_charr: exit 0 (exit) after 186 frames, 29 system calls, started from the cache\n",
+        "stdout": "AB C\nXY OK\nABCD\nABEF\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "XY OK",
+      "kind": "positive",
+      "name": "f77s_charray",
+      "passed": true,
+      "source": "f77s_charray.f",
+      "source_sha256": "d7377c61b11654059faf36b1997686d89e70a67b80992d6b298a97d70c476026"
+    },
+    {
+      "artifact": {
+        "bytes": 1660,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_chdummy.ssx",
+        "sha256": "cb8f79d9b2436935dea1624def0ba6d9ebce16daf2f2636461ddc25d3e6080ea"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.778,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.409,
+        "stderr": "rvm: f77s_chdum: exit 0 (exit) after 172 frames, 29 system calls, started from the cache\n",
+        "stdout": "XY CC HI\nEE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "XY CC HI",
+      "kind": "positive",
+      "name": "f77s_chdummy",
+      "passed": true,
+      "source": "f77s_chdummy.f",
+      "source_sha256": "efaacb65049a6ee7ee706f34b2555dec31a6f65973e3906a7b86d8b422424f10"
+    },
+    {
+      "artifact": {
+        "bytes": 1522,
+        "file": "/tmp/rfortranc-tests-hmen557l/f77s_arrread.ssx",
+        "sha256": "95c50ea6221518847ee9f9c40d65ac64f47f498734836cccc45627de2f7fbc4f"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.643,
+        "stderr": "",
+        "stdout": ""
+      },
+      "emulator": {
+        "exit_code": 0,
+        "seconds": 1.6,
+        "stderr": "rvm: f77s_arrre: exit 0 (exit) after 190 frames, 36 system calls, started from the cache\n",
+        "stdout": "NO XYZ\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_output_contains": "NO XYZ",
+      "kind": "positive",
+      "name": "f77s_arrread",
+      "passed": true,
+      "source": "f77s_arrread.f",
+      "source_sha256": "48363e7eecbba4195c9e244fe579fbf482338bf47eaaa42e6d39e76d5b998b82"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.948,
+        "stderr": "rfortranc: line 3: undefined statement label: 70\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "undefined-label",
+      "passed": true,
+      "source_sha256": "2114dc8a838a16d4b205efc880ade3018321ea8755f2cf01914d3baad7f2eaba"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.926,
+        "stderr": "rfortranc: line 2: undeclared variable: N\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "undefined-variable",
+      "passed": true,
+      "source_sha256": "89872835237ace69c8c7dc01e635f0707bf9e9caa3bf9466dd0ddae8b52079ec"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.992,
+        "stderr": "rfortranc: line 2: FORMAT requires a statement label\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "unsupported-format",
+      "passed": true,
+      "source_sha256": "0dec6fbf3ac38d761cb59eda1936a3bd7a5f471cb3a0f997af8a23ae7806e617"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.952,
+        "stderr": "rfortranc: line 3: READ requires an INTEGER variable\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "real-read",
+      "passed": true,
+      "source_sha256": "55f34f46bc083329e7b82ec90313ac32ed51b387b5c849ed3ba333e22d64817c"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.881,
+        "stderr": "rfortranc: line 4: undefined statement label: 30\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "arithmetic-undefined-target",
+      "passed": true,
+      "source_sha256": "577ad329aedb12100f8b2ddd246c2a91a4290ec11188a99d9381bc5536db80e3"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.829,
+        "stderr": "rfortranc: line 4: undefined statement label: 20\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "computed-undefined-target",
+      "passed": true,
+      "source_sha256": "9f18d349d56a664cc17272289a9052a069cb9ed16668a0635e4b25b78757f955"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.9,
+        "stderr": "rfortranc: line 4: computed GO TO selector must be INTEGER\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "computed-real-selector",
+      "passed": true,
+      "source_sha256": "fec1401b8107eb47dc9d7afb4a4a6b0154d0b36c55048a5f26e324486e26177c"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.769,
+        "stderr": "rfortranc: line 4: undefined FORMAT label: 10\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "write-undefined-format",
+      "passed": true,
+      "source_sha256": "2aa41df0c6aeb635ee98ec644bd8475f5c8b6a6b4212a4b753bbf9fd9e393dd8"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.883,
+        "stderr": "rfortranc: line 5: unsupported FORMAT descriptor: F8.2\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "write-bad-descriptor",
+      "passed": true,
+      "source_sha256": "9265719c973bee1d5e0826c8d6a7fd40efb00a16e6b7a668f96360286945a888"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.762,
+        "stderr": "rfortranc: line 3: DATA INTEGER value outside ZX-UX 16-bit range: 32768\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "data-int-overflow",
+      "passed": true,
+      "source_sha256": "3136cd667a6355d714ab52fe4114a87d016e4d6427db4b22bc13a4e98483f144"
+    },
+    {
+      "artifact": {
+        "bytes": 756,
+        "file": "/tmp/rfortranc-tests-hmen557l/hello.tzx",
+        "sha256": "431963e5fe9bdd421d6b6c727c92c40a64fd58531e0217c2f680f8548074a0bd"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 2.478,
+        "stderr": "",
+        "stdout": "hello        715 bytes, needs  1034\n"
+      },
+      "kind": "packaging",
+      "name": "tzx",
+      "passed": true
+    }
+  ],
+  "driver_sha256": {
+    "bytes": 5237,
+    "file": "/mnt/data/rfortranc-chardummies/rfortranc/rfortranc/driver.py",
+    "sha256": "89f0304b5cb89c4b2e0a460e7bffc23775a26715dd274ddeae98cb9a01c72e5d"
+  },
+  "frontend_sha256": {
+    "bytes": 62771,
+    "file": "/mnt/data/rfortranc-chardummies/rfortranc/rfortranc/translator.py",
+    "sha256": "2c4729239f9b5c0248211d7fb41b90e14b6a98d86f4095ac4fcad23093298049"
+  },
+  "inputs": {
+    "assembler": {
+      "bytes": 30360,
+      "file": "/mnt/data/zxuxsdk-work/src/zx-ux-sdk/ras.py",
+      "sha256": "4b357c39e634eeb0c80e4406851c0ed579c9440365c930acc597aaa569b2be4d"
+    },
+    "compiler": {
+      "bytes": 10093,
+      "file": "/mnt/data/zxuxsdk-work/src/zx-ux-sdk/rcc/driver.py",
+      "sha256": "c286eb832019e3d098a01c5c167d4ac6614c75214462ddffa29ad77e08a51bf7"
+    },
+    "libc48": {
+      "bytes": 38112,
+      "file": "/mnt/data/zxuxsdk-work/src/zx-ux-sdk/lib/libc48.ssa",
+      "sha256": "b79354ef8580a2888caadff7d8bcc334adc31ba3ee545292fb8c5758d479e191"
+    },
+    "linker": {
+      "bytes": 10298,
+      "file": "/mnt/data/zxuxsdk-work/src/zx-ux-sdk/rld.py",
+      "sha256": "1b7e2bf5b74508b0fa24e4e222aeb45f9c37241b468f3eb82ec962bd7400043f"
+    },
+    "rvm": {
+      "bytes": 176,
+      "file": "/mnt/data/zxuxsdk-work/dist/sdk/bin/rvm",
+      "sha256": "e7cfb59b6c76e49faf4a0876520e44d3fcb34a5d9bce45831ae0d25242cc7830"
+    },
+    "sdk_archive": {
+      "bytes": 4416262,
+      "file": "/mnt/data/minizxuxport.zip",
+      "sha256": "42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17"
+    },
+    "sdk_path": "/mnt/data/zxuxsdk-work/src/zx-ux-sdk",
+    "tape": {
+      "bytes": 12035,
+      "file": "/mnt/data/zxuxsdk-work/src/zx-ux-sdk/rtap.py",
+      "sha256": "a9dec2f7504dc50e703f4d1b0d49ac67e403dc696ab1f5d50aa896973c4e4ee1"
+    }
+  },
+  "mode": "sdk+emulator",
+  "options": {
+    "rvm_frames": 1000,
+    "timeout_seconds": 120
+  },
+  "platform": "Linux-6.18.55-x86_64-with-glibc2.41",
+  "python": "3.13.5",
+  "result": {
+    "failed": 0,
+    "failed_cases": [],
+    "passed": 80,
+    "total": 80
+  },
+  "schema": 1,
+  "tool": "rfortranc"
+}
