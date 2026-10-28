@@ -79,6 +79,8 @@ python rfortranc/tools/release.py --sdk /path/to/src/zx-ux-sdk \
   --native --out /tmp/rfortranc-dist --only hello byref
 ```
 
+Strict F77S mode now accepts separate fixed-bound DIMENSION declarations (up to 3 ranks), with implicit INTEGER/REAL typing; dummy adjustable arrays remain unsupported.
+
 The implemented FORMAT Iw/X/slash/literal subset accepts bounded repeat counts and nested groups (three parenthesis levels total).
 This is still a **partial F77S FORMAT implementation**, not full subset certification.
 

@@ -44,6 +44,7 @@ PROGRAMS = {
     'f77s_3d': ' 11',
     'f77s_read': '  49',
     'f77s_repeat': '  18',
+    'f77s_dim': '  42',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',

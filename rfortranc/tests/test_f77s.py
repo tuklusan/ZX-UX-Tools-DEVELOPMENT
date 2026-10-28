@@ -78,6 +78,26 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaises(FortranError):
             parse(src, std='f77s')
 
+    def test_dimension_separate_declaration(self):
+        src=(ROOT/'tests/fortran/f77s_dim.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('int F_K[6];', c)
+        self.assertIn('f_index(F_I, 2)', c)
+        self.assertIn('f_index(F_J, 3)', c)
+
+    def test_dimension_duplicate_rejected(self):
+        src='      PROGRAM DIMT\n      INTEGER K(2)\n      DIMENSION K(3)\n      END\n'
+        with self.assertRaises(FortranError):
+            parse(src,std='f77s')
+
+    def test_dimension_dummy_array_diagnostic(self):
+        src='      PROGRAM DIMT\n      CALL SUB(1)\n      END\n' \
+            + '      SUBROUTINE SUB(K)\n      DIMENSION K(3)\n      END\n'
+        with self.assertRaises(FortranError):
+            parse(src,std='f77s')
+
     def test_2d_column_major_flattening(self):
         src=(ROOT/'tests/fortran/f77s_2d.f').read_text()
         units=parse(src,std='f77s')

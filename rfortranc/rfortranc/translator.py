@@ -233,6 +233,41 @@ def parse(source, std='zxux'):
                 if name in u.vars and name not in u.args and name != u.name:
                     raise FortranError(st.line, 'duplicate declaration: ' + name)
                 u.vars[name] = (ty, size)
+    # ANSI F77S DIMENSION may appear independently of INTEGER/REAL/LOGICAL.
+    # Fixed-size arrays are implemented; adjustable/assumed-size dummy arrays
+    # are deliberately diagnosed rather than silently miscompiled.
+    for u in units:
+        implicit_types = None
+        for st in u.statements:
+            dim_statement = re.fullmatch(r'DIMENSION\s+(.+)', st.text)
+            if not dim_statement:
+                continue
+            for spec in split_items(dim_statement.group(1)):
+                var = re.fullmatch(r'(' + NAME + r')\s*\(\s*(\d+(?:\s*,\s*\d+){0,2})\s*\)', spec)
+                if not var:
+                    raise FortranError(st.line, 'unsupported DIMENSION specification: ' + spec)
+                name, counts = var.groups()
+                dims = tuple(int(d.strip()) for d in counts.split(','))
+                from .arrays import size as total_extent
+                if any(d < 1 or d > 32767 for d in dims) or total_extent(dims) > 32767:
+                    raise FortranError(st.line, 'DIMENSION extent or total size out of bounds')
+                if name in u.args:
+                    raise FortranError(st.line, 'dummy DIMENSION arrays not yet supported: ' + name)
+                if name == u.name:
+                    raise FortranError(st.line, 'DIMENSION cannot apply to function result')
+                present = u.vars.get(name)
+                if present and present[1] is not None:
+                    raise FortranError(st.line, 'duplicate array dimensions: ' + name)
+                if present:
+                    ty = present[0]
+                elif std == 'f77s':
+                    if implicit_types is None:
+                        from .implicit import mapping
+                        implicit_types = mapping(u.statements)
+                    ty = implicit_types[name[0]]
+                else:
+                    raise FortranError(st.line, 'DIMENSION needs an explicitly typed name: ' + name)
+                u.vars[name] = (ty, dims[0] if len(dims) == 1 else dims)
     if std == 'f77s':
         from .implicit import infer
         known = set(names)
@@ -674,7 +709,7 @@ def convert(units):
                 return
             if s.startswith(UNSUPPORTED):
                 raise FortranError(line, 'unsupported FORTRAN statement: ' + s.split()[0])
-            if re.match(r'^(INTEGER|REAL|LOGICAL|IMPLICIT)\s+', s) or s == 'IMPLICIT NONE':
+            if re.match(r'^(INTEGER|REAL|LOGICAL|IMPLICIT|DIMENSION)\s+', s) or s == 'IMPLICIT NONE':
                 return
             if s == 'CONTINUE':
                 return
