@@ -555,4 +555,31 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaises(FortranError):
             convert(parse(source, std='f77s'))
 
+    def test_implicit_character_data(self):
+        source = (ROOT/'tests/fortran/f77s_imchar.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        self.assertEqual(units[0].vars['C'], ('CHARACTER*5', None))
+        generated = convert(units)
+        self.assertIn('char F_C[6];', generated)
+        self.assertIn('f_char_copy(F_C, 5, "A/B");', generated)
+
+    def test_mixed_implicit_character_and_integer_ranges(self):
+        source = ("      PROGRAM MIXED\n"
+                  "      IMPLICIT CHARACTER*2 (A-B), INTEGER (C-D)\n"
+                  "      A='HELLO'\n      C=42\n"
+                  "      WRITE(6,10) A\n      WRITE(6,20) C\n"
+                  "   10 FORMAT(A2)\n   20 FORMAT(I4)\n      END\n")
+        units = parse(source, std='f77s')
+        self.assertEqual(units[0].vars['A'], ('CHARACTER*2', None))
+        self.assertEqual(units[0].vars['C'], ('INTEGER', None))
+        self.assertIn('f_char_copy(F_A, 2, "HELLO");', convert(units))
+
+    def test_implicit_character_bad_width(self):
+        for width in (0, 256):
+            source = ('      PROGRAM BAD\n      IMPLICIT CHARACTER*'
+                      + str(width) + ' (C)\n      C=\'AB\'\n      END\n')
+            with self.subTest(width=width), self.assertRaises(FortranError):
+                convert(parse(source, std='f77s'))
+
 if __name__=='__main__': unittest.main()
