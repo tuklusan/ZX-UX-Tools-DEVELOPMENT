@@ -410,6 +410,60 @@ static void f_outintw(int value, int width) {
         f_outint(value);
     }
 }
+/* ANSI F77S formatted INTEGER input (limited Iw/X/slash subset).
+   Fields are blank-padded to the end of each input record. */
+static int f_fmt_eor;
+static int f_fmt_get(void) {
+    int ch;
+    if (f_fmt_eor) return ' ';
+    ch = getchar();
+    if (ch == 10 || ch == 13 || ch < 0) {
+        f_fmt_eor = 1;
+        return ' ';
+    }
+    return ch;
+}
+static void f_fmt_skip(int width) {
+    int i;
+    for (i = 0; i < width; i++) f_fmt_get();
+}
+static int f_fmt_int(int width) {
+    int i;
+    int ch;
+    int sign;
+    int digits;
+    int signed_seen;
+    int value;
+    int digit;
+    sign = 1;
+    digits = 0;
+    signed_seen = 0;
+    value = 0;
+    for (i = 0; i < width; i++) {
+        ch = f_fmt_get();
+        if (ch == ' ') continue;
+        if ((ch == '-' || ch == '+') && !digits && !signed_seen) {
+            if (ch == '-') sign = -1;
+            else sign = 1;
+            signed_seen = 1;
+            continue;
+        }
+        if (ch < '0' || ch > '9') exit(2);
+        digit = ch - '0';
+        if (value > 3276 || (value == 3276 && ((sign < 0 && digit > 8) || (sign >= 0 && digit > 7)))) exit(2);
+        value = value * 10 + digit;
+        digits = 1;
+    }
+    return value * sign;
+}
+static void f_fmt_end(void) {
+    int ch;
+    if (!f_fmt_eor) {
+        ch = getchar();
+        while (ch >= 0 && ch != 10 && ch != 13) ch = getchar();
+    }
+    f_fmt_eor = 0;
+}
 static int f_inint(void) {
     int ch;
     int sign;
@@ -555,6 +609,40 @@ def convert(units):
                 if pos != len(values):
                     raise FortranError(line, 'WRITE has more items than FORMAT')
                 operations.append('putchar(10);')
+                add(operations)
+                return
+            fm = re.fullmatch(r'READ\s*\(\s*(5|\*)\s*,\s*(\d{1,5})\s*\)\s*(.*)', s)
+            if fm:
+                _, format_label, arguments = fm.groups()
+                format_label = str(int(format_label))
+                if format_label not in formats:
+                    raise FortranError(line, 'undefined FORMAT label: ' + format_label)
+                values = split_items(arguments) if arguments.strip() else []
+                operations = []
+                pos = 0
+                for mode, item in formats[format_label]:
+                    if mode == 'space':
+                        operations.append('f_fmt_skip(' + str(item) + ');')
+                    elif mode == 'newline':
+                        operations.append('f_fmt_end();')
+                    elif mode == 'integer':
+                        if pos == len(values):
+                            raise FortranError(line, 'READ has fewer items than FORMAT')
+                        arg = values[pos]
+                        target = re.fullmatch(r'(' + NAME + r')(?:\s*\(([^()]*)\))?', arg)
+                        if not target:
+                            raise FortranError(line, 'formatted READ item must be a variable/array element')
+                        ty = u.vars.get(target.group(1))
+                        if not ty or ty[0] != 'INTEGER' or (ty[1] is not None) != (target.group(2) is not None):
+                            raise FortranError(line, 'FORMAT I requires INTEGER scalar/array element')
+                        dest = E(arg, line)
+                        operations.append(dest + ' = f_fmt_int(' + str(item) + ');')
+                        pos += 1
+                    else:
+                        raise FortranError(line, 'unsupported FORMAT descriptor for READ: ' + mode)
+                if pos != len(values):
+                    raise FortranError(line, 'READ has more items than FORMAT')
+                operations.append('f_fmt_end();')
                 add(operations)
                 return
             if s.startswith(UNSUPPORTED):

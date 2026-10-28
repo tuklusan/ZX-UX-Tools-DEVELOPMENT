@@ -63,7 +63,7 @@ passed by reference; expression/literal actuals are copied to temporary storage
 
 **Not production grade.** F77S-required features still missing or incomplete include
 COMMON/EQUIVALENCE, DIMENSION, CHARACTER, array dummy arguments,
-full DATA storage lifetime, formatted READ and full numeric/REAL I/O.
+full DATA storage lifetime, full formatted READ semantics and REAL/CHARACTER I/O.
 Implicit typing, 3D arrays and DATA are partially implemented. Unsupported syntax fails with
 an explicit diagnostic rather than generating misleading machine code.
 
@@ -100,3 +100,5 @@ DATA statements: integer/logical/real scalar and fixed 1D/2D/3D array initializa
 ANSI subset `--std f77s` now implements default I–N INTEGER / other-letter REAL variables and `IMPLICIT INTEGER/REAL/LOGICAL` letter ranges. Default `zxux` mode still requires explicit declarations. Cross-check tests `f77s_implicit.f` and `f77s_real.f` compile to SSX and match gfortran output; see `tests/compare_f77s.py`.
 
 Fixed-size 2D/3D arrays are checked against host gfortran in `tests/fortran/f77s_2d.f` and `f77s_3d.f`. They use column-major flattened C48 storage; variable dimension bounds and array dummy arguments are not yet implemented.
+
+Formatted `READ(5,label)` now supports integer `Iw`, `X` and `/` descriptors with fixed-width numeric parsing, input record alignment, blank padding and 16-bit range checks. It is **partial**; REAL/CHARACTER input, BN/BZ controls and general formatted input are still missing. Host `rvm --keys` supplies input for ZX-UX tests.

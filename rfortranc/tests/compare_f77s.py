@@ -14,16 +14,18 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-CASES = {'f77s_fmt': ['  42'], 'f77s_data': ['  9', '  2'], 'f77s_implicit': ['  3', '  7'], 'f77s_real': ['  2'], 'f77s_2d': ['  43'], 'f77s_3d': [' 11']}
+CASES = {'f77s_fmt': ['  42'], 'f77s_data': ['  9', '  2'], 'f77s_implicit': ['  3', '  7'], 'f77s_real': ['  2'], 'f77s_2d': ['  43'], 'f77s_3d': [' 11'], 'f77s_read': ['  49']}
 
+
+INPUTS = {'f77s_read': '0042 007\n'}
 
 def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def execute(cmd, timeout=60):
+def execute(cmd, timeout=60, input_text=None):
     try:
-        p = subprocess.run(cmd, text=True, capture_output=True, timeout=timeout)
+        p = subprocess.run(cmd, text=True, capture_output=True, timeout=timeout, input=input_text)
         return {'argv': [str(x) for x in cmd], 'exit_code': p.returncode,
                 'stdout': p.stdout, 'stderr': p.stderr}
     except subprocess.TimeoutExpired as e:
@@ -63,13 +65,16 @@ def main():
                                   '-o',str(target),str(src)])
             compile_host = execute(['gfortran','-std=legacy','-ffixed-form',
                                     '-o',str(host),str(src)])
-            zx = execute([sys.executable, a.rvm,'--headless','--text','--frames','1000',str(target)],
-                         60) if compile_zx['exit_code'] == 0 and target.exists() else None
-            reference = execute([str(host)]) if compile_host['exit_code'] == 0 else None
+            zx_cmd = [sys.executable, a.rvm,'--headless','--text','--frames','1000']
+            if name in INPUTS:
+                zx_cmd += ['--keys', INPUTS[name]]
+            zx_cmd.append(str(target))
+            zx = execute(zx_cmd, 60) if compile_zx['exit_code'] == 0 and target.exists() else None
+            reference = execute([str(host)], input_text=INPUTS.get(name)) if compile_host['exit_code'] == 0 else None
             case = {'name': name, 'source_sha256': digest(src),
                     'ssx_sha256': digest(target) if target.exists() else None,
                     'ssx_bytes': target.stat().st_size if target.exists() else None,
-                    'expected_lines': expectation, 'compile_zx': compile_zx,
+                    'expected_lines': expectation, 'stdin': INPUTS.get(name), 'compile_zx': compile_zx,
                     'compile_gfortran': compile_host,'zxux_run': zx, 'gfortran_run': reference}
             case['passed'] = bool(zx and reference and compile_zx['exit_code'] == 0
                                   and compile_host['exit_code'] == 0

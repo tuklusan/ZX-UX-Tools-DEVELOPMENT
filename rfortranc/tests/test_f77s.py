@@ -100,6 +100,21 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaises(FortranError):
             parse(src,std='f77s')
 
+    def test_formatted_read_two_fields(self):
+        src=(ROOT/'tests/fortran/f77s_read.f').read_text()
+        units=parse(src, std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('F_N = f_fmt_int(4);', c)
+        self.assertIn('f_fmt_skip(1);', c)
+        self.assertIn('F_M = f_fmt_int(3);', c)
+
+    def test_formatted_read_rejects_real_target(self):
+        self.check(['REAL A','READ(5,10) A','10 FORMAT(I4)'],False)
+
+    def test_formatted_read_rejects_unsupported_literal(self):
+        self.check(['INTEGER N','READ(5,10) N',"10 FORMAT('HELLO',I4)"],False)
+
     def test_free_form_rejected(self):
         src='PROGRAM F77S\nINTEGER I\nEND\n'
         with self.assertRaises(FortranError):

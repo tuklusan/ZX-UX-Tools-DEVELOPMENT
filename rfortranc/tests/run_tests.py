@@ -42,6 +42,7 @@ PROGRAMS = {
     'f77s_real': '  2',
     'f77s_2d': '  43',
     'f77s_3d': ' 11',
+    'f77s_read': '  49',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',
@@ -148,8 +149,12 @@ def main(argv=None):
                     'expected_output_contains': expected,
                     'compile': result, 'artifact': artifact}
             if valid and args.rvm and not args.frontend_only:
-                emu = command([sys.executable, args.rvm, '--headless', '--text',
-                               '--frames', str(args.rvm_frames), str(binary)], args.timeout)
+                emu_argv = [sys.executable, args.rvm, '--headless', '--text',
+                            '--frames', str(args.rvm_frames)]
+                if name == 'f77s_read':
+                    emu_argv += ['--keys', '0042 007\n']
+                emu_argv += [str(binary)]
+                emu = command(emu_argv, args.timeout)
                 valid = (emu['exit_code'] == 0 and '(exit)' in emu['stderr']
                          and expected in emu['stdout'])
                 case['emulator'] = emu
