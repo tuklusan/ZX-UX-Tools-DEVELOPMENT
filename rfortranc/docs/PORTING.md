@@ -60,3 +60,7 @@ ZX-UX kernel, runtime archive, ROM, or original EWVM compiler.
 ## F77S array-element storage sequence checkpoint
 
 Fixed-size dummy numeric arrays now accept a constant-subscript actual array element, as in `CALL SUB(A(3))`, passing the address of that element and the subsequent column-major storage. Static extent checks reject actuals with fewer trailing elements than the dummy needs. A variable-index element actual is now evaluated once and checked against the remaining tail extent at runtime, exiting with status 2 if the dummy would extend past its parent array. `f77s_dmseq.f` tests this with actual gfortran and ZX-UX SSX/RVM execution.
+
+## Adjustable 1D numeric dummy argument milestone
+
+For `SUBROUTINE S(N,A)` with `INTEGER N,A(N)` or `DIMENSION A(N)`, generated C48 receives `int *F_N`, `int *F_A`, and an extra `int F__LEN_A` (the actual storage capacity). `A(*)` uses the capacity alone. Every one-based subscript checks its declared bound and actual capacity with `f_extent`/`f_index`; the caller uses `f_seqcheck` to ensure the declared adjustable bound fits its remaining array extent. Element actuals like `A(I)` compute their start offset once. This is an intentionally limited F77S subset: only one adjustable dimension is supported, and adjusted FUNCTION dummy arrays remain rejected; multi-rank adjustable bounds are still a required task.

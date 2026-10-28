@@ -63,6 +63,10 @@ PROGRAMS = {
     'f77s_burksort': '  -1',
     'f77s_dmseq': '  42',
     'f77s_dmidx': '  42',
+    'f77s_dmadj': '  42',
+    'f77s_dmstar': '  38',
+    'f77s_dmalt': '   9',
+    'f77s_burkadj': '  28',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',

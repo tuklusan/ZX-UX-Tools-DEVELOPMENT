@@ -39,3 +39,5 @@ adaptation of a publicly released numerical subroutine, not an FCVS
 conformance certificate. Expected PRIME_NUMBER counts from original source:
 N=10 -> 4 and N=100 -> 25. The differential harness checks the entire
 actual RVM output against an independently compiled host gfortran run.
+
+| [John Burkardt `i4lib/i4lib.f`](https://github.com/johannesgerer/jburkardt-f77/blob/master/i4lib/i4lib.f), `I4VEC_REVERSE` and `I4VEC_SUM` | `e0a7be6024463bc0d34ec036080d875ed66f4c31` | [`../fortran/f77s_burkadj.f`](../fortran/f77s_burkadj.f) | **GNU LGPL**. Generalized the previous fixed-extent port to F77S adjustable `A(N)` dummy arrays; renames to 6-letter `REVRSE` and `SUMVEC`, converts `DO` into labelled INTEGER-bound loops and `I4VEC_SUM` to result-by-reference. Host gfortran and real ZX-UX output checked for N=5 and N=7. |

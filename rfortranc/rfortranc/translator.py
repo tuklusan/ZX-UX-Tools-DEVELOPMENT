@@ -29,7 +29,7 @@ class Unit:
     args: list[str] = field(default_factory=list)
     type: str = 'INTEGER'
     statements: list[Statement] = field(default_factory=list)
-    vars: dict[str, tuple[str, int | tuple[int, ...] | None]] = field(default_factory=dict)
+    vars: dict[str, tuple[str, int | tuple[int | str, ...] | None]] = field(default_factory=dict)
     temps: list[tuple[str, str]] = field(default_factory=list)
 
 
@@ -226,18 +226,13 @@ def parse(source, std='zxux'):
                     raise FortranError(st.line, 'F77S CHARACTER length must be 1..255')
                 ty = 'CHARACTER*' + str(width)
             for spec in split_items(rest):
-                var = re.fullmatch(r'(' + NAME + r')(?:\s*\(\s*(\d+(?:\s*,\s*\d+){0,2})\s*\))?', spec)
+                var = re.fullmatch(r'(' + NAME + r')(?:\s*\(\s*([^()]*)\s*\))?', spec)
                 if not var:
                     raise FortranError(st.line, 'unsupported declaration: ' + spec)
                 name, count = var.groups()
                 if ty.startswith('CHARACTER*') and count:
                     raise FortranError(st.line, 'CHARACTER arrays are not yet implemented')
-                dims = tuple(int(d.strip()) for d in count.split(',')) if count else None
-                if dims is not None:
-                    from .arrays import size as total_extent
-                    if any(not 1 <= d <= 32767 for d in dims) or total_extent(dims) > 32767:
-                        raise FortranError(st.line, 'array extent or total size out of bounds')
-                size = dims[0] if dims is not None and len(dims) == 1 else dims
+                size = parse_dims(count, name, u, st.line) if count is not None else None
                 if name in u.vars and name not in u.args and name != u.name:
                     raise FortranError(st.line, 'duplicate declaration: ' + name)
                 u.vars[name] = (ty, size)
@@ -251,14 +246,11 @@ def parse(source, std='zxux'):
             if not dim_statement:
                 continue
             for spec in split_items(dim_statement.group(1)):
-                var = re.fullmatch(r'(' + NAME + r')\s*\(\s*(\d+(?:\s*,\s*\d+){0,2})\s*\)', spec)
+                var = re.fullmatch(r'(' + NAME + r')\s*\(\s*([^()]*)\s*\)', spec)
                 if not var:
                     raise FortranError(st.line, 'unsupported DIMENSION specification: ' + spec)
                 name, counts = var.groups()
-                dims = tuple(int(d.strip()) for d in counts.split(','))
-                from .arrays import size as total_extent
-                if any(d < 1 or d > 32767 for d in dims) or total_extent(dims) > 32767:
-                    raise FortranError(st.line, 'DIMENSION extent or total size out of bounds')
+                dims = parse_dims(counts, name, u, st.line)
                 if name == u.name:
                     raise FortranError(st.line, 'DIMENSION cannot apply to function result')
                 present = u.vars.get(name)
@@ -273,14 +265,63 @@ def parse(source, std='zxux'):
                     ty = implicit_types[name[0]]
                 else:
                     raise FortranError(st.line, 'DIMENSION needs an explicitly typed name: ' + name)
-                u.vars[name] = (ty, dims[0] if len(dims) == 1 else dims)
+                u.vars[name] = (ty, dims)
     if std == 'f77s':
         from .implicit import infer
         known = set(names)
         for u in units:
             infer(u, known)
+    for u in units:
+        for name, (ty, dims) in u.vars.items():
+            if dynamic_extent(dims):
+                bound = dims[0]
+                if bound != '*' and u.vars.get(bound) != ('INTEGER', None):
+                    raise FortranError(u.line, 'adjustable array bound must be INTEGER scalar dummy: ' + bound)
+                if u.kind == 'function':
+                    raise FortranError(u.line, 'adjustable FUNCTION dummy arrays not yet implemented')
     return units
 
+
+
+
+def parse_dims(spec, name, unit, line):
+    """Constant extents or a restricted ANSI F77S numeric dummy extent.
+
+    The current adjustable subset accepts one-dimensional A(N) and A(*).
+    Anything more involved is rejected rather than silently miscompiled.
+    """
+    pieces = [p.strip() for p in spec.split(',')]
+    if len(pieces) > 3 or not pieces or any(not p for p in pieces):
+        raise FortranError(line, 'bad array rank or dimensions: ' + spec)
+    if all(re.fullmatch(r'\d+', p) for p in pieces):
+        dims = tuple(int(p) for p in pieces)
+        from .arrays import size as total_extent
+        if any(d < 1 or d > 32767 for d in dims) or total_extent(dims) > 32767:
+            raise FortranError(line, 'array extent or total size out of bounds')
+        return dims[0] if len(dims) == 1 else dims
+    if len(pieces) != 1 or name not in unit.args:
+        raise FortranError(line, 'adjustable/assumed size only supported for 1D dummy arrays')
+    value = pieces[0]
+    if value != '*' and (not NAME_RE.fullmatch(value) or value not in unit.args or value == name):
+        raise FortranError(line, 'adjustable bound must be a scalar dummy argument: ' + value)
+    return (value,)
+
+
+def dynamic_extent(dims):
+    return isinstance(dims, tuple) and len(dims) == 1 and isinstance(dims[0], str)
+
+
+def array_subscript(indices, name, unit, line):
+    """Generate a checked offset, including a real caller storage ceiling."""
+    dims = unit.vars[name][1]
+    if dynamic_extent(dims):
+        if len(indices) != 1:
+            raise FortranError(line, 'dummy array requires one subscript')
+        bound = dims[0]
+        limit = 'F__LEN_' + name if bound == '*' else 'f_extent((*F_' + bound + '), F__LEN_' + name + ')'
+        return 'f_index(' + indices[0] + ', ' + limit + ')'
+    from .arrays import offset
+    return offset(indices, dims, line)
 
 TOKENS = re.compile(r"\s*(?:((?:\d+(?:\.\d*)?|\.\d+)(?:[ED][+-]?\d+)?)|(\.[A-Z]+\.)|([A-Z][A-Z0-9_]*)|(\*\*|[+\-*/(),]))", re.I)
 PRECEDENCE = {'.OR.': 1, '.AND.': 2, '.EQ.': 3, '.NE.': 3, '.LT.': 3,
@@ -347,8 +388,7 @@ class Expr:
                 if self.pop() != ')':
                     raise FortranError(self.line, 'bad function or array argument list')
                 if t in self.unit.vars and self.unit.vars[t][1] is not None:
-                    from .arrays import offset
-                    lhs = 'F_' + t + '[' + offset(params, self.unit.vars[t][1], self.line) + ']'
+                    lhs = 'F_' + t + '[' + array_subscript(params, t, self.unit, self.line) + ']'
                 elif t == 'MOD' and len(params) == 2:
                     lhs = '((' + params[0] + ') % (' + params[1] + '))'
                 elif t in self.known and self.known[t].kind == 'function':
@@ -411,6 +451,11 @@ static int f_index(int n, int size) {
 static int f_seqcheck(int start, int total, int needed) {
     if (start < 0 || needed < 1 || start > total - needed) exit(2);
     return start;
+}
+/* Dynamic dummy bounds may be smaller than the caller's actual storage. */
+static int f_extent(int declared, int available) {
+    if (declared < 1 || declared > available) exit(2);
+    return declared;
 }
 static int f_ipow(int base, int e) {
     int n;
@@ -676,15 +721,19 @@ def convert(units):
     common_decls, common_uses = layout(units)
     chunks = [RUNTIME] + common_decls
     ctype = lambda ty: 'float' if ty == 'REAL' else 'int'
+    def signature(u):
+        args = [ctype(u.vars[a][0]) + ' *F_' + a for a in u.args]
+        args.extend('int F__LEN_' + a for a in u.args if dynamic_extent(u.vars[a][1]))
+        return ', '.join(args) or 'void'
     for u in units:
         if u.kind != 'program':
             ty = 'void' if u.kind == 'subroutine' else ctype(u.type)
-            sig = ', '.join(ctype(u.vars[a][0]) + ' *F_' + a for a in u.args) or 'void'
+            sig = signature(u)
             chunks.append(ty + ' f_' + u.name + '(' + sig + ');')
     for u in units:
         is_main = u.kind == 'program'
         ret = 'int' if is_main else 'void' if u.kind == 'subroutine' else ctype(u.type)
-        sig = 'void' if is_main or not u.args else ', '.join(ctype(u.vars[a][0]) + ' *F_' + a for a in u.args)
+        sig = 'void' if is_main else signature(u)
         name = 'main' if is_main else 'f_' + u.name
         u.temps = []
         output = [ret + ' ' + name + '(' + sig + ') {']
@@ -702,6 +751,8 @@ def convert(units):
                     decl('char F_' + var + '[' + str(int(ty.split('*')[1]) + 1) + '];')
                 else:
                     decl(ctype(ty) + ' F_' + var + (('[' + str(total_extent(n)) + ']') if n else '') + ';')
+        extra_decls = []
+        local_decl_index = len(output)
         decl('int f_pc;')
         if u.kind == 'function':
             decl('F_' + u.name + ' = 0;')
@@ -867,6 +918,8 @@ def convert(units):
                 if len(args) != len(known[f].args):
                     raise FortranError(line, 'SUBROUTINE argument count mismatch')
                 refs = []
+                prelude = []
+                extra_capacity = []
                 for actual, dummy in zip(args, known[f].args):
                     ty, dims = known[f].vars[dummy]
                     actual = actual.strip()
@@ -890,26 +943,58 @@ def convert(units):
                         if info[0] != ty:
                             raise FortranError(line, 'array argument type mismatch: ' + actual)
                         from .arrays import size as total_extent, literal_offset
-                        start = 0
+                        variable_actual = dynamic_extent(info[1])
+                        actual_total = 'F__LEN_' + actual_name if variable_actual else str(total_extent(info[1]))
+                        required = dims[0] if dynamic_extent(dims) else total_extent(dims)
+                        if isinstance(required, str) and required != '*':
+                            bound_pos = known[f].args.index(required)
+                            required = E(args[bound_pos], line)
+                        elif required == '*':
+                            required = '1'
+                        required = str(required)
                         ptr_offset = '0'
                         if element:
                             subscripts = split_items(element.group(2))
-                            if all(re.fullmatch(r'\d+', sub.strip()) for sub in subscripts):
+                            if not variable_actual and all(re.fullmatch(r'\d+', sub.strip()) for sub in subscripts):
                                 start = literal_offset([int(sub.strip()) for sub in subscripts], info[1], line)
-                                if total_extent(info[1]) - start < total_extent(dims):
+                                if not dynamic_extent(dims) and total_extent(info[1]) - start < total_extent(dims):
                                     raise FortranError(line, 'array actual shorter than dummy: ' + actual)
                                 ptr_offset = str(start)
                             else:
-                                from .arrays import offset
-                                ptr_offset = 'f_seqcheck(' + offset(
-                                    [E(sub, line) for sub in subscripts], info[1], line
-                                ) + ', ' + str(total_extent(info[1])) + ', ' + str(total_extent(dims)) + ')'
-                        elif total_extent(info[1]) < total_extent(dims):
+                                ptr_offset = array_subscript([E(sub, line) for sub in subscripts], actual_name, u, line)
+                            capacity = '(' + actual_total + ' - (' + ptr_offset + '))'
+                        else:
+                            capacity = actual_total
+                        if not dynamic_extent(dims) and not variable_actual and not element and total_extent(info[1]) < total_extent(dims):
                             raise FortranError(line, 'array actual shorter than dummy: ' + actual)
-                        refs.append('&F_' + actual_name + '[' + ptr_offset + ']' if element else 'F_' + actual_name)
+                        if dynamic_extent(dims):
+                            # Callee receives remaining physical capacity separately.
+                            # Capture once to prevent duplicate side effects.
+                            key = 'f_cap_' + str(len(code)) + '_' + str(len(refs))
+                            extra_decls.append('int ' + key + ';')
+                            guard = 'f_seqcheck(0, ' + capacity + ', ' + required + ')'
+                            if element:
+                                # Compute index once; the caller's passed pointer and
+                                # hidden capacity must start at the same element.
+                                idxkey = 'f_idx_' + str(len(code)) + '_' + str(len(refs))
+                                extra_decls.append('int ' + idxkey + ';')
+                                refs.append('&F_' + actual_name + '[' + idxkey + ']')
+                                extra_capacity.append(key)
+                                prelude.extend([idxkey + ' = ' + ptr_offset + ';', key + ' = (' + actual_total + ' - ' + idxkey + ');',
+                                                'f_seqcheck(0, ' + key + ', ' + required + ');'])
+                            else:
+                                refs.append('F_' + actual_name)
+                                extra_capacity.append(key)
+                                prelude.extend([guard + ';', key + ' = ' + capacity + ';'])
+                        else:
+                            if element and not variable_actual and not re.fullmatch(r'\d+', ptr_offset):
+                                ptr_offset = 'f_seqcheck(' + ptr_offset + ', ' + actual_total + ', ' + required + ')'
+                            refs.append('&F_' + actual_name + '[' + ptr_offset + ']' if element else 'F_' + actual_name)
+                            if variable_actual:
+                                prelude.append('f_seqcheck(0, ' + capacity + ', ' + required + ');')
                     else:
                         refs.append(reference_actual(E(actual, line), u, ty))
-                add(['f_' + f + '(' + ', '.join(refs) + ');'])
+                add(prelude + ['f_' + f + '(' + ', '.join(refs + extra_capacity) + ');'])
                 return
             m = re.fullmatch(r'PRINT\s*\*\s*,\s*(.*)', s)
             if m:
@@ -1091,6 +1176,7 @@ def convert(units):
             decl('    }')
         decl('    ' + ret_stmt())
         decl('}')
+        output[local_decl_index:local_decl_index] = ['    ' + d for d in extra_decls]
         output.append('}')
         chunks.append(bind('\n'.join(output), aliases))
     return '\n\n'.join(chunks) + '\n'
