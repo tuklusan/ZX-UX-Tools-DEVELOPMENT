@@ -271,10 +271,17 @@ def parse(source, std='zxux'):
             infer(u, known)
     for u in units:
         for name, (ty, dims) in u.vars.items():
+            if dims is not None and ty.startswith('CHARACTER*') and not dynamic_extent(dims):
+                from .arrays import size as total_extent
+                width = int(ty.split('*')[1])
+                if total_extent(dims) * (width + 1) > 32767:
+                    raise FortranError(u.line, 'CHARACTER array byte extent exceeds ZX-UX 16-bit range')
             if dynamic_extent(dims):
                 bound = dims[-1]
                 if bound != '*' and u.vars.get(bound) != ('INTEGER', None):
                     raise FortranError(u.line, 'adjustable array bound must be INTEGER scalar dummy: ' + bound)
+                if ty.startswith('CHARACTER*'):
+                    raise FortranError(u.line, 'adjustable CHARACTER dummy arrays not yet implemented')
                 if u.kind == 'function':
                     raise FortranError(u.line, 'adjustable FUNCTION dummy arrays not yet implemented')
     return units
@@ -643,8 +650,6 @@ def character_item(token, unit, units, line):
         return ('F_' + name, width)
     if indices is None:
         raise FortranError(line, 'CHARACTER array requires element subscripts: ' + name)
-    if name in unit.args:
-        raise FortranError(line, 'CHARACTER dummy arrays are not implemented')
     params = [expression(t, unit, units, line) for t in split_items(indices)]
     index = array_subscript(params, name, unit, line)
     return ('(F_' + name + ' + (' + index + ') * ' + str(width + 1) + ')', width)
@@ -1001,7 +1006,36 @@ def convert(units):
                 for actual, dummy in zip(args, known[f].args):
                     ty, dims = known[f].vars[dummy]
                     actual = actual.strip()
-                    if dims is not None:
+                    if dims is not None and ty.startswith('CHARACTER*'):
+                        # A fixed-length CHARACTER dummy array aliases complete
+                        # fixed-size elements, not individual C bytes.
+                        from .arrays import size as total_extent, literal_offset
+                        element = re.fullmatch(r'(' + NAME + r')\s*\((.*)\)', actual)
+                        actual_name = element.group(1) if element else actual
+                        info = u.vars.get(actual_name)
+                        if not info or info[1] is None or info[0] != ty:
+                            raise FortranError(line, 'CHARACTER dummy needs same-length array/element actual')
+                        if dynamic_extent(info[1]):
+                            raise FortranError(line, 'adjustable CHARACTER actual is not implemented')
+                        width = int(ty.split('*')[1])
+                        avail = total_extent(info[1])
+                        needed = total_extent(dims)
+                        if element:
+                            parts = [part.strip() for part in split_items(element.group(2))]
+                            if all(re.fullmatch(r'\d+', part) for part in parts):
+                                off = literal_offset([int(part) for part in parts], info[1], line)
+                                if avail - off < needed:
+                                    raise FortranError(line, 'CHARACTER actual shorter than dummy')
+                                start = str(off)
+                            else:
+                                start = array_subscript([E(part, line) for part in parts], actual_name, u, line)
+                                start = 'f_seqcheck(' + start + ', ' + str(avail) + ', ' + str(needed) + ')'
+                            refs.append('(F_' + actual_name + ' + (' + start + ') * ' + str(width + 1) + ')')
+                        else:
+                            if avail < needed:
+                                raise FortranError(line, 'CHARACTER actual shorter than dummy')
+                            refs.append('F_' + actual_name)
+                    elif dims is not None:
                         # FORTRAN array arguments are references to the first
                         # sequence element, not copies of the array contents.
                         # At this stage only named fixed-size whole arrays
@@ -1075,12 +1109,11 @@ def convert(units):
                             if variable_actual:
                                 prelude.append('f_seqcheck(0, ' + capacity + ', ' + required + ');')
                     elif ty.startswith('CHARACTER*'):
-                        # Restricted F77S constant-length CHARACTER scalar dummies.
-                        # Reject literals, expressions, arrays and mismatched lengths.
-                        if (not NAME_RE.fullmatch(actual) or actual not in u.vars
-                                or u.vars[actual] != (ty, None)):
+                        # Only writable same-width character variables/elements.
+                        item = character_item(actual, u, known, line)
+                        if item is None or item[1] != int(ty.split('*')[1]):
                             raise FortranError(line, 'CHARACTER dummy requires same-length CHARACTER scalar actual: ' + actual)
-                        refs.append('F_' + actual)
+                        refs.append(item[0])
                     else:
                         refs.append(reference_actual(E(actual, line), u, ty))
                 add(prelude + ['f_' + f + '(' + ', '.join(refs + extra_capacity) + ');'])

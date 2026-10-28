@@ -41,3 +41,5 @@ are tracked below rather than discarded as full-F77-only work.
 5. All actual Spectrum 48K, kernel and cassette tests must preserve hardware/emulator version, output and image SHA-256 in a committed run manifest.
 
 Fixed-bound CHARACTER arrays (up to rank 3) are now lowered with column-major element storage, bounded per-dimension indexing and fixed-length element operations. `f77s_charray.f` covers array DATA, assignment, comparison, WRITE and persistent subprogram array DATA. CHARACTER dummy arrays, COMMON/EQUIVALENCE association, and full CHARACTER I/O remain outstanding.
+
+Fixed-size same-width CHARACTER dummy arrays and array-element actual sequences now alias caller storage by reference with checked remaining physical element count; nested forwarding and scalar element dummy actuals are covered in `f77s_chdummy.f`. Still missing adjustable CHARACTER dummy sizes, differing-length character actual association and CHARACTER COMMON/EQUIVALENCE.

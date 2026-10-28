@@ -135,3 +135,7 @@ Numeric library exercise: `tests/fortran/f77s_burkmm.f` adapts John Burkardt LGP
 The LGPL `I4MAT_FLIP_ROWS` and `I4MAT_FLIP_COLS` ports in `tests/fortran/f77s_burkflip.f` exercise mutable rank-2 adjustable matrix storage and reversal, with independent gfortran-vs-SSX/RVM output comparison.
 
 Fixed-size 1D/2D/3D CHARACTER arrays now support contiguous column-major storage of individually blank-padded, terminated elements, scalar element assignment/comparisons, formatted A/Aw WRITE/READ and DATA initialization (including persistent subprogram local array DATA). See `tests/fortran/f77s_charray.f`. CHARACTER dummy arrays and storage association remain unsupported; full F77S conformance is not claimed.
+
+Fixed-size CHARACTER dummy arrays now support same-width by-reference whole-array and array-element sequence association, nested forwarding and checked trailing capacity at call sites. CHARACTER array elements can be passed to same-length writable scalar CHARACTER dummies. Adjustable CHARACTER dummy extents and mismatched widths are rejected; byte array allocations exceeding 16-bit addressable extent are also rejected. See `tests/fortran/f77s_chdummy.f`.
+
+Fixed CHARACTER array element formatted READ(Aw) is tested against host gfortran with input `XYZ` in `f77s_arrread.f`; the normal emulator harness injects the same input through RVM keys.

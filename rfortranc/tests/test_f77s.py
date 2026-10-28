@@ -232,6 +232,50 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_index(F_J, 2)', c)
         self.assertIn('static char f_sd1_T[6];', c)
 
+    def test_formatted_character_array_element_read(self):
+        src = (ROOT/'tests/fortran/f77s_arrread.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        code = convert(units)
+        self.assertIn('f_fmt_inchar((F_A +', code)
+        self.assertIn('f_outcharw((F_A +', code)
+
+    def test_character_array_dummy_sequence_and_element_actual(self):
+        src = (ROOT/'tests/fortran/f77s_chdummy.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        code = convert(units)
+        self.assertIn('void f_CHPASS(char *F_B);', code)
+        self.assertIn('f_seqcheck(', code)
+        self.assertIn('void f_CHMOVE(char *F_B);', code)
+        self.assertIn('f_CHSET((F_A + (', code)
+
+    def test_character_array_byte_extent_overflow_rejected(self):
+        src = ('      PROGRAM OVER\n'
+               '      CHARACTER*255 A(200)\n'
+               '      END\n')
+        with self.assertRaisesRegex(FortranError, 'CHARACTER array byte extent'):
+            parse(src, std='f77s')
+
+    def test_adjustable_character_dummy_rejected(self):
+        src = ("      PROGRAM MAIN\n      CHARACTER*3 A(5)\n"
+               "      CALL ALTER(5,A)\n      END\n"
+               "      SUBROUTINE ALTER(N,A)\n"
+               "      INTEGER N\n      CHARACTER*3 A(N)\n"
+               "      A(1)='HI'\n      END\n")
+        with self.assertRaisesRegex(FortranError, 'adjustable CHARACTER dummy arrays'):
+            convert(parse(src, std='f77s'))
+
+    def test_character_dummy_array_short_tail_rejected(self):
+        src = (ROOT/'tests/fortran/f77s_chdummy.f').read_text()
+        src = src.replace('      I=2', '      I=3')
+        self.assertIn('f_seqcheck(', convert(parse(src, std='f77s')))
+        src = src.replace('      I=3', '      I=4')
+        self.assertIn('f_seqcheck(', convert(parse(src, std='f77s')))
+        src = src.replace('      CALL CHPASS(A(I))', '      CALL CHPASS(A(3))')
+        with self.assertRaises(FortranError):
+            convert(parse(src, std='f77s'))
+
     def test_character_rejects_unsupported_forms(self):
         for body in (
             ['CHARACTER*0 A'],
