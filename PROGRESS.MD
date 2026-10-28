@@ -103,3 +103,9 @@ The `--rvm` binary must be the matching built/packaged emulator with the correct
 - Independent reference harness `python tests/compare_f77s.py --sdk /mnt/data/workzx/src/zx-ux-sdk --rvm /mnt/data/workzx/dist/sdk/bin/rvm --sdk-archive /mnt/data/minizxuxport.zip --out tests/results/f77s-differential-implicit-2026-10-28.json`: **4/4 PASS** against host gfortran, with actual SSX1 programs booted by ZX-UX RVM. Cases: formatted integer output, typed DATA, IMPLICIT INTEGER override, implicit REAL comparison. Exact outputs/hashes saved in GitHub at `rfortranc/tests/results/f77s-differential-implicit-2026-10-28.json`.
 - Full SDK regression expanded to **33 expected checks** and launched. Do not claim result until complete JSON report checked in.
 - **Next concrete action:** Persist full 33-case SDK+RVM report. Then implement missing subset formatted READ (not list-directed) and array dimensions, and add published subset-oriented FCVS programs with pinned licenses and expected outputs.
+
+### Harness correction (2026-10-28)
+
+- First attempted 33-case SDK/RVM run finished **31/33**, because the two newly added implicit-typing tests were accidentally invoked with default `zxux` (strict explicit declaration) instead of required `--std f77s`. Both produced `undeclared variable` compile diagnostics; this is a **test-runner mode error**, not proof of incorrect F77S codegen. The independent 4-case F77S/gfortran run had already passed.
+- Fixed `rfortranc/tests/run_tests.py` to automatically select `--std f77s` for all `f77s_*` fixtures, leaving original legacy tests on `zxux`. Re-run with SDK/RVM was launched; the new 33-case report is pending. No passing claim until complete.
+- **Next concrete action:** Check and persist the corrected 33-case SDK+RVM report, then implement the F77S-required 2D/3D array storage/subscript rules.

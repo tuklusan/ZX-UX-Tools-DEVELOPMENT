@@ -127,6 +127,8 @@ def main(argv=None):
             ext = '.c' if args.frontend_only else '.ssx'
             binary = tmp / (name + ext)
             cmd = [sys.executable, str(ROOT / 'bin/rfortranc')]
+            if name.startswith('f77s_'):
+                cmd += ['--std', 'f77s']
             if args.frontend_only:
                 cmd += ['--emit-c']
             else:
