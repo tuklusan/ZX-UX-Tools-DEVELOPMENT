@@ -19,6 +19,8 @@ PROGRAMS = {
     'bases': '1101',
     'nested': '18',
     'strings': "John's ZX-UX OK",
+    'realcmp': 'REAL OK',
+    'subcall': '8',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',

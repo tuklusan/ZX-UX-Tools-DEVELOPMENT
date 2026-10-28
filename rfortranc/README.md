@@ -69,6 +69,8 @@ an explicit diagnostic rather than generating misleading machine code.
 python rfortranc/tests/run_tests.py --frontend-only  # CI / no SDK
 python rfortranc/tests/run_tests.py --sdk /path/to/src/zx-ux-sdk \
   --rvm /path/to/dist/sdk/bin/rvm
+python rfortranc/tools/corpus_probe.py /path/to/licensed/FCVS \
+  --report /tmp/rfortranc-fcvs-acceptance.json
 python rfortranc/tools/release.py --sdk /path/to/src/zx-ux-sdk \
   --native --out /tmp/rfortranc-dist
 ```
