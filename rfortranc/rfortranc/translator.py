@@ -168,7 +168,7 @@ def split_items(s):
     return parts
 
 
-def parse(source):
+def parse(source, std='zxux'):
     units = []
     unit = None
     for st in lines(source):
@@ -230,6 +230,11 @@ def parse(source):
                 if name in u.vars and name not in u.args and name != u.name:
                     raise FortranError(st.line, 'duplicate declaration: ' + name)
                 u.vars[name] = (ty, size)
+    if std == 'f77s':
+        from .implicit import infer
+        known = set(names)
+        for u in units:
+            infer(u, known)
     return units
 
 
@@ -551,7 +556,7 @@ def convert(units):
                 return
             if s.startswith(UNSUPPORTED):
                 raise FortranError(line, 'unsupported FORTRAN statement: ' + s.split()[0])
-            if re.match(r'^(INTEGER|REAL|LOGICAL)\s+', s) or s == 'IMPLICIT NONE':
+            if re.match(r'^(INTEGER|REAL|LOGICAL|IMPLICIT)\s+', s) or s == 'IMPLICIT NONE':
                 return
             if s == 'CONTINUE':
                 return

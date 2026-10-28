@@ -95,3 +95,11 @@ The `--rvm` binary must be the matching built/packaged emulator with the correct
 
 - **31/31 SDK+RVM PASS**, including 21 positive ZX-UX programs, 9 negative diagnostics, 1 TZX archive; `python tests/run_tests.py --sdk /mnt/data/workzx/src/zx-ux-sdk --rvm /mnt/data/workzx/dist/sdk/bin/rvm --timeout 25 --rvm-frames 1000 --sdk-archive /mnt/data/minizxuxport.zip --report tests/results/sdk-rvm-data-2026-10-28.json`. Full report committed at `rfortranc/tests/results/sdk-rvm-data-2026-10-28.json` with source, compiler, SDK, RVM, executable and cassette SHA256 plus actual captured outputs.
 - **Next concrete action:** Implement standard F77S implicit INTEGER/REAL typing and IMPLICIT specification correctly while keeping `zxux` strict-declaration compatibility mode; add fixed-form and real-kernel tests. Then build a pinned FCVS subset-derived runnable corpus and record passing/unsupported tests.
+
+### Standard F77S implicit typing milestone (2026-10-28)
+
+- Implemented Appendix D numeric implicit typing in `rfortranc/rfortranc/implicit.py` and `parse(std='f77s')`: I-N default INTEGER, A-H/O-Z default REAL, numeric and LOGICAL `IMPLICIT` letter/range overrides, overlapping ranges rejected. In default `--std zxux`, old explicit-only behavior preserved. `IMPLICIT CHARACTER` and other required subset semantics still missing.
+- Verified unit tests `python -m unittest discover -s /mnt/data/rfortranc/tests -p test_f77s.py -v`: **15/15 PASS**.
+- Independent reference harness `python tests/compare_f77s.py --sdk /mnt/data/workzx/src/zx-ux-sdk --rvm /mnt/data/workzx/dist/sdk/bin/rvm --sdk-archive /mnt/data/minizxuxport.zip --out tests/results/f77s-differential-implicit-2026-10-28.json`: **4/4 PASS** against host gfortran, with actual SSX1 programs booted by ZX-UX RVM. Cases: formatted integer output, typed DATA, IMPLICIT INTEGER override, implicit REAL comparison. Exact outputs/hashes saved in GitHub at `rfortranc/tests/results/f77s-differential-implicit-2026-10-28.json`.
+- Full SDK regression expanded to **33 expected checks** and launched. Do not claim result until complete JSON report checked in.
+- **Next concrete action:** Persist full 33-case SDK+RVM report. Then implement missing subset formatted READ (not list-directed) and array dimensions, and add published subset-oriented FCVS programs with pinned licenses and expected outputs.

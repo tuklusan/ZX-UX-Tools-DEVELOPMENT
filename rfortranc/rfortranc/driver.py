@@ -54,7 +54,7 @@ def main(argv=None):
         if target == source:
             raise ValueError('output would overwrite FORTRAN source')
         program = source.read_text(encoding='utf-8')
-        units = parse(program)
+        units = parse(program, std=args.std)
         if args.std == 'f77s':
             from .f77s import validate_source
             validate_source(program, units)

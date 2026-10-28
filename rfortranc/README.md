@@ -95,3 +95,5 @@ testing plan, source licences, and release blockers.
 Read [docs/F77S-MATRIX.md](docs/F77S-MATRIX.md) before declaring any language feature out of scope. ANSI subset **includes** DATA, COMMON, EQUIVALENCE, numeric implicit typing, character data, and formatted I/O. It **excludes** PRINT and list-directed I/O; legacy PRINT-based examples are ZX-UX compatibility extensions, not subset conformance. Use `--std f77s` for the current **partial** subset restriction checks; `--std zxux` remains the default.
 
 DATA statements: integer/logical/real scalar and fixed 1D array initialization are implemented for the main program only (`tests/fortran/f77s_data.f`). A DATA statement in a subprogram currently fails explicitly; correct persistent-storage semantics are pending.
+
+ANSI subset `--std f77s` now implements default I–N INTEGER / other-letter REAL variables and `IMPLICIT INTEGER/REAL/LOGICAL` letter ranges. Default `zxux` mode still requires explicit declarations. Cross-check tests `f77s_implicit.f` and `f77s_real.f` compile to SSX and match gfortran output; see `tests/compare_f77s.py`.

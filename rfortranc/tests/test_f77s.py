@@ -59,6 +59,25 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaises(FortranError):
             convert(parse(source))
 
+    def test_implicit_integer_and_override(self):
+        src=(ROOT/'tests/fortran/f77s_implicit.f').read_text()
+        units=parse(src, std='f77s')
+        validate_source(src, units)
+        c=convert(units)
+        self.assertIn('int F_A;', c)
+        self.assertIn('int F_I;', c)
+
+    def test_implicit_default_real(self):
+        src=(ROOT/'tests/fortran/f77s_real.f').read_text()
+        units=parse(src, std='f77s')
+        validate_source(src, units)
+        self.assertIn('float F_A;', convert(units))
+
+    def test_overlap_implicit_letters_rejected(self):
+        src='      PROGRAM A\n      IMPLICIT INTEGER(A-H), REAL(G-I)\n      END\n'
+        with self.assertRaises(FortranError):
+            parse(src, std='f77s')
+
     def test_free_form_rejected(self):
         src='PROGRAM F77S\nINTEGER I\nEND\n'
         with self.assertRaises(FortranError):

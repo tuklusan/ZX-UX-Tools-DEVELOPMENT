@@ -38,6 +38,8 @@ PROGRAMS = {
     'fixed_continue': '  15',
     'f77s_fmt': '  42',
     'f77s_data': '  9',
+    'f77s_implicit': '  3',
+    'f77s_real': '  2',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',
