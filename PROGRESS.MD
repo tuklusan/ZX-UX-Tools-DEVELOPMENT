@@ -431,3 +431,9 @@ The `--rvm` binary must be the matching built/packaged emulator with the correct
 - Added strict fixed-form `f77s_subdata.f`, calling a subroutine twice with two formatted `  42` output lines; independently compiled and executed with `gfortran -std=legacy -ffixed-form` locally. Added C48 static-storage unit assertion.
 - New targets: **69** full SDK/RVM/TZX checks, **40** gfortran-vs-ZX-UX cases, **6** runtime-bound traps. End-to-end ZX-UX runs for the new change are NOT yet verified. Earlier frontend/host CI https://github.com/tuklusan/ZX-UX-Tools-DEVELOPMENT/actions/runs/40752572225 verified 56 unit, 67 frontend, and 39 host cases before this change; last pinned SDK/RVM results are 66/37.
 - **Single next concrete action:** Verify new compiler code in GitHub Actions; fix any failures; then rerun and hash-pin the entire 69/40/6 SDK/RVM suite. Continue ANSI F77S subset, not full F77.
+
+### Subprogram DATA host/frontend CI verified (2026-10-28)
+
+- Source commit `a24987900d9d21a63886f395e8b7c706d5468340` passed GitHub Actions https://github.com/tuklusan/ZX-UX-Tools-DEVELOPMENT/actions/runs/40753279146: **57/57** strict F77S unit tests, **68/68** frontend compile/rejection tests, **40/40** host gfortran expected-output tests, compileall PASS. The run includes the two-call `f77s_subdata.f` fixture, but contains no actual ZX-UX SSX/RVM execution.
+- The CI host reference JSON is saved as the `f77s-host-reference` Actions artifact (30-day retention). Full SDK/RVM/TZX test target is **69**, strict independent ZX-UX differential target **40**, bounds trap target **6**; all three remain unverified at these counts. Last pinned executed-ZX-UX reports: 66/66 and 37/37.
+- **Single next concrete action:** Run and pin complete 69/40/6 real ZX-UX SDK/RVM suites using a clean checkout and the uploaded SDK archive, then expand subprogram DATA array and error handling coverage. Never substitute host-only CI for real binary proof.
