@@ -32,6 +32,8 @@ FIXTURES = {
         'f77s_burkgcd.f',
         '      N=3\n      CALL GCDARR(N,A(3),G)\n',
         '      N=4\n      CALL GCDARR(N,A(3),G)\n'),
+    'character_array_element_tail_storage_trap': (
+        'f77s_chdummy.f', '      I=2\n', '      I=3\n'),
 }
 
 
