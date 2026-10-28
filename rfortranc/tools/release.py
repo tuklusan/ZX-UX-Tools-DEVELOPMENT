@@ -44,14 +44,20 @@ def main():
         names.add(tape_name.upper())
         ssx = dest / (name + '.ssx')
         tzx = dest / (name + '.tzx')
-        compile_args = [sys.executable, str(ROOT / 'bin/rfortranc'), '--sdk', opts.sdk]
+        std = 'f77s' if name.startswith('f77s_') else 'zxux'
+        compile_args = [sys.executable, str(ROOT / 'bin/rfortranc'),
+                        '--sdk', opts.sdk, '--std', std]
         if opts.native:
             compile_args.append('--native')
         subprocess.run(compile_args + ['-o', str(ssx), str(source)], check=True)
         subprocess.run(compile_args + ['--tzx', '--tape-name', tape_name,
                                        '-o', str(tzx), str(source)], check=True)
+        if not ssx.read_bytes().startswith(b'SSX1') or not tzx.read_bytes().startswith(b'ZXTape!'):
+            raise SystemExit('invalid generated ZX-UX binary or cassette: ' + name)
         records.append({'program': name, 'tape_name': tape_name,
                         'source': str(source.relative_to(ROOT)),
+                        'source_sha256': hashlib.sha256(source.read_bytes()).hexdigest(),
+                        'standard_mode': std, 'native': opts.native,
                         'ssx_sha256': hashlib.sha256(ssx.read_bytes()).hexdigest(),
                         'tzx_sha256': hashlib.sha256(tzx.read_bytes()).hexdigest(),
                         'ssx_bytes': ssx.stat().st_size, 'tzx_bytes': tzx.stat().st_size})
