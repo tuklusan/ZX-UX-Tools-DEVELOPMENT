@@ -776,4 +776,15 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_extent(', c)
         self.assertIn('f_outrealw(', c)
 
+    def test_real_sqrt_and_burkardt_l2_norm(self):
+        src = (ROOT/'tests/fortran/f77s_burkl2.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        generated = convert(units)
+        self.assertIn('f_sqrt_real(', generated)
+        self.assertIn('f_RVNML2(', generated)
+        self.assertIn('while (y < x / y)', generated)
+        self.assertIn('if (x < 0.0) exit(2);', generated)
+        self.assertIn('f_seqcheck(', generated)
+
 if __name__=='__main__': unittest.main()
