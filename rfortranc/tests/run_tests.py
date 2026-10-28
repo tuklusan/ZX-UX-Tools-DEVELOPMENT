@@ -96,6 +96,8 @@ PROGRAMS = {
     'f77s_burkvar': '    2.50',
     'f77s_burkscale': '    2.00   -4.00    6.00    8.00  -10.00',
     'f77s_burkl2': '    5.00',
+    'f77s_burkcopy': '   -2.00    3.25',
+    'f77s_burkrsrt': '    3.00   -1.00',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',
