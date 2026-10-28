@@ -71,3 +71,9 @@ The `--rvm` binary must be the matching built/packaged emulator with the correct
 - **More regression plumbing:** `tests/run_tests.py` now captures per-case JSON SHA256, versions, commands/results; new tests cover arithmetic IF, computed GO TO, FORMAT/WRITE and fixed continuation. The complete extended suite remains to be run and results committed.
 - **GitHub commit for this milestone:** this PROGRESS.MD and the changed files in the same commit; look at `git log -1`. The previously listed latest CI run predates these changes; check the new workflow run outcome separately.
 - **Single next action:** Run `python rfortranc/tests/run_tests.py --frontend-only --report <report>` and then `--sdk <source-sdk> --rvm <matching-rvm> --report <report>` with enough wall-clock budget. Commit checked results under `rfortranc/tests/results/`; after that implement missing **required F77S** elements starting with reliable formatted READ, implicit typing and 3D arrays, not full-F77-only features. Update PROGRESS.MD at each milestone.
+
+### Verified frontend report checkpoint (2026-10-28)
+
+- Ran `python tests/run_tests.py --frontend-only --timeout 15 --report tests/results/frontend-2026-10-28.json` from `/mnt/data/rfortranc`. **28/28 passed** (19 positive translations, 9 intentional failures). Saved full per-case source/output SHA-256 and captured diagnostic details at `rfortranc/tests/results/frontend-2026-10-28.json` in GitHub. Frontend-only does **not** establish binary or runtime conformance.
+- CI for the previous source commit `11e16620396b49826e1287957db6177c5c3523b2` succeeded: https://github.com/tuklusan/ZX-UX-Tools-DEVELOPMENT/actions/runs/40709748665 (partial F77S restrictions + translation smoke).
+- **Next concrete action:** persist a full SDK+RVM JSON run with all cases, then investigate any failures; do not count timeouts as passes. Keep advancing Appendix D required language features only.
