@@ -518,3 +518,10 @@ The `--rvm` binary must be the matching built/packaged emulator with the correct
 - Host `gfortran -std=legacy -ffixed-form` compiled and executed with exactly `  35`, `  30`. `rfortranc --std f77s --emit-c` frontend compiled. Structural C48 unit test and full native/differential case registrations added.
 - Expected next totals: **73** full SDK/RVM/TZX (62 binaries, 10 negative compiles, one TZX) and **43** strict gfortran-vs-ZX-UX. Native dot product execution, full suites and new source CI pending at this commit. Prior 71/41 reports validated preceding F77S compiler; 72 expanded suite from earlier cumulative sum port is in progress separately.
 - **Single next concrete action:** Check CI, compile/run `f77s_burkdot.f` in matching real ZX-UX RVM, finish and pin prior 72 then expand and pin 73/43 serially. Do not claim a full-pass count until report and hashes are committed.
+
+### Rank-2 dynamic element sequence lowering regression checkpoint (2026-10-28)
+
+- Added unit regression `test_rank2_dynamic_element_sequence` at commit `61fa5d9f0a392a4d3c862a19e1b6ed3eabfafec0`. It checks strict F77S parsing, validated lowering, 2x3 column-major storage, variable subscript bounds, by-reference element actual and runtime trailing-capacity guard for `f77s_dm2el.f`.
+- GitHub connector could read/write repository, but local shell DNS cannot resolve github.com, so the full working tree could not be cloned in this session. **No test execution or new ZX-UX end-to-end pass claimed here.** Existing pinned 71/71 and 41/41 results remain the last completed full reports noted above; current 73/43 expanded suites remain unverified.
+- The source SDK archive `minizxuxport.zip` is available as a project attachment, but matching repository source and rebuilt emulator still need recreating for fresh local integration testing.
+- **Single next concrete action:** Check CI triggered by unit-test commit; fix any failure, then rebuild source tree and SDK, run/pin 73-case native ZX-UX/RVM/TZX and 43-case independent strict F77S differential suites serially. Preserve all unrelated shared repository work.
