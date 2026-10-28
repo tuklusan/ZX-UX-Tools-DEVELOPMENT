@@ -23,7 +23,7 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def execute(cmd, timeout=60, input_text=None):
+def execute(cmd, timeout=180, input_text=None):
     try:
         p = subprocess.run(cmd, text=True, capture_output=True, timeout=timeout, input=input_text)
         return {'argv': [str(x) for x in cmd], 'exit_code': p.returncode,
@@ -45,7 +45,10 @@ def main():
     p.add_argument('--rvm', required=True)
     p.add_argument('--out', type=Path, required=True)
     p.add_argument('--sdk-archive', type=Path)
+    p.add_argument('--timeout', type=int, default=180, help='seconds per compiler/emulator process')
     a = p.parse_args()
+    if a.timeout < 1:
+        p.error('--timeout must be positive')
     if not shutil.which('gfortran'):
         p.error('gfortran required for independent comparison')
     report = {'schema': 1, 'purpose': 'F77S example differential execution',
@@ -53,7 +56,9 @@ def main():
               'tools': {'gfortran': execute(['gfortran', '--version'])['stdout'].splitlines()[0],
                         'rvm_sha256': digest(a.rvm),
                         'rfortranc_sha256': digest(ROOT/'rfortranc/translator.py'),
-                        'sdk_archive_sha256': digest(a.sdk_archive) if a.sdk_archive else None},
+                        'sdk_archive_sha256': digest(a.sdk_archive) if a.sdk_archive else None,
+                        'differential_harness_sha256': digest(__file__),
+                        'timeout_seconds': a.timeout},
               'cases': []}
     with tempfile.TemporaryDirectory() as d:
         for name, expectation in CASES.items():
@@ -62,15 +67,15 @@ def main():
             host = Path(d)/(name+'.host')
             compile_zx = execute([sys.executable, str(ROOT/'bin/rfortranc'),
                                   '--std','f77s','--sdk',a.sdk,'--native',
-                                  '-o',str(target),str(src)])
+                                  '-o',str(target),str(src)], a.timeout)
             compile_host = execute(['gfortran','-std=legacy','-ffixed-form',
-                                    '-o',str(host),str(src)])
+                                    '-o',str(host),str(src)], a.timeout)
             zx_cmd = [sys.executable, a.rvm,'--headless','--text','--frames','1000']
             if name in INPUTS:
                 zx_cmd += ['--keys', INPUTS[name]]
             zx_cmd.append(str(target))
-            zx = execute(zx_cmd, 60) if compile_zx['exit_code'] == 0 and target.exists() else None
-            reference = execute([str(host)], input_text=INPUTS.get(name)) if compile_host['exit_code'] == 0 else None
+            zx = execute(zx_cmd, a.timeout) if compile_zx['exit_code'] == 0 and target.exists() else None
+            reference = execute([str(host)], timeout=a.timeout, input_text=INPUTS.get(name)) if compile_host['exit_code'] == 0 else None
             case = {'name': name, 'source_sha256': digest(src),
                     'ssx_sha256': digest(target) if target.exists() else None,
                     'ssx_bytes': target.stat().st_size if target.exists() else None,

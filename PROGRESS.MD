@@ -477,3 +477,9 @@ The `--rvm` binary must be the matching built/packaged emulator with the correct
 - Exact machine-readable failed report pinned at `rfortranc/tests/results/sdk-rvm-f77s-subarr-concurrent-failed-2026-10-28.json`, SHA256 `96c14f7e8e2a7ef9e6559cbf2920e6d95751b7581a1e26271251e77646dd45e4`. Direct rerun of the same generated `f77s_fc4.ssx` on matching RVM independently printed `  42` and exited 0, supporting timeout/resource contention rather than a proven FORTRAN semantic bug.
 - Both concurrent failures (40/41 comparison and 70/71 SDK) are retained as separate checked-in failed reports. A **serial** 71-case SDK/RVM/TZX run with `--timeout 180` was launched from the same compiler source snapshot, not yet complete.
 - **Single next concrete action:** Finish/pin the serial full run, then rerun the 41-case strict differential serially with 180-second compiler timeout. Do not call either a pass before verified JSON.
+
+### Differential harness timeout control after observed concurrent compile stalls (2026-10-28)
+
+- Added `--timeout` to `tests/compare_f77s.py` (positive seconds, default **180**) and pinned the harness SHA-256 and timeout in its JSON results. Native SDK compile, gfortran compile, RVM and host execution now share the explicit limit. This fixes the previous hard-coded 60-second timeout that rejected `f77s_dmalt` under two simultaneously running integration suites.
+- This changes the **test harness only**, not the compiler language or backend; it does not convert either prior failure into a pass.
+- The 71-case full SDK/RVM/TZX serial run is underway with a separate 180-second limit. Next run the 41-case strict F77S comparison **without a second concurrent emulator job**, with `--timeout 180`, pin exact results, and update PROGRESS.MD.
