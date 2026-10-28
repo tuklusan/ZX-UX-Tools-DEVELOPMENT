@@ -51,6 +51,7 @@ PROGRAMS = {
     'f77s_fc3': '  42',
     'f77s_fc4': '  42',
     'f77s_fc5': '***',
+    'f77s_equiv': '  42  42  11  42',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',

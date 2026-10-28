@@ -62,9 +62,9 @@ passed by reference; expression/literal actuals are copied to temporary storage
 (as in conventional FORTRAN calls). Array dummy arguments are not supported.
 
 **Not production grade.** F77S-required features still missing or incomplete include
-COMMON/EQUIVALENCE, DIMENSION, CHARACTER, array dummy arguments,
+complete COMMON/EQUIVALENCE storage association, CHARACTER, array dummy arguments,
 full DATA storage lifetime, full formatted READ semantics and REAL/CHARACTER I/O.
-Implicit typing, 3D arrays and DATA are partially implemented. Unsupported syntax fails with
+Implicit typing, fixed 3D arrays, DIMENSION and DATA are partially implemented. Unsupported syntax fails with
 an explicit diagnostic rather than generating misleading machine code.
 
 ## Tests
@@ -79,7 +79,9 @@ python rfortranc/tools/release.py --sdk /path/to/src/zx-ux-sdk \
   --native --out /tmp/rfortranc-dist --only hello byref
 ```
 
-Strict F77S mode now implements **named numeric COMMON with fixed-size scalar or array members** by positional storage association across main and subprograms, with mismatch diagnostics. Blank COMMON, EQUIVALENCE, SAVE, and partial-storage COMMON aliasing remain unsupported.
+Strict F77S mode now implements **named/blank numeric COMMON with fixed-size scalar or array members** by positional storage association across main and subprograms, with mismatch diagnostics. Different-sized blank COMMON views, SAVE, and partial-storage COMMON aliasing remain unsupported.
+
+Restricted F77S `EQUIVALENCE` now associates local same-typed numeric scalar and fixed-array storage, including constant element offsets and transitive groups. COMMON/dummy association, mixed-type equivalence and full sequence association are deliberately rejected. Test `f77s_equiv.f` compares ZX-UX and gfortran outputs.
 
 Strict F77S mode now accepts separate fixed-bound DIMENSION declarations (up to 3 ranks), with implicit INTEGER/REAL typing; dummy adjustable arrays remain unsupported.
 
@@ -109,3 +111,5 @@ ANSI subset `--std f77s` now implements default I–N INTEGER / other-letter REA
 Fixed-size 2D/3D arrays are checked against host gfortran in `tests/fortran/f77s_2d.f` and `f77s_3d.f`. They use column-major flattened C48 storage; variable dimension bounds and array dummy arguments are not yet implemented.
 
 Formatted `READ(5,label)` now supports integer `Iw`, `X` and `/` descriptors with fixed-width numeric parsing, input record alignment, blank padding and 16-bit range checks. It is **partial**; REAL/CHARACTER input, BN/BZ controls and general formatted input are still missing. Host `rvm --keys` supplies input for ZX-UX tests.
+
+The first public-source test-theme adaptations from NIST FCVS are documented in `tests/ported/README.md` (FM003/FM004/FM005). These are reduced independent F77S stress tests, **not complete FCVS programs**.

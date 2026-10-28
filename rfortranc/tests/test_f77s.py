@@ -86,6 +86,26 @@ class F77SChecks(unittest.TestCase):
                 validate_source(src,units)
                 self.assertIn('int main',convert(units))
 
+    def test_equivalence_transitive_local_storage(self):
+        src = (ROOT/'tests/fortran/f77s_equiv.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        c = convert(units)
+        self.assertIn('int f_eq_0[4];', c)
+        self.assertIn('f_eq_0[(f_index(3, 4))] =', c)
+        self.assertIn('f_eq_0[1]', c)
+
+    def test_equivalence_rejects_invalid_constraints(self):
+        bodies = [
+            ['INTEGER A(2),B', 'EQUIVALENCE (A(3),B)'],
+            ['INTEGER A(2),B', 'EQUIVALENCE (A(2),B),(A(1),B)'],
+            ['INTEGER A', 'REAL B', 'EQUIVALENCE (A,B)'],
+            ['INTEGER A,B', 'COMMON /BLK/ A', 'EQUIVALENCE (A,B)'],
+        ]
+        for body in bodies:
+            with self.subTest(body=body):
+                self.check(body, False)
+
     def test_blank_common_positional_storage(self):
         src=(ROOT/'tests/fortran/f77s_blank.f').read_text()
         units=parse(src,std='f77s')

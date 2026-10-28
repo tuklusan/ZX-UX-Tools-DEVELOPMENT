@@ -36,26 +36,17 @@ integer and REAL dummy mutation in actual compiled Z80/ZX-UX execution.
 Multidimensional and array dummy arguments, full aliasing conformance, and
 separately compiled linkage remain unsupported.
 
-## Remaining gates to production
+## Remaining gates to production-grade **ANSI FORTRAN SUBSET (F77S)**
 
-1. Establish legally correct FORTRAN 77 syntax/semantics, including fixed form,
-   labels and branches into and out of DO ranges, statement functions, and
-   all implicit typing rules. Add negative compile tests for each rejection.
-2. Add full F77 storage model: COMMON, EQUIVALENCE, SAVE, DATA, and arrays
-   including multiple dimensions and adjusted/assumed sizes.
-3. Validate the implemented by-reference scalar dummy arguments against
-   F77 aliasing/typing rules; add array dummy arguments, procedure arguments,
-   and external linking across separately compiled FORTRAN units.
-4. Implement CHARACTER, COMPLEX, REAL and DOUBLE PRECISION I/O, FORMAT,
-   OPEN/CLOSE/REWIND and record-oriented I/O using ZX-UX.
-5. Validate 16-bit overflow, divide-by-zero, rounding, integer division,
-   floating point special values, and stack/heap exhaustion.
-6. Run NIST FCVS, GNU torture tests, Netlib BLAS/LINPACK and numeric suites
-   against gfortran on a desktop, with expected result hashes, then in `rvm`,
-   then on Spectrum hardware. Record unsupported tests as failures, not skips
-   hidden inside a pass percentage.
-7. Package from the SDK source tree and verify matching `.ssx/.tzx` and
-   manifest hashes in an independent clean build; check legal notices.
+Target is Appendix D of X3.9-1978, not full F77. See `F77S-MATRIX.md`.
+
+1. Complete F77S fixed-form lexical/label rules and all permitted scalar, INTEGER/REAL/LOGICAL and constant-length CHARACTER expressions; test negative rejections.
+2. Finish required F77S storage: named and blank COMMON with complete sequence association, EQUIVALENCE beyond safe same-type local groups, SAVE restricted to common block names, DATA and adjustable dummy arrays.
+3. Implement all F77S allowed formatted READ/WRITE and FORMAT descriptors, numeric and CHARACTER record semantics, limited direct-access unformatted OPEN and permitted intrinsics. Do not chase disallowed full-F77 features (COMPLEX, DOUBLE PRECISION, PRINT, etc.).
+4. Validate every implemented type, by-reference call and legal storage alias against an independent compiler and test actual ZX-UX executable output, memory and error conditions.
+5. Build a legally reviewed, versioned substantial **F77S-relevant** external test corpus. Record complete attempted, compiled, executed, correct and unsupported counts; adapted FCVS themes are not full FCVS passes.
+6. Test SSX/TZX cassette loading, kernel integration and boundary behavior on real Spectrum 48K hardware and emulator; preserve executable hashes and machine output.
+7. Verify release hashes and licensing notices on clean builds; record every milestone in repository-root `PROGRESS.MD`.
 
 ## Source attribution and licences
 

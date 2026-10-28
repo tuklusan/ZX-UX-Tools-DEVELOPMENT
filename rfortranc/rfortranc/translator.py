@@ -35,7 +35,7 @@ class Unit:
 
 NAME = r'[A-Z][A-Z0-9_]*'
 NAME_RE = re.compile(r'^' + NAME + r'$')
-UNSUPPORTED = ('EQUIVALENCE', 'SAVE', 'DATA', 'BLOCK DATA', 'EXTERNAL',
+UNSUPPORTED = ('SAVE', 'DATA', 'BLOCK DATA', 'EXTERNAL',
                'INTRINSIC', 'OPEN', 'CLOSE', 'REWIND', 'BACKSPACE',
                'ENDFILE', 'ENTRY', 'PAUSE', 'WRITE', 'INQUIRE', 'NAMELIST',
                'CHARACTER', 'COMPLEX', 'DOUBLE PRECISION', 'ASSIGN ', 'ASSIGNED ',
@@ -591,6 +591,7 @@ def convert(units):
     """
     known = {u.name: u for u in units}
     from .common import layout, bind
+    from .equivalence import layout as equivalence_layout
     common_decls, common_uses = layout(units)
     chunks = [RUNTIME] + common_decls
     ctype = lambda ty: 'float' if ty == 'REAL' else 'int'
@@ -606,7 +607,9 @@ def convert(units):
         name = 'main' if is_main else 'f_' + u.name
         u.temps = []
         output = [ret + ' ' + name + '(' + sig + ') {']
-        aliases = common_uses.get(u.name, {})
+        eq_decls, eq_uses = equivalence_layout(u, common_uses.get(u.name, {}))
+        aliases = {**common_uses.get(u.name, {}), **eq_uses}
+        output.extend('    ' + declaration for declaration in eq_decls)
         def decl(text):
             output.append('    ' + text)
         for var, (ty, n) in u.vars.items():
@@ -647,6 +650,8 @@ def convert(units):
                 return  # FORMAT is a non-executable specification statement
             if re.match(r'^COMMON\s+', s):
                 return  # COMMON names use global positional storage
+            if re.match(r'^EQUIVALENCE\s*\(', s):
+                return  # EQUIVALENCE objects share local storage
             if re.match(r'^DATA\s+', s):
                 return  # initialized in function entry (main program only so far)
             fm = re.fullmatch(r'WRITE\s*\(\s*(6|\*)\s*,\s*(\d{1,5})\s*\)\s*(.*)', s)
