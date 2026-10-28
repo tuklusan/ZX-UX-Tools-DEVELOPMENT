@@ -66,6 +66,7 @@ an explicit diagnostic rather than generating misleading machine code.
 ## Tests
 
 ```bash
+python rfortranc/tests/run_tests.py --frontend-only  # CI / no SDK
 python rfortranc/tests/run_tests.py --sdk /path/to/src/zx-ux-sdk \
   --rvm /path/to/dist/sdk/bin/rvm
 python rfortranc/tools/release.py --sdk /path/to/src/zx-ux-sdk \
