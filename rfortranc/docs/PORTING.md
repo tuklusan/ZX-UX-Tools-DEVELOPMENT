@@ -33,8 +33,7 @@ Actual variables and array elements pass their addresses. Literal or computed
 actual arguments use private caller-side temporary locations; a modification
 of such a temporary is not reflected in the original expression. Tests cover
 integer and REAL dummy mutation in actual compiled Z80/ZX-UX execution.
-Multidimensional and array dummy arguments, full aliasing conformance, and
-separately compiled linkage remain unsupported.
+Fixed-size numeric whole-array dummy arguments (including cross-rank equal/sufficient sequence extents) now pass by reference. Adjustable array dimensions, array-element sequence actuals, procedure dummy arguments, complete aliasing and separately linked units remain unsupported.
 
 ## Remaining gates to production-grade **ANSI FORTRAN SUBSET (F77S)**
 

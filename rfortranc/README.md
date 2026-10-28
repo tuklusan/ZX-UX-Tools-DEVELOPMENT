@@ -63,7 +63,7 @@ passed by reference; expression/literal actuals are copied to temporary storage
 
 **Not production grade.** F77S-required features still missing or incomplete include
 complete COMMON/EQUIVALENCE storage association, CHARACTER arrays/dummies and IMPLICIT CHARACTER,
-array dummy arguments, full DATA storage lifetime, complete formatted READ/WRITE and REAL I/O.
+adjustable/assumed-size dummy arrays, array-element actual sequence association, full DATA storage lifetime, complete formatted READ/WRITE and REAL I/O.
 Implicit typing, fixed 3D arrays, DIMENSION and DATA are partially implemented. Unsupported syntax fails with
 an explicit diagnostic rather than generating misleading machine code.
 
@@ -83,7 +83,7 @@ Strict F77S mode now implements **named/blank numeric COMMON with fixed-size sca
 
 Restricted F77S `EQUIVALENCE` now associates local same-typed numeric scalar and fixed-array storage, including constant element offsets and transitive groups. COMMON/dummy association, mixed-type equivalence and full sequence association are deliberately rejected. Test `f77s_equiv.f` compares ZX-UX and gfortran outputs.
 
-Strict F77S mode now accepts separate fixed-bound DIMENSION declarations (up to 3 ranks), with implicit INTEGER/REAL typing; dummy adjustable arrays remain unsupported.
+Strict F77S mode accepts separate fixed-bound DIMENSION declarations (up to 3 ranks), with implicit INTEGER/REAL typing; fixed-size numeric dummy arrays now pass by reference with column-major index checks, cross-rank sequence association for same typed sufficient extents, and nested subroutine forwarding. Adjustable/assumed-size dummy bounds remain unsupported.
 
 The implemented FORMAT Iw/Aw/A/X/slash/literal subset accepts bounded repeat counts and nested groups (three parenthesis levels total).
 This is still a **partial F77S FORMAT implementation**, not full subset certification.
@@ -108,7 +108,7 @@ DATA statements: integer/logical/real scalar and fixed 1D/2D/3D array initializa
 
 ANSI subset `--std f77s` now implements default I–N INTEGER / other-letter REAL variables and `IMPLICIT INTEGER/REAL/LOGICAL` letter ranges. Default `zxux` mode still requires explicit declarations. Cross-check tests `f77s_implicit.f` and `f77s_real.f` compile to SSX and match gfortran output; see `tests/compare_f77s.py`.
 
-Fixed-size 2D/3D arrays are checked against host gfortran in `tests/fortran/f77s_2d.f` and `f77s_3d.f`. They use column-major flattened C48 storage; variable dimension bounds and array dummy arguments are not yet implemented.
+Fixed-size 2D/3D arrays are checked against host gfortran in `tests/fortran/f77s_2d.f` and `f77s_3d.f`. They use column-major flattened C48 storage; variable dimension bounds and general array-element actual association are not yet implemented; fixed whole-array dummy arguments work by reference.
 
 Formatted `READ(5,label)` now supports integer `Iw`, `X` and `/` descriptors with fixed-width numeric parsing, input record alignment, blank padding and 16-bit range checks. It is **partial**; CHARACTER scalar A/Aw input is also supported, but REAL input, BN/BZ controls and general formatted input are still missing. Host `rvm --keys` supplies input for ZX-UX tests.
 
@@ -117,3 +117,5 @@ A genuine John Burkardt LGPL prime-count subroutine port (`f77s_burkprime.f`) no
 The first public-source test-theme adaptations from NIST FCVS are documented in `tests/ported/README.md` (FM003/FM004/FM005). These are reduced independent F77S stress tests, **not complete FCVS programs**.
 
 F77S restricted constant-length CHARACTER scalars (`CHARACTER*n`, `CHARACTER*(n)` and default length one) now support assignment with blank padding/truncation, relational comparisons, and formatted `A`/`Aw` READ/WRITE with fixed record width. Verified examples `f77s_char.f` and `f77s_charread.f` compare generated SSX execution with gfortran. **Still missing:** CHARACTER arrays, implicit CHARACTER declarations, dummy arguments/returns, CHARACTER DATA, COMMON/EQUIVALENCE storage association, and additional FORMAT descriptors. No substring or concatenation (excluded by F77S).
+
+Fixed-size F77S numeric dummy arrays: `tests/fortran/f77s_dmarr.f`, `f77s_dmchain.f`, `f77s_dmreal.f`. The caller passes array storage by address (not copied), and the callee uses declared 1-based FORTRAN bounds. Type and insufficient extent are rejected; array-element actuals, procedure arguments and adjustable dummy bounds remain pending.

@@ -56,7 +56,8 @@ def infer(u, known):
             explicitly_typed.update(re.findall(NAME, declaration.group(2)))
     for name in u.args:
         if name not in explicitly_typed:
-            u.vars[name] = (types[name[0]], None)
+            # DIMENSION on a dummy may have set its shape before inference.
+            u.vars[name] = (types[name[0]], u.vars[name][1])
     for st in u.statements:
         s = st.text.strip()
         if (re.match(r'^(INTEGER|REAL|LOGICAL|IMPLICIT|DIMENSION|COMMON)\s+', s)

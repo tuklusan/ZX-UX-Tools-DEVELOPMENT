@@ -259,8 +259,6 @@ def parse(source, std='zxux'):
                 from .arrays import size as total_extent
                 if any(d < 1 or d > 32767 for d in dims) or total_extent(dims) > 32767:
                     raise FortranError(st.line, 'DIMENSION extent or total size out of bounds')
-                if name in u.args:
-                    raise FortranError(st.line, 'dummy DIMENSION arrays not yet supported: ' + name)
                 if name == u.name:
                     raise FortranError(st.line, 'DIMENSION cannot apply to function result')
                 present = u.vars.get(name)
@@ -863,8 +861,27 @@ def convert(units):
                 args = [] if not a.strip() else split_items(a)
                 if len(args) != len(known[f].args):
                     raise FortranError(line, 'SUBROUTINE argument count mismatch')
-                refs = [reference_actual(E(actual, line), u, known[f].vars[dummy][0])
-                        for actual, dummy in zip(args, known[f].args)]
+                refs = []
+                for actual, dummy in zip(args, known[f].args):
+                    ty, dims = known[f].vars[dummy]
+                    actual = actual.strip()
+                    if dims is not None:
+                        # FORTRAN array arguments are references to the first
+                        # sequence element, not copies of the array contents.
+                        # At this stage only named fixed-size whole arrays
+                        # are supported; adjustable bound expressions and
+                        # element designators need separate checks.
+                        info = u.vars.get(actual)
+                        if not info or info[1] is None:
+                            raise FortranError(line, 'dummy array needs an array variable actual: ' + dummy)
+                        if info[0] != ty:
+                            raise FortranError(line, 'array argument type mismatch: ' + actual)
+                        from .arrays import size as total_extent
+                        if total_extent(info[1]) < total_extent(dims):
+                            raise FortranError(line, 'array actual shorter than dummy: ' + actual)
+                        refs.append('F_' + actual)
+                    else:
+                        refs.append(reference_actual(E(actual, line), u, ty))
                 add(['f_' + f + '(' + ', '.join(refs) + ');'])
                 return
             m = re.fullmatch(r'PRINT\s*\*\s*,\s*(.*)', s)

@@ -86,6 +86,37 @@ class F77SChecks(unittest.TestCase):
                 validate_source(src,units)
                 self.assertIn('int main',convert(units))
 
+    def test_fixed_dummy_arrays_and_reference_sequence(self):
+        for name, part in [('f77s_dmarr', 'F_X[(f_index(3, 6))]'),
+                           ('f77s_dmchain', 'f_STEP2(F_A);'),
+                           ('f77s_dmreal', 'float *F_X')]:
+            with self.subTest(name=name):
+                source = (ROOT/'tests/fortran'/(name+'.f')).read_text()
+                units = parse(source, std='f77s')
+                validate_source(source, units)
+                self.assertIn(part, convert(units))
+
+    def test_dummy_array_argument_diagnostics(self):
+        for declaration, actual_decl, actual in (
+            ('INTEGER X(3)', 'INTEGER A(2)', 'A'),
+            ('REAL X(3)', 'INTEGER A(3)', 'A'),
+            ('INTEGER X(3)', 'INTEGER A', 'A'),
+        ):
+            src=('      PROGRAM BAD\n      ' + actual_decl + '\n'
+                 + '      CALL SUB(' + actual + ')\n      END\n'
+                 + '      SUBROUTINE SUB(X)\n      ' + declaration + '\n'
+                 + '      RETURN\n      END\n')
+            with self.subTest(declaration=declaration,actual_decl=actual_decl), self.assertRaises(FortranError):
+                convert(parse(src, std='f77s'))
+
+    def test_implicit_dummy_dimension_kept(self):
+        src=('      PROGRAM DIMT\n      REAL A(3)\n      CALL SUB(A)\n'
+             '      END\n      SUBROUTINE SUB(X)\n      DIMENSION X(3)\n'
+             '      X(1)=3.0\n      RETURN\n      END\n')
+        units = parse(src, std='f77s')
+        self.assertEqual(units[1].vars['X'], ('REAL', 3))
+        self.assertIn('float *F_X', convert(units))
+
     def test_burkardt_prime_subroutine_f77s_port(self):
         source = (ROOT/'tests/fortran/f77s_burkprime.f').read_text()
         units = parse(source, std='f77s')
@@ -231,7 +262,7 @@ class F77SChecks(unittest.TestCase):
         src='      PROGRAM DIMT\n      CALL SUB(1)\n      END\n' \
             + '      SUBROUTINE SUB(K)\n      DIMENSION K(3)\n      END\n'
         with self.assertRaises(FortranError):
-            parse(src,std='f77s')
+            convert(parse(src,std='f77s'))
 
     def test_2d_column_major_flattening(self):
         src=(ROOT/'tests/fortran/f77s_2d.f').read_text()
