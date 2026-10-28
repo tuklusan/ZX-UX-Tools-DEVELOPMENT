@@ -451,3 +451,10 @@ The `--rvm` binary must be the matching built/packaged emulator with the correct
 - The uploaded `minizxuxport.zip` supplies the external SDK and matching `rvm`; it is **not** included in the public source artifact because it is separately licensed. The source snapshot does not claim tests.
 - Targets: 71 SDK/RVM/TZX, 41 independent differential, 6 negative emulator bounds checks, all pending at latest implementation.
 - **Single next concrete action:** Fetch the new `rfortranc-source` artifact from this commit's successful workflow, unpack alongside the user SDK zip, run the 71/41/6 real kernel tests and checkpoint results into GitHub. Preserve other contributors' directories.
+
+### F77S rank-3 sequence and adjustable bounds — real ZX-UX execution (2026-10-28)
+
+- Ran `python tests/check_adjustable_bounds.py --sdk /mnt/data/zxuxsdk-work/src/zx-ux-sdk --rvm /mnt/data/zxuxsdk-work/dist/sdk/bin/rvm --sdk-archive /mnt/data/minizxuxport.zip --report tests/results/f77s-bounds-subarr-2026-10-28.json` in the exact `4718a7afa5c9b96b2ac8a5dce6258f89d1417304` source snapshot from GitHub Actions. **6/6 PASS**, process exit 0: all six malformed F77S programs compiled as SSX1 and booted in real ZX-UX kernel on matching RVM, trapping with emulator exit code **2**. This includes the new rank-3 element actual with insufficient trailing storage.
+- Checked-in report: `rfortranc/tests/results/f77s-bounds-subarr-2026-10-28.json`, SHA-256 `a357f23b4d0cbe0742f321f3f6197d7831a1bdcd5f88a5a7bfd57b429d14b51b`, source/tool/archive and binary hashes plus actual outputs. SDK archive SHA-256 `42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17`.
+- Expanded **71/41** full real SDK and differential suites are running independently; no pass claimed until their exact JSON reports finish and are checked.
+- **Single next concrete action:** Pin both complete 71 and 41 real kernel suite JSON results, fix failures if any, then continue feature correctness and substantial F77S executable library work.
