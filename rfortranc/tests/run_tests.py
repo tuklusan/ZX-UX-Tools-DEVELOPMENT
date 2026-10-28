@@ -21,11 +21,15 @@ PROGRAMS = {
     'strings': "John's ZX-UX OK",
     'realcmp': 'REAL OK',
     'subcall': '8',
+    'byref': '8',
+    'realbyref': 'REF REAL OK',
+    'fixedcomment': '3',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',
     'undefined-variable': 'PROGRAM A\nN = 123\nEND\n',
     'unsupported-format': 'PROGRAM A\nFORMAT (I6)\nEND\n',
+    'real-read': 'PROGRAM A\nREAL X\nREAD *, X\nEND\n',
 }
 
 

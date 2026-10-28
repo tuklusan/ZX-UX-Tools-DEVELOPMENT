@@ -30,6 +30,7 @@ class Unit:
     type: str = 'INTEGER'
     statements: list[Statement] = field(default_factory=list)
     vars: dict[str, tuple[str, int | None]] = field(default_factory=dict)
+    temps: list[tuple[str, str]] = field(default_factory=list)
 
 
 NAME = r'[A-Z][A-Z0-9_]*'
@@ -68,11 +69,21 @@ def lines(source):
     separator, except for fixed-format continuation lines.
     """
     out = []
-    for no, raw in enumerate(source.splitlines(), 1):
-        raw = raw.expandtabs(8)
+    raw_lines = [raw.expandtabs(8) for raw in source.splitlines()]
+    # Fixed-form C/c comments occupy column one, with no required blank after
+    # the C.  Detect fixed form from code lines so free-form CALL/CONTINUE at
+    # column one are still parsed as statements.
+    fixed_count = sum(bool(re.match(r'^ {5}[ 0-9]', raw))
+                      for raw in raw_lines if raw.strip())
+    free_count = sum(bool(raw.strip() and not raw.startswith(('C ', 'c ', '*', '!'))
+                          and not re.match(r'^ {5}[ 0-9]', raw))
+                     for raw in raw_lines)
+    fixed_form = fixed_count > 0 and fixed_count >= free_count
+    for no, raw in enumerate(raw_lines, 1):
         if not raw.strip():
             continue
-        if raw[0] in 'cC*!' and (len(raw) == 1 or raw[1].isspace() or raw[0] in '*!'):
+        if raw[0] in '*!' or (raw[0] in 'cC' and
+            (fixed_form or len(raw) == 1 or raw[1].isspace())):
             continue
         fixed = bool(re.match(r'^ {5}[ \d]', raw)) or bool(len(raw) >= 6 and raw[:5].strip().isdigit() and raw[5] == ' ')
         if fixed:
@@ -290,11 +301,14 @@ class Expr:
                 elif t in self.known and self.known[t].kind == 'function':
                     if len(params) != len(self.known[t].args):
                         raise FortranError(self.line, 'wrong number of function arguments: ' + t)
-                    lhs = 'f_' + t + '(' + ', '.join(params) + ')'
+                    target = self.known[t]
+                    refs = [reference_actual(arg, self.unit, target.vars[dummy][0])
+                            for arg, dummy in zip(params, target.args)]
+                    lhs = 'f_' + t + '(' + ', '.join(refs) + ')'
                 else:
                     raise FortranError(self.line, 'unknown function: ' + t)
             elif t in self.unit.vars and self.unit.vars[t][1] is None:
-                lhs = 'F_' + t
+                lhs = '(*F_' + t + ')' if t in self.unit.args else 'F_' + t
             else:
                 raise FortranError(self.line, 'undeclared variable: ' + t)
         else:
@@ -313,8 +327,27 @@ class Expr:
         return lhs
 
 
+def reference_actual(value, unit, ty):
+    """Pass a FORTRAN actual argument by address, materializing rvalues.
+
+    Each expression actual gets its own local temporary.  A routine may change
+    dummy arguments only when its actual is an assignable variable or element.
+    """
+    if re.fullmatch(r'\(\*F_[A-Z][A-Z0-9_]*\)', value):
+        return value[2:-1]  # existing dummy: its value is already an address
+    if re.fullmatch(r'F_[A-Z][A-Z0-9_]*(?:\[.*\])?', value):
+        return '&(' + value + ')'
+    key = 'f_argtmp_' + str(len(unit.temps))
+    unit.temps.append((key, ty))
+    if ty == 'REAL':
+        return 'f_ref_real(&' + key + ', ' + value + ')'
+    return 'f_ref_int(&' + key + ', ' + value + ')'
+
+
 RUNTIME = '''#include <c48.h>
 /* FORTRAN words are 16-bit on this ZX Spectrum target. */
+static int *f_ref_int(int *p, int value) { *p = value; return p; }
+static float *f_ref_real(float *p, float value) { *p = value; return p; }
 static int f_index(int n, int size) {
     if (n < 1 || n > size) exit(2);
     return n - 1;
@@ -390,13 +423,14 @@ def convert(units):
     for u in units:
         if u.kind != 'program':
             ty = 'void' if u.kind == 'subroutine' else ctype(u.type)
-            sig = ', '.join(ctype(u.vars[a][0]) + ' F_' + a for a in u.args) or 'void'
+            sig = ', '.join(ctype(u.vars[a][0]) + ' *F_' + a for a in u.args) or 'void'
             chunks.append(ty + ' f_' + u.name + '(' + sig + ');')
     for u in units:
         is_main = u.kind == 'program'
         ret = 'int' if is_main else 'void' if u.kind == 'subroutine' else ctype(u.type)
-        sig = 'void' if is_main or not u.args else ', '.join(ctype(u.vars[a][0]) + ' F_' + a for a in u.args)
+        sig = 'void' if is_main or not u.args else ', '.join(ctype(u.vars[a][0]) + ' *F_' + a for a in u.args)
         name = 'main' if is_main else 'f_' + u.name
+        u.temps = []
         output = [ret + ' ' + name + '(' + sig + ') {']
         def decl(text):
             output.append('    ' + text)
@@ -441,7 +475,9 @@ def convert(units):
                 args = [] if not a.strip() else split_items(a)
                 if len(args) != len(known[f].args):
                     raise FortranError(line, 'SUBROUTINE argument count mismatch')
-                add(['f_' + f + '(' + ', '.join(E(p, line) for p in args) + ');'])
+                refs = [reference_actual(E(actual, line), u, known[f].vars[dummy][0])
+                        for actual, dummy in zip(args, known[f].args)]
+                add(['f_' + f + '(' + ', '.join(refs) + ');'])
                 return
             m = re.fullmatch(r'PRINT\s*\*\s*,\s*(.*)', s)
             if m:
@@ -462,14 +498,17 @@ def convert(units):
                 operations = []
                 for p in split_items(m.group(1)):
                     dest = E(p, line)
-                    if not dest.startswith('F_'):
+                    if not (dest.startswith('F_') or dest.startswith('(*F_')):
+                        raise FortranError(line, 'READ requires an INTEGER variable')
+                    nm = re.match(r'\s*([A-Z][A-Z0-9_]*)\s*(?:\(.*\))?$', p)
+                    if not nm or u.vars.get(nm.group(1), ('', None))[0] != 'INTEGER':
                         raise FortranError(line, 'READ requires an INTEGER variable')
                     operations.append(dest + ' = f_inint();')
                 add(operations); return
             m = re.fullmatch(r'(' + NAME + r'(?:\s*\([^)]*\))?)\s*=\s*(.*)', s)
             if m:
                 dest, value = E(m.group(1), line), E(m.group(2), line)
-                if not dest.startswith('F_'):
+                if not (dest.startswith('F_') or dest.startswith('(*F_')):
                     raise FortranError(line, 'assignment requires a scalar or array element')
                 add([dest + ' = ' + value + ';']); return
             raise FortranError(line, 'unsupported FORTRAN statement: ' + s)
@@ -554,6 +593,8 @@ def convert(units):
             if lab not in labels:
                 raise FortranError(ln, 'undefined statement label: ' + lab)
             update(n, ('jump', labels[lab]))
+        for temp, ty in u.temps:
+            decl(ctype(ty) + ' ' + temp + ';')
         decl('f_pc = 0;')
         decl('while (1) {')
         for n, (operations, tail) in enumerate(code):

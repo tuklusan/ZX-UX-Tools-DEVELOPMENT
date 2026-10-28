@@ -3,6 +3,9 @@
 These are **source candidates**, not results. All outside sources must be
 licensed and fetched separately before test integration. The existing local
 suite is only a smoke check; no public corpus has passed the new compiler.
+Run `python rfortranc/tools/corpus_probe.py /path/to/corpus --report report.json`
+for SHA-256-pinned source acceptance results; this does not execute a program
+and must never be reported as language conformance.
 
 | Priority | Source | Why | Legal/use note | Expected current result |
 |---|---|---|---|---|

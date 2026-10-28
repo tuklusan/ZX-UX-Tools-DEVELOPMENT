@@ -51,15 +51,17 @@ The runtime only uses the existing `libc48.ssa` and ZX-UX services.
 
 Implemented: fixed and free-layout basic source, labels and continuations,
 INTEGER/LOGICAL scalars, one-dimensional arrays, INTEGER functions,
-subroutines with **by-value arguments**, assignment, integer arithmetic,
+subroutines with **by-reference scalar arguments**, assignment, integer arithmetic,
 `MOD`, integer `**`, logical/relational expressions, `IF/THEN/ELSE/ENDIF`,
 logical single-line IF, numbered `DO` including negative increments,
 `GO TO`, `CONTINUE`, `STOP`, `RETURN`, `PRINT *,` strings/integers and
-`READ *,` integers. REAL declarations/arithmetic are experimental.
+`READ *,` integers. REAL declarations/arithmetic are experimental. Scalar actual variables are
+passed by reference; expression/literal actuals are copied to temporary storage
+(as in conventional FORTRAN calls). Array dummy arguments are not supported.
 
 **Not production grade.** No full F77 implicit typing, COMMON/EQUIVALENCE,
 DATA, formatted I/O, DIMENSION in a separate statement, multidimensional
-arrays, CHARACTER, COMPLEX, standard call-by-reference, RECURSIVE, full
+arrays, CHARACTER, COMPLEX, array dummy arguments, full call aliasing validation, RECURSIVE, full
 floating-point semantics, or REAL printing. Unsupported syntax fails with
 an explicit diagnostic rather than generating misleading machine code.
 

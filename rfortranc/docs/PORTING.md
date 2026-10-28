@@ -26,6 +26,16 @@ flow handles F77 numeric GOTO and labeled DO without depending on C48's
 unsupported C `goto`/labels. The extra code can increase executable size;
 `rcc`'s automatic fitting helps but cannot make arbitrary F77 programs fit 48K.
 
+## Subprogram ABI milestone
+
+Scalar FUNCTION and SUBROUTINE dummy arguments now use typed C48 pointers.
+Actual variables and array elements pass their addresses. Literal or computed
+actual arguments use private caller-side temporary locations; a modification
+of such a temporary is not reflected in the original expression. Tests cover
+integer and REAL dummy mutation in actual compiled Z80/ZX-UX execution.
+Multidimensional and array dummy arguments, full aliasing conformance, and
+separately compiled linkage remain unsupported.
+
 ## Remaining gates to production
 
 1. Establish legally correct FORTRAN 77 syntax/semantics, including fixed form,
@@ -33,8 +43,9 @@ unsupported C `goto`/labels. The extra code can increase executable size;
    all implicit typing rules. Add negative compile tests for each rejection.
 2. Add full F77 storage model: COMMON, EQUIVALENCE, SAVE, DATA, and arrays
    including multiple dimensions and adjusted/assumed sizes.
-3. Replace pass-by-value routine calls with true F77 by-reference ABI;
-   implement external linking across separately compiled FORTRAN units.
+3. Validate the implemented by-reference scalar dummy arguments against
+   F77 aliasing/typing rules; add array dummy arguments, procedure arguments,
+   and external linking across separately compiled FORTRAN units.
 4. Implement CHARACTER, COMPLEX, REAL and DOUBLE PRECISION I/O, FORMAT,
    OPEN/CLOSE/REWIND and record-oriented I/O using ZX-UX.
 5. Validate 16-bit overflow, divide-by-zero, rounding, integer division,
