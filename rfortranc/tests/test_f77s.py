@@ -756,4 +756,24 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaisesRegex(FortranError, 'CHARACTER dummy requires same-length'):
             convert(parse(source, std='f77s'))
 
+    def test_burkardt_real_variance_sample_and_tails(self):
+        src = (ROOT/'tests/fortran/f77s_burkvar.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        c = convert(units)
+        self.assertIn('f_RVVARI(', c)
+        self.assertIn('f_extent(', c)
+        self.assertIn('f_seqcheck(', c)
+        self.assertIn('f_outrealw(', c)
+
+    def test_burkardt_real_scale_writes_to_adjustable_dummy(self):
+        src = (ROOT/'tests/fortran/f77s_burkscale.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        c = convert(units)
+        self.assertIn('f_RVSCL(', c)
+        self.assertIn('F_A[f_seqcheck(', c)
+        self.assertIn('f_extent(', c)
+        self.assertIn('f_outrealw(', c)
+
 if __name__=='__main__': unittest.main()
