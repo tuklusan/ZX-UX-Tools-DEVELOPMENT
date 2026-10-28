@@ -218,11 +218,24 @@ class F77SChecks(unittest.TestCase):
                     self.assertIn('f_char_cmp(F_B, 5, "HI", 2)', c)
                     self.assertIn('f_outcharw(F_B, 5, 7);', c)
 
+    def test_fixed_character_arrays_rank2_and_data(self):
+        source = (ROOT/'tests/fortran/f77s_charray.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        c = convert(units)
+        self.assertIn('char F_A[16];', c)
+        self.assertIn('f_char_copy(F_A + 0 * 4, 3, "AB");', c)
+        self.assertIn('f_char_copy(F_A + 3 * 4, 3, "Q");', c)
+        self.assertIn('f_char_cmp(', c)
+        self.assertIn('f_outcharw(', c)
+        self.assertIn('f_index(F_I, 2)', c)
+        self.assertIn('f_index(F_J, 2)', c)
+        self.assertIn('static char f_sd1_T[6];', c)
+
     def test_character_rejects_unsupported_forms(self):
         for body in (
             ['CHARACTER*0 A'],
             ['CHARACTER*256 A'],
-            ['CHARACTER*4 A(2)'],
             ['CHARACTER*3 A', "A='H' // 'I'"],
             ['CHARACTER*4 A', "A(1:2)='AB'"],
             ['CHARACTER*5 A', 'INTEGER N', 'N=A+1'],

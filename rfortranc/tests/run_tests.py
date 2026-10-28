@@ -83,6 +83,7 @@ PROGRAMS = {
     'f77s_chdata': 'XY',
     'f77s_imchar': 'A/B',
     'f77s_charg': 'HI',
+    'f77s_charray': 'XY OK',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',

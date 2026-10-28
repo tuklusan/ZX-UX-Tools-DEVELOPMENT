@@ -230,8 +230,6 @@ def parse(source, std='zxux'):
                 if not var:
                     raise FortranError(st.line, 'unsupported declaration: ' + spec)
                 name, count = var.groups()
-                if ty.startswith('CHARACTER*') and count:
-                    raise FortranError(st.line, 'CHARACTER arrays are not yet implemented')
                 size = parse_dims(count, name, u, st.line) if count is not None else None
                 if name in u.vars and name not in u.args and name != u.name:
                     raise FortranError(st.line, 'duplicate declaration: ' + name)
@@ -401,6 +399,8 @@ class Expr:
                 if self.pop() != ')':
                     raise FortranError(self.line, 'bad function or array argument list')
                 if t in self.unit.vars and self.unit.vars[t][1] is not None:
+                    if self.unit.vars[t][0].startswith('CHARACTER*'):
+                        raise FortranError(self.line, 'CHARACTER array element requires character assignment/comparison or A FORMAT')
                     lhs = 'F_' + t + '[' + array_subscript(params, t, self.unit, self.line) + ']'
                 elif t == 'MOD' and len(params) == 2:
                     lhs = '((' + params[0] + ') % (' + params[1] + '))'
@@ -627,6 +627,29 @@ static int f_inint(void) {
 '''
 
 
+def character_item(token, unit, units, line):
+    """Resolve a scalar/element to a fixed-length NUL-terminated storage slot."""
+    m = re.fullmatch(r'(' + NAME + r')(?:\s*\(([^()]*)\))?', token.strip())
+    if not m:
+        return None
+    name, indices = m.groups()
+    info = unit.vars.get(name)
+    if not info or not info[0].startswith('CHARACTER*'):
+        return None
+    width = int(info[0].split('*')[1])
+    if info[1] is None:
+        if indices is not None:
+            raise FortranError(line, 'CHARACTER subscript on scalar: ' + name)
+        return ('F_' + name, width)
+    if indices is None:
+        raise FortranError(line, 'CHARACTER array requires element subscripts: ' + name)
+    if name in unit.args:
+        raise FortranError(line, 'CHARACTER dummy arrays are not implemented')
+    params = [expression(t, unit, units, line) for t in split_items(indices)]
+    index = array_subscript(params, name, unit, line)
+    return ('(F_' + name + ' + (' + index + ') * ' + str(width + 1) + ')', width)
+
+
 def expression(src, unit, units, line):
     # F77S CHARACTER operands are blank-padded to equal length for comparison.
     # Restrict lowering to scalar CHARACTER names and string literals.
@@ -637,10 +660,7 @@ def expression(src, unit, units, line):
             if re.fullmatch(r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"", token):
                 q = token[0]
                 return c_string(token), len(token[1:-1].replace(q * 2, q))
-            info = unit.vars.get(token)
-            if info and info[1] is None and info[0].startswith('CHARACTER*'):
-                return 'F_' + token, int(info[0].split('*')[1])
-            return None
+            return character_item(token, unit, units, line)
         lhs, rhs = char_operand(m.group(1)), char_operand(m.group(3))
         if lhs or rhs:
             if not lhs or not rhs:
@@ -775,8 +795,9 @@ def convert(units):
                 if len(global_name) > 15:
                     raise FortranError(u.line, 'DATA storage name exceeds C48 limit')
                 if typ.startswith('CHARACTER*'):
+                    count = total_extent(extent) if extent else 1
                     chunks.append('static char ' + global_name + '[' +
-                                  str(int(typ.split('*')[1]) + 1) + '];')
+                                  str(count * (int(typ.split('*')[1]) + 1)) + '];')
                 else:
                     chunks.append('static ' + ctype(typ) + ' ' + global_name +
                                   ('[' + str(total_extent(extent)) + ']' if extent else '') + ';')
@@ -790,9 +811,8 @@ def convert(units):
             if var not in u.args and ('F_' + var) not in aliases:
                 from .arrays import size as total_extent
                 if ty.startswith('CHARACTER*'):
-                    if n is not None:
-                        raise FortranError(u.line, 'CHARACTER array storage not yet implemented')
-                    decl('char F_' + var + '[' + str(int(ty.split('*')[1]) + 1) + '];')
+                    count = total_extent(n) if n is not None else 1
+                    decl('char F_' + var + '[' + str(count * (int(ty.split('*')[1]) + 1)) + '];')
                 else:
                     decl(ctype(ty) + ' F_' + var + (('[' + str(total_extent(n)) + ']') if n else '') + ';')
         extra_decls = []
@@ -802,7 +822,11 @@ def convert(units):
             decl('F_' + u.name + ' = 0;')
         def data_init_statement(target, value):
             if isinstance(value, tuple) and value[0] == 'character':
-                return 'f_char_copy(' + target + ', ' + str(value[1]) + ', ' + value[2] + ');'
+                pointer = target
+                slot = re.fullmatch(r'F_([A-Z][A-Z0-9_]*)\[(\d+)\]', target)
+                if slot:
+                    pointer = 'F_' + slot.group(1) + ' + ' + slot.group(2) + ' * ' + str(value[1] + 1)
+                return 'f_char_copy(' + pointer + ', ' + str(value[1]) + ', ' + value[2] + ');'
             return target + ' = ' + value + ';'
         if data_guard is not None:
             decl('if (!' + data_guard + ') {')
@@ -867,11 +891,11 @@ def convert(units):
                         if pos == len(values):
                             raise FortranError(line, 'WRITE has fewer items than FORMAT')
                         name = values[pos].strip()
-                        spec = u.vars.get(name)
-                        if not spec or spec[1] is not None or not spec[0].startswith('CHARACTER*'):
-                            raise FortranError(line, 'FORMAT A requires CHARACTER scalar item')
-                        length = int(spec[0].split('*')[1])
-                        operations.append('f_outcharw(F_' + name + ', ' + str(length) + ', ' + str(item or length) + ');')
+                        char_value = character_item(name, u, known, line)
+                        if not char_value:
+                            raise FortranError(line, 'FORMAT A requires CHARACTER scalar/array element')
+                        pointer, length = char_value
+                        operations.append('f_outcharw(' + pointer + ', ' + str(length) + ', ' + str(item or length) + ');')
                         pos += 1
                     elif mode == 'integer':
                         if pos == len(values):
@@ -904,11 +928,11 @@ def convert(units):
                         if pos == len(values):
                             raise FortranError(line, 'READ has fewer items than FORMAT')
                         name = values[pos].strip()
-                        spec = u.vars.get(name)
-                        if not spec or spec[1] is not None or not spec[0].startswith('CHARACTER*'):
-                            raise FortranError(line, 'FORMAT A requires CHARACTER scalar item')
-                        length = int(spec[0].split('*')[1])
-                        operations.append('f_fmt_inchar(F_' + name + ', ' + str(length) + ', ' + str(item or length) + ');')
+                        char_value = character_item(name, u, known, line)
+                        if not char_value:
+                            raise FortranError(line, 'FORMAT A requires CHARACTER scalar/array element')
+                        pointer, length = char_value
+                        operations.append('f_fmt_inchar(' + pointer + ', ' + str(length) + ', ' + str(item or length) + ');')
                         pos += 1
                     elif mode == 'integer':
                         if pos == len(values):
@@ -1090,17 +1114,17 @@ def convert(units):
             m = re.fullmatch(r'(' + NAME + r'(?:\s*\([^)]*\))?)\s*=\s*(.*)', s)
             if m:
                 lhs, rhs = m.group(1).strip(), m.group(2).strip()
-                ty = u.vars.get(lhs)
-                if ty and ty[1] is None and ty[0].startswith('CHARACTER*'):
-                    length = int(ty[0].split('*')[1])
+                target = character_item(lhs, u, known, line)
+                if target:
+                    pointer, length = target
                     if re.fullmatch(r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"", rhs):
                         value = c_string(rhs)
-                    elif (rhs in u.vars and u.vars[rhs][1] is None
-                          and u.vars[rhs][0].startswith('CHARACTER*')):
-                        value = 'F_' + rhs
                     else:
-                        raise FortranError(line, 'CHARACTER assignment must use a literal or CHARACTER scalar')
-                    add(['f_char_copy(F_' + lhs + ', ' + str(length) + ', ' + value + ');'])
+                        source = character_item(rhs, u, known, line)
+                        if not source:
+                            raise FortranError(line, 'CHARACTER assignment must use a literal or CHARACTER item')
+                        value = source[0]
+                    add(['f_char_copy(' + pointer + ', ' + str(length) + ', ' + value + ');'])
                     return
                 dest, value = E(m.group(1), line), E(m.group(2), line)
                 if not (dest.startswith('F_') or dest.startswith('(*F_')):

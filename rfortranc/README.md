@@ -133,3 +133,5 @@ Multi-rank adjustable/assumed-size F77S fixtures: `f77s_dm2ad.f`, `f77s_dm3ad.f`
 Numeric library exercise: `tests/fortran/f77s_burkmm.f` adapts John Burkardt LGPL integer matrix multiplication to strict F77S. It uses actual rank-2 adjustable `B(2,N)`/`C(2,N)` dummy arrays, nested labelled DO, and passes through `rcc -> ras -> rld` to real SSX1. Independent gfortran and ZX-UX RVM outputs match for N=3 and N=1.
 
 The LGPL `I4MAT_FLIP_ROWS` and `I4MAT_FLIP_COLS` ports in `tests/fortran/f77s_burkflip.f` exercise mutable rank-2 adjustable matrix storage and reversal, with independent gfortran-vs-SSX/RVM output comparison.
+
+Fixed-size 1D/2D/3D CHARACTER arrays now support contiguous column-major storage of individually blank-padded, terminated elements, scalar element assignment/comparisons, formatted A/Aw WRITE/READ and DATA initialization (including persistent subprogram local array DATA). See `tests/fortran/f77s_charray.f`. CHARACTER dummy arrays and storage association remain unsupported; full F77S conformance is not claimed.

@@ -39,3 +39,5 @@ are tracked below rather than discarded as full-F77-only work.
 3. `python rfortranc/tests/run_tests.py --sdk <sdk> --rvm <matching rvm> --report <JSON>` — compiler/runtime smoke tests; most current fixtures are **ZX-UX extension mode**.
 4. NIST FCVS `FMxxx` tests described specifically as subset tests form the candidate **external conformance corpus**. Track attempted, unsupported, compiled, executed, correct, incorrect; no silent filtering. Normalize only platform I/O through clearly documented port patches. Preserve source attribution and checksums. Desktop gfortran comparison remains separate from actual ZX-UX execution.
 5. All actual Spectrum 48K, kernel and cassette tests must preserve hardware/emulator version, output and image SHA-256 in a committed run manifest.
+
+Fixed-bound CHARACTER arrays (up to rank 3) are now lowered with column-major element storage, bounded per-dimension indexing and fixed-length element operations. `f77s_charray.f` covers array DATA, assignment, comparison, WRITE and persistent subprogram array DATA. CHARACTER dummy arrays, COMMON/EQUIVALENCE association, and full CHARACTER I/O remain outstanding.
