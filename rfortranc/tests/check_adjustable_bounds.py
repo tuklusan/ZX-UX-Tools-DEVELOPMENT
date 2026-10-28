@@ -37,6 +37,13 @@ FIXTURES = {
     'burkardt_real_mean_extent_trap': (
         'f77s_burkmean.f', '      N=4\n      CALL RVMEAN(N,A,R)\n',
         '      N=5\n      CALL RVMEAN(N,A,R)\n'),
+    'burkardt_real_variance_extent_trap': (
+        'f77s_burkvar.f', '      N=5\n      CALL RVVARI(N,A,R)\n',
+        '      N=6\n      CALL RVVARI(N,A,R)\n'),
+    'burkardt_real_scale_tail_extent_trap': (
+        'f77s_burkscale.f',
+        '      N=3\n      S=-0.5\n      CALL RVSCL(N,S,A(2))\n',
+        '      N=5\n      S=-0.5\n      CALL RVSCL(N,S,A(2))\n'),
 }
 
 
