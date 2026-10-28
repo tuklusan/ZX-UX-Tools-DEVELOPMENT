@@ -18,9 +18,15 @@ def layout(units):
             if not re.match(r'^COMMON\b', st.text):
                 continue
             m = re.fullmatch(r'COMMON\s+/([A-Z][A-Z0-9]{0,5})/\s*(.+)', st.text)
-            if not m:
-                raise FortranError(st.line, 'only named scalar COMMON /name/ lists implemented')
-            block, item_text = m.groups()
+            if m:
+                block, item_text = m.groups()
+            else:
+                m = re.fullmatch(r'COMMON\s*//\s*(.+)', st.text)
+                if not m:
+                    m = re.fullmatch(r'COMMON\s+([^/].*)', st.text)
+                if not m:
+                    raise FortranError(st.line, 'unsupported COMMON syntax (expected /name/, // or variable list)')
+                block, item_text = '0', m.group(1)  # internal blank-block key
             members = per_block.setdefault(block, [])
             for token in split_items(item_text):
                 name = token.strip()

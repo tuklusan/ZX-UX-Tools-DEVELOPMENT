@@ -78,6 +78,27 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaises(FortranError):
             parse(src, std='f77s')
 
+    def test_public_fcvs_theme_ports(self):
+        for name in ('f77s_fc3', 'f77s_fc4', 'f77s_fc5'):
+            with self.subTest(name=name):
+                src=(ROOT/'tests/fortran'/(name+'.f')).read_text()
+                units=parse(src,std='f77s')
+                validate_source(src,units)
+                self.assertIn('int main',convert(units))
+
+    def test_blank_common_positional_storage(self):
+        src=(ROOT/'tests/fortran/f77s_blank.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('static int f_com_0_0;', c)
+        self.assertIn('f_com_0_0 =', c)
+
+    def test_bad_common_syntax_rejected(self):
+        src='      PROGRAM BLNK\n      INTEGER N\n      COMMON /BLK N\n      END\n'
+        with self.assertRaises(FortranError):
+            convert(parse(src, std='f77s'))
+
     def test_common_array_rank_compatibility(self):
         src=(ROOT/'tests/fortran/f77s_comarr.f').read_text()
         units=parse(src,std='f77s')
