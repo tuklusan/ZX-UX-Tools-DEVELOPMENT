@@ -1,13 +1,32 @@
 """Minimal ANSI F77S DATA initializer lowering.
 
-Supports numeric/logical scalar and fixed-array initialization in programs and
-subroutines. Subprogram DATA storage is allocated statically and initialized
-once by the translator. Implied DO, character DATA and overlapping storage
-association remain unsupported.
+Supports numeric/logical scalar and fixed-array initialization plus CHARACTER
+scalar DATA in programs and subroutines. Subprogram DATA storage is allocated
+statically and initialized once by the translator. Implied DO, CHARACTER arrays
+and overlapping storage association remain unsupported.
 """
 from __future__ import annotations
 import re
 from .translator import FortranError, NAME, split_items
+
+
+def _find_unquoted_slash(text, start):
+    """F77S DATA delimiters ignore slashes inside character literals."""
+    quote = None
+    i = start
+    while i < len(text):
+        ch = text[i]
+        if quote and ch == quote and text[i:i+2] == quote * 2:
+            i += 2
+            continue
+        if quote and ch == quote:
+            quote = None
+        elif quote is None and ch in ("'", '"'):
+            quote = ch
+        elif quote is None and ch == '/':
+            return i
+        i += 1
+    return -1
 
 
 def initializers(unit):
@@ -31,10 +50,10 @@ def initializers(unit):
         parts = m.group(1)
         pos = 0
         while pos < len(parts):
-            fst = parts.find('/', pos)
+            fst = _find_unquoted_slash(parts, pos)
             if fst == -1:
                 raise FortranError(st.line, 'bad DATA statement; expected /values/')
-            snd = parts.find('/', fst + 1)
+            snd = _find_unquoted_slash(parts, fst + 1)
             if snd == -1:
                 raise FortranError(st.line, 'missing closing DATA slash')
             name_src = parts[pos:fst].strip()
@@ -87,6 +106,10 @@ def initializers(unit):
                     value = '1' if val == '.TRUE.' else '0'
                 elif typ == 'REAL' and re.fullmatch(r'[+-]?(?:\d+\.\d*|\.\d+)(?:E[+-]?\d+)?', val):
                     value = val
+                elif (typ.startswith('CHARACTER*') and
+                      re.fullmatch(r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"", val)):
+                    from .translator import c_string
+                    value = ('character', int(typ.split('*')[1]), c_string(val))
                 else:
                     raise FortranError(st.line, 'DATA values must match type exactly: ' + val)
                 result.append((target, value))
