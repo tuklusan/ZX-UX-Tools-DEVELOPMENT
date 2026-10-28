@@ -76,6 +76,7 @@ PROGRAMS = {
     'f77s_dm2el': '  42   5',
     'f77s_dm3el': '  42  10   8',
     'f77s_subdata': '  42',
+    'f77s_subarr': '   6',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',
@@ -87,6 +88,7 @@ NEGATIVE = {
     'computed-real-selector': 'PROGRAM A\nREAL R\nR=1.0\nGO TO (10,20),R\n10 CONTINUE\n20 CONTINUE\nEND\n',
     'write-undefined-format': 'PROGRAM A\nINTEGER N\nN=1\nWRITE (6,10) N\nEND\n',
     'write-bad-descriptor': 'PROGRAM A\nINTEGER N\nN=1\nWRITE (6,10) N\n10 FORMAT(F8.2)\nEND\n',
+    'data-int-overflow': 'PROGRAM A\nINTEGER N\nDATA N/32768/\nEND\n',
 }
 
 

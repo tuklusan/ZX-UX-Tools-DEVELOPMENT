@@ -80,6 +80,8 @@ def initializers(unit):
                     raise FortranError(st.line, 'DATA object initialized twice: ' + target)
                 used.add(target)
                 if typ == 'INTEGER' and re.fullmatch(r'[+-]?\d+', val):
+                    if not -32768 <= int(val) <= 32767:
+                        raise FortranError(st.line, 'DATA INTEGER value outside ZX-UX 16-bit range: ' + val)
                     value = val
                 elif typ == 'LOGICAL' and val in ('.TRUE.', '.FALSE.'):
                     value = '1' if val == '.TRUE.' else '0'

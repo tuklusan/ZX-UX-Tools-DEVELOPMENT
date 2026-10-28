@@ -66,6 +66,24 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_sdi1 = 1;', c)
         self.assertNotIn('int F_N;', c)
 
+    def test_subprogram_data_rank2_static_array(self):
+        src=(ROOT/'tests/fortran/f77s_subarr.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('static int f_sd1_A[4];', c)
+        self.assertIn('f_sd1_A[3] = 4;', c)
+        self.assertIn('if (!f_sdi1)', c)
+
+    def test_data_integer_range(self):
+        for value in ('32768', '-32769', '100000'):
+            src=('      PROGRAM BAD\n      INTEGER N\n'
+                 + '      DATA N/' + value + '/\n      END\n')
+            with self.subTest(value=value), self.assertRaisesRegex(FortranError, '16-bit range'):
+                convert(parse(src,std='f77s'))
+        src='      PROGRAM GOOD\n      INTEGER N\n      DATA N/-32768/\n      END\n'
+        self.assertIn('F_N = -32768;', convert(parse(src,std='f77s')))
+
     def test_data_count_error(self):
         source=(ROOT / 'tests/negative/f77s_data_bad.f').read_text()
         with self.assertRaises(FortranError):
