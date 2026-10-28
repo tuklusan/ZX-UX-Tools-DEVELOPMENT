@@ -48,3 +48,6 @@ actual RVM output against an independently compiled host gfortran run.
 
 | [John Burkardt `i4lib/i4lib.f`](https://github.com/johannesgerer/jburkardt-f77/blob/master/i4lib/i4lib.f), `I4VEC_CUM`, `I4VEC_MIN` and `I4VEC_MAX` | `e0a7be6024463bc0d34ec036080d875ed66f4c31` | [`../fortran/f77s_burkcum.f`](../fortran/f77s_burkcum.f) | **GNU LGPL**, original author John Burkardt. Adapted accumulation, minimum and maximum over variable-length INTEGER A(N), 6-character names, separate SUBROUTINE output arguments, numbered DO and F77S fixed form. Exercises N=5 followed by N=3. Source originally declares I4VEC_CUM modified 25 Jun 2011, I4VEC_MIN and I4VEC_MAX 19 Jan 2007. |
 
+
+| [John Burkardt `i4lib/i4lib.f`](https://github.com/johannesgerer/jburkardt-f77/blob/master/i4lib/i4lib.f), `I4VEC_DOT_PRODUCT` | `e0a7be6024463bc0d34ec036080d875ed66f4c31` | [`../fortran/f77s_burkdot.f`](../fortran/f77s_burkdot.f) | **GNU LGPL**; original John Burkardt routine (19 Dec 2011). Converted function to F77S subroutine with by-reference result, renamed `DOTVEC`, adjusted `X(N),Y(N)`, labelled DO loop. Checks N=5 whole arrays and N=4 dynamic tail sequences `X(2),Y(2)`. |
+

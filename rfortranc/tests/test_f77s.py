@@ -417,6 +417,16 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_extent(',c)
         self.assertIn('f_seqcheck(',c)
 
+    def test_burkardt_dot_product_adjustable_element_sequences(self):
+        source=(ROOT/'tests/fortran/f77s_burkdot.f').read_text()
+        units=parse(source,std='f77s')
+        validate_source(source,units)
+        generated=convert(units)
+        self.assertIn('f_DOTVEC(',generated)
+        self.assertIn('f_seqcheck(',generated)
+        self.assertIn('f_extent(',generated)
+        self.assertIn('f_idx_',generated)
+
     def test_burkardt_matrix_multiplication_port(self):
         source = (ROOT/'tests/fortran/f77s_burkmm.f').read_text()
         units = parse(source, std='f77s')
