@@ -417,3 +417,10 @@ The `--rvm` binary must be the matching built/packaged emulator with the correct
 - Added `tests/check_gfortran_reference.py`, a host-only gfortran reference-output check for every strict fixture, and a GitHub Actions step executing it. This CI step is **not** ZX-UX integration and is not an ANSI conformance certificate.
 - The most recent checked-in *end-to-end* reports remain **66/66** and **37/37**; the intermediate 67/38 and latest 68/39 suites have **not** been rerun in full, and unrun tests must not be called passed.
 - **Single next concrete action:** Obtain a clean working copy and use the attached `minizxuxport.zip` SDK and matching `rvm` to run the complete 68-case SDK/RVM/TZX, 39-case strict gfortran-vs-ZX-UX differential, and 6-case bounds suites. Commit machine-readable hashed reports under `rfortranc/tests/results/`. Preserve unrelated shared-repo work.
+
+### Rank-3 host-reference CI verification (2026-10-28)
+
+- Source/test/checkpoint commit `f4bc01bcc1dc81e7fbbe76a3950419ea217e9453` passed actual GitHub Actions https://github.com/tuklusan/ZX-UX-Tools-DEVELOPMENT/actions/runs/40752572225. Job logs: **56/56** strict F77S unit tests, **67/67** frontend translation and deliberate rejection tests, **39/39** independent host-gfortran fixture outputs including `f77s_dm3el`, and Python compileall. These are *host/frontend* checks only; no SDK, ZX-UX emulator or hardware was exercised in that job.
+- The CI workflow now retains the host-only JSON report as a downloadable workflow artifact for 30 days. This is not a substitute for checked-in end-to-end SDK evidence.
+- Last *committed* SDK/RVM/TZX results remain **66/66**, and last committed gfortran-vs-ZX-UX RVM results remain **37/37**. The new full targets are **68**, **39**, and **6** negative runtime-bound cases, respectively; not yet executed at those totals.
+- **Single next concrete action:** Reconstruct a clean checkout with the user-supplied SDK archive, run and commit 68/39/6 end-to-end results with hashes; then pursue remaining ANSI F77S required semantics and broaden the runnable library.

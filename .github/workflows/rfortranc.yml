@@ -31,3 +31,11 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y gfortran
           python rfortranc/tests/check_gfortran_reference.py --report /tmp/f77s-host-reference.json
+      - name: Keep host reference output report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: f77s-host-reference
+          path: /tmp/f77s-host-reference.json
+          if-no-files-found: warn
+          retention-days: 30
