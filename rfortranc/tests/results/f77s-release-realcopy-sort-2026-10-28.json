@@ -1,0 +1,210 @@
+{
+  "cases": [
+    {
+      "emulator": {
+        "argv": [
+          "/opt/pyvenv/bin/python",
+          "/mnt/data/zx-work/dist/sdk/bin/rvm",
+          "--headless",
+          "--text",
+          "--frames",
+          "1000",
+          "/tmp/f77s-release-check-_cv2nr29/artifacts/f77s_burkl2.ssx"
+        ],
+        "exit_code": 0,
+        "stderr": "rvm: f77s_burkl: exit 0 (exit) after 238 frames, 29 system calls, started from the cache\n",
+        "stdout": "    5.00\n    4.00\n    3.00\n    1.41\n    0.50\n  100.00\n    0.01\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_lines": [
+        "    5.00",
+        "    4.00",
+        "    3.00",
+        "    1.41",
+        "    0.50",
+        "  100.00",
+        "    0.01"
+      ],
+      "name": "f77s_burkl2",
+      "observed_lines": [
+        "    5.00",
+        "    4.00",
+        "    3.00",
+        "    1.41",
+        "    0.50",
+        "  100.00",
+        "    0.01"
+      ],
+      "passed": true,
+      "source_sha256": "f1a67de23a034ed88ee52da13be201f21bb8dfe7d7eb4362a3d81b7dbaa2d429",
+      "ssx_sha256": "bc54c290b4f99f4bbd7b5587578d07b7e6c22feced50e2cb385fc627a1941b7f",
+      "tzx_sha256": "51f3020f3e360bcf38de45e0f4197871ab70506a6ef0a5d69a5ed4f4c556d2f5"
+    },
+    {
+      "emulator": {
+        "argv": [
+          "/opt/pyvenv/bin/python",
+          "/mnt/data/zx-work/dist/sdk/bin/rvm",
+          "--headless",
+          "--text",
+          "--frames",
+          "1000",
+          "/tmp/f77s-release-check-_cv2nr29/artifacts/f77s_burkcopy.ssx"
+        ],
+        "exit_code": 0,
+        "stderr": "rvm: f77s_burkc: exit 0 (exit) after 206 frames, 29 system calls, started from the cache\n",
+        "stdout": "   -2.00    3.25    4.00    0.00    0.00\n    1.00   -2.00    3.25    4.00   -5.00\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_lines": [
+        "   -2.00    3.25    4.00    0.00    0.00",
+        "    1.00   -2.00    3.25    4.00   -5.00"
+      ],
+      "name": "f77s_burkcopy",
+      "observed_lines": [
+        "   -2.00    3.25    4.00    0.00    0.00",
+        "    1.00   -2.00    3.25    4.00   -5.00"
+      ],
+      "passed": true,
+      "source_sha256": "b6b35dedd8bf773501299ac62676c1902648aab9c1096f30f6e642d8da56f17c",
+      "ssx_sha256": "bc4e0af7808f188bee782f28bb8dfa5a04863a1374ef0e2d191dab0a10f887f1",
+      "tzx_sha256": "2b93c2daafd1fe718ee3c17c967862f339b2ade713b95b0012d552cc78b01e06"
+    },
+    {
+      "emulator": {
+        "argv": [
+          "/opt/pyvenv/bin/python",
+          "/mnt/data/zx-work/dist/sdk/bin/rvm",
+          "--headless",
+          "--text",
+          "--frames",
+          "1000",
+          "/tmp/f77s-release-check-_cv2nr29/artifacts/f77s_burkrsrt.ssx"
+        ],
+        "exit_code": 0,
+        "stderr": "rvm: f77s_burkr: exit 0 (exit) after 213 frames, 29 system calls, started from the cache\n",
+        "stdout": "    3.00   -1.00    2.00    4.00    0.00\n   -1.00    0.00    2.00    3.00    4.00\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_lines": [
+        "    3.00   -1.00    2.00    4.00    0.00",
+        "   -1.00    0.00    2.00    3.00    4.00"
+      ],
+      "name": "f77s_burkrsrt",
+      "observed_lines": [
+        "    3.00   -1.00    2.00    4.00    0.00",
+        "   -1.00    0.00    2.00    3.00    4.00"
+      ],
+      "passed": true,
+      "source_sha256": "50dc1aaec9abcc6bdf131dc80f46b6933916b5e26b14341c6ac87ac53bc4d031",
+      "ssx_sha256": "b3a47b75a23c83cb37674d2c1c1bf1d7521d9d0317cc3bd1f3fef4b1c2996840",
+      "tzx_sha256": "4deeaa845ffdaf0c42711df8a4fcf2d6b297ba2175de2e910d4d1fb7a58275b4"
+    },
+    {
+      "emulator": {
+        "argv": [
+          "/opt/pyvenv/bin/python",
+          "/mnt/data/zx-work/dist/sdk/bin/rvm",
+          "--headless",
+          "--text",
+          "--frames",
+          "1000",
+          "/tmp/f77s-release-check-_cv2nr29/artifacts/f77s_burkreal.ssx"
+        ],
+        "exit_code": 0,
+        "stderr": "rvm: f77s_burkr: exit 0 (exit) after 196 frames, 29 system calls, started from the cache\n",
+        "stdout": "   27.50\n   27.00\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      },
+      "expected_lines": [
+        "   27.50",
+        "   27.00"
+      ],
+      "name": "f77s_burkreal",
+      "observed_lines": [
+        "   27.50",
+        "   27.00"
+      ],
+      "passed": true,
+      "source_sha256": "cb56a64278b6ca9aa1ea7df76bc5948dcb2dbabba25d19ce7f0a43e8d476b8e1",
+      "ssx_sha256": "28c2e2d360e1885f22194c9ea497097e88f1a43b9f030d2e62f05b5f09c16586",
+      "tzx_sha256": "528ed23335c9e045ad91d60ad3f4e3e2c1e001a36a630239ed8c0f14e5247f58"
+    }
+  ],
+  "manifest": [
+    {
+      "native": true,
+      "program": "f77s_burkcopy",
+      "source": "tests/fortran/f77s_burkcopy.f",
+      "source_sha256": "b6b35dedd8bf773501299ac62676c1902648aab9c1096f30f6e642d8da56f17c",
+      "ssx_bytes": 3511,
+      "ssx_sha256": "bc4e0af7808f188bee782f28bb8dfa5a04863a1374ef0e2d191dab0a10f887f1",
+      "standard_mode": "f77s",
+      "tape_name": "f77s_burkc",
+      "tzx_bytes": 3552,
+      "tzx_sha256": "2b93c2daafd1fe718ee3c17c967862f339b2ade713b95b0012d552cc78b01e06"
+    },
+    {
+      "native": true,
+      "program": "f77s_burkl2",
+      "source": "tests/fortran/f77s_burkl2.f",
+      "source_sha256": "f1a67de23a034ed88ee52da13be201f21bb8dfe7d7eb4362a3d81b7dbaa2d429",
+      "ssx_bytes": 3982,
+      "ssx_sha256": "bc54c290b4f99f4bbd7b5587578d07b7e6c22feced50e2cb385fc627a1941b7f",
+      "standard_mode": "f77s",
+      "tape_name": "f77s_burkl",
+      "tzx_bytes": 4023,
+      "tzx_sha256": "51f3020f3e360bcf38de45e0f4197871ab70506a6ef0a5d69a5ed4f4c556d2f5"
+    },
+    {
+      "native": true,
+      "program": "f77s_burkreal",
+      "source": "tests/fortran/f77s_burkreal.f",
+      "source_sha256": "cb56a64278b6ca9aa1ea7df76bc5948dcb2dbabba25d19ce7f0a43e8d476b8e1",
+      "ssx_bytes": 3202,
+      "ssx_sha256": "28c2e2d360e1885f22194c9ea497097e88f1a43b9f030d2e62f05b5f09c16586",
+      "standard_mode": "f77s",
+      "tape_name": "f77s_burkr",
+      "tzx_bytes": 3243,
+      "tzx_sha256": "528ed23335c9e045ad91d60ad3f4e3e2c1e001a36a630239ed8c0f14e5247f58"
+    },
+    {
+      "native": true,
+      "program": "f77s_burkrsrt",
+      "source": "tests/fortran/f77s_burkrsrt.f",
+      "source_sha256": "50dc1aaec9abcc6bdf131dc80f46b6933916b5e26b14341c6ac87ac53bc4d031",
+      "ssx_bytes": 3936,
+      "ssx_sha256": "b3a47b75a23c83cb37674d2c1c1bf1d7521d9d0317cc3bd1f3fef4b1c2996840",
+      "standard_mode": "f77s",
+      "tape_name": "f77s_b004b",
+      "tzx_bytes": 3977,
+      "tzx_sha256": "4deeaa845ffdaf0c42711df8a4fcf2d6b297ba2175de2e910d4d1fb7a58275b4"
+    }
+  ],
+  "not_hardware_validation": true,
+  "purpose": "numeric F77S native release SSX/TZX manifest and ZX-UX execution",
+  "release_build": {
+    "argv": [
+      "/opt/pyvenv/bin/python",
+      "/mnt/data/zx-work/rfortranc/tools/release.py",
+      "--sdk",
+      "/mnt/data/zx-work/src/zx-ux-sdk",
+      "--native",
+      "--out",
+      "/tmp/f77s-release-check-_cv2nr29/artifacts",
+      "--only",
+      "f77s_burkl2",
+      "f77s_burkcopy",
+      "f77s_burkrsrt",
+      "f77s_burkreal"
+    ],
+    "exit_code": 0,
+    "stderr": "",
+    "stdout": "f77s_burkc  3511 bytes, needs  3646\nf77s_burkl  3982 bytes, needs  3992\nf77s_burkr  3202 bytes, needs  3372\nf77s_b004b  3936 bytes, needs  3980\nReleased 4 FORTRAN programs\n"
+  },
+  "release_script_sha256": "303985c4d0450be6f94ed3a2958b18466673a1d1f36b51c0f517830bdceb25a3",
+  "result": {
+    "passed": 4,
+    "total": 4
+  },
+  "rvm_sha256": "e7cfb59b6c76e49faf4a0876520e44d3fcb34a5d9bce45831ae0d25242cc7830",
+  "schema": 1,
+  "sdk_archive_sha256": "42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17",
+  "translator_sha256": "aa867732d23033c9c74fa79742e92e50d2f80b11ffe16c0d2b16144671125d77"
+}
