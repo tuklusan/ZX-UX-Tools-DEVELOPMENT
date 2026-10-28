@@ -513,4 +513,15 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaises(FortranError):
             validate_source(src,parse(src))
 
+    def test_rank2_dynamic_element_sequence(self):
+        source = (ROOT/'tests/fortran/f77s_dm2el.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        generated = convert(units)
+        self.assertIn('int F_A[6];', generated)
+        self.assertIn('f_SETSEQ(&F_A[', generated)
+        self.assertIn('f_seqcheck(', generated)
+        self.assertIn('f_index(F_I, 2)', generated)
+        self.assertIn('f_index(F_J, 3)', generated)
+
 if __name__=='__main__': unittest.main()
