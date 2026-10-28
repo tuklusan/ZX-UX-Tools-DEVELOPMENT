@@ -28,6 +28,10 @@ FIXTURES = {
         '      B(2,2,3)=B(2,2,3)+34\n'),
     'rank3_element_sequence_too_short': (
         'f77s_dm3el.f', '      K=2\n', '      K=3\n'),
+    'gcd_element_tail_storage_trap': (
+        'f77s_burkgcd.f',
+        '      N=3\n      CALL GCDARR(N,A(3),G)\n',
+        '      N=4\n      CALL GCDARR(N,A(3),G)\n'),
 }
 
 
