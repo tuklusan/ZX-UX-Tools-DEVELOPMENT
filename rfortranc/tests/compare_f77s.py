@@ -14,7 +14,7 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-CASES = {'f77s_fmt': ['  42'], 'f77s_data': ['  9', '  2'], 'f77s_implicit': ['  3', '  7'], 'f77s_real': ['  2'], 'f77s_2d': ['  43'], 'f77s_3d': [' 11'], 'f77s_read': ['  49'], 'f77s_repeat': ['  3   5  10   18'], 'f77s_dim': ['  42'], 'f77s_common': ['  42'], 'f77s_comarr': ['  43'], 'f77s_blank': ['  42'], 'f77s_fc3': ['  42'], 'f77s_fc4': ['  42'], 'f77s_fc5': ['7','  42','***'], 'f77s_equiv': ['  42  42  11  42'], 'f77s_save': ['  42'], 'f77s_char': ['>  HI   <', '>ABC<'], 'f77s_charread': ['>XYZ  <']}
+CASES = {'f77s_fmt': ['  42'], 'f77s_data': ['  9', '  2'], 'f77s_implicit': ['  3', '  7'], 'f77s_real': ['  2'], 'f77s_2d': ['  43'], 'f77s_3d': [' 11'], 'f77s_read': ['  49'], 'f77s_repeat': ['  3   5  10   18'], 'f77s_dim': ['  42'], 'f77s_common': ['  42'], 'f77s_comarr': ['  43'], 'f77s_blank': ['  42'], 'f77s_fc3': ['  42'], 'f77s_fc4': ['  42'], 'f77s_fc5': ['7','  42','***'], 'f77s_equiv': ['  42  42  11  42'], 'f77s_save': ['  42'], 'f77s_char': ['>  HI   <', '>ABC<'], 'f77s_charread': ['>XYZ  <'], 'f77s_burkprime': ['   4', '  25']}
 
 
 INPUTS = {'f77s_read': '0042 007\n', 'f77s_repeat': '003 005 010\n', 'f77s_charread': 'XYZ\n'}

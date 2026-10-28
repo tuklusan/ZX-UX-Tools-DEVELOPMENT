@@ -55,6 +55,7 @@ PROGRAMS = {
     'f77s_save': '  42',
     'f77s_char': '>  HI   <',
     'f77s_charread': '>XYZ  <',
+    'f77s_burkprime': '  25',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',

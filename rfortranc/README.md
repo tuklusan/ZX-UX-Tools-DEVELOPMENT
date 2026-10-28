@@ -112,6 +112,8 @@ Fixed-size 2D/3D arrays are checked against host gfortran in `tests/fortran/f77s
 
 Formatted `READ(5,label)` now supports integer `Iw`, `X` and `/` descriptors with fixed-width numeric parsing, input record alignment, blank padding and 16-bit range checks. It is **partial**; CHARACTER scalar A/Aw input is also supported, but REAL input, BN/BZ controls and general formatted input are still missing. Host `rvm --keys` supplies input for ZX-UX tests.
 
+A genuine John Burkardt LGPL prime-count subroutine port (`f77s_burkprime.f`) now covers nested numbered DO, MOD, IF/GOTO and by-reference scalar calls, with N=10 and 100 reference counts from its original public source. Exact upstream SHA, changes and licence notices are listed in `tests/ported/README.md`.
+
 The first public-source test-theme adaptations from NIST FCVS are documented in `tests/ported/README.md` (FM003/FM004/FM005). These are reduced independent F77S stress tests, **not complete FCVS programs**.
 
 F77S restricted constant-length CHARACTER scalars (`CHARACTER*n`, `CHARACTER*(n)` and default length one) now support assignment with blank padding/truncation, relational comparisons, and formatted `A`/`Aw` READ/WRITE with fixed record width. Verified examples `f77s_char.f` and `f77s_charread.f` compare generated SSX execution with gfortran. **Still missing:** CHARACTER arrays, implicit CHARACTER declarations, dummy arguments/returns, CHARACTER DATA, COMMON/EQUIVALENCE storage association, and additional FORMAT descriptors. No substring or concatenation (excluded by F77S).

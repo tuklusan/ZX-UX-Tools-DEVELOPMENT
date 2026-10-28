@@ -86,6 +86,14 @@ class F77SChecks(unittest.TestCase):
                 validate_source(src,units)
                 self.assertIn('int main',convert(units))
 
+    def test_burkardt_prime_subroutine_f77s_port(self):
+        source = (ROOT/'tests/fortran/f77s_burkprime.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        c = convert(units)
+        self.assertIn('f_PRIMES(', c)
+        self.assertIn('f_PRIMES(&(F_N), &(F_TOT));', c)
+
     def test_character_scalar_formatted_io(self):
         for name in ('f77s_char', 'f77s_charread'):
             with self.subTest(name=name):
