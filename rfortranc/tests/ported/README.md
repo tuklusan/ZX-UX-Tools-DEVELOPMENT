@@ -30,6 +30,7 @@ correct counts. Do not infer certification from this directory.
 
 | Original | Pinned upstream blob | F77S ZX-UX adaptation | Licence and changes |
 |---|---|---|---|
+| [John Burkardt `i4lib/i4lib.f`](https://github.com/johannesgerer/jburkardt-f77/blob/master/i4lib/i4lib.f), `I4VEC_REVERSE` and `I4VEC_SUM` | `e0a7be6024463bc0d34ec036080d875ed66f4c31` | [`../fortran/f77s_burkvec.f`](../fortran/f77s_burkvec.f) | **GNU LGPL** as marked in original source (John Burkardt; reverse 25 Jun 2009, sum 3 Jan 2007). New F77S port: 6-character names, numbered INTEGER DO and fixed array dimension 5; `I4VEC_SUM` changed to by-reference SUBROUTINE because FUNCTION array dummy calls are not yet supported. Outputs 15,13,11 and sum 65. Preserve LGPL attribution; not a verbatim upstream file. |
 | [John Burkardt `prime_serial/prime_serial.f`](https://github.com/johannesgerer/jburkardt-f77/blob/master/prime_serial/prime_serial.f), `PRIME_NUMBER` | `a35f7c57c38c4d79a49c1e421620dd5fdd610ee0` | [`../fortran/f77s_burkprime.f`](../fortran/f77s_burkprime.f) | **GNU LGPL** as marked by original author (John Burkardt, 20 May 2009); modified for F77S: remove free-form/F90 DO/END DO, remove IMPLICIT NONE, use numbered DO and 6-character symbol names, fixed 72-column source, and replace large performance benchmark with N=10 and N=100 reference counts. Original `timestamp` routine is **not** incorporated. |
 
 Keep LGPL notices and attribution with this test port. This is a genuine

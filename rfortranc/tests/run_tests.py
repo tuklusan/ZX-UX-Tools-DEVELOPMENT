@@ -59,6 +59,7 @@ PROGRAMS = {
     'f77s_dmarr': '  40',
     'f77s_dmchain': '  30',
     'f77s_dmreal': '  42',
+    'f77s_burkvec': '  65',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',

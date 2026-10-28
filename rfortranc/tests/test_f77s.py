@@ -117,6 +117,16 @@ class F77SChecks(unittest.TestCase):
         self.assertEqual(units[1].vars['X'], ('REAL', 3))
         self.assertIn('float *F_X', convert(units))
 
+    def test_burkardt_vector_library_f77s_port(self):
+        source = (ROOT/'tests/fortran/f77s_burkvec.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        c = convert(units)
+        self.assertIn('f_REVERS(', c)
+        self.assertIn('f_VECSUM(', c)
+        self.assertIn('f_REVERS(&(F_N), F_A);', c)
+        self.assertIn('f_VECSUM(&(F_N), F_A, &(F_TOT));', c)
+
     def test_burkardt_prime_subroutine_f77s_port(self):
         source = (ROOT/'tests/fortran/f77s_burkprime.f').read_text()
         units = parse(source, std='f77s')

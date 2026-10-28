@@ -119,3 +119,5 @@ The first public-source test-theme adaptations from NIST FCVS are documented in 
 F77S restricted constant-length CHARACTER scalars (`CHARACTER*n`, `CHARACTER*(n)` and default length one) now support assignment with blank padding/truncation, relational comparisons, and formatted `A`/`Aw` READ/WRITE with fixed record width. Verified examples `f77s_char.f` and `f77s_charread.f` compare generated SSX execution with gfortran. **Still missing:** CHARACTER arrays, implicit CHARACTER declarations, dummy arguments/returns, CHARACTER DATA, COMMON/EQUIVALENCE storage association, and additional FORMAT descriptors. No substring or concatenation (excluded by F77S).
 
 Fixed-size F77S numeric dummy arrays: `tests/fortran/f77s_dmarr.f`, `f77s_dmchain.f`, `f77s_dmreal.f`. The caller passes array storage by address (not copied), and the callee uses declared 1-based FORTRAN bounds. Type and insufficient extent are rejected; array-element actuals, procedure arguments and adjustable dummy bounds remain pending.
+
+Additional LGPL Burkardt i4lib vector reverse/sum routines ported as strict F77S 5-element array tests; see `tests/ported/README.md`.
