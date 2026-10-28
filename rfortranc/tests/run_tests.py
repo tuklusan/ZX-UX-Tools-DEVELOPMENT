@@ -80,6 +80,7 @@ PROGRAMS = {
     'f77s_burkcum': '   3   6   9  -2   5',
     'f77s_burkdot': '  35',
     'f77s_burkgcd': '  14',
+    'f77s_chdata': 'XY',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',
