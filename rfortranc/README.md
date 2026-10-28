@@ -153,3 +153,24 @@ LGPL `f77s_burkreal.f` additionally executes John Burkardt real dot product over
 Restricted REAL absolute-value `ABS` intrinsic is implemented for REAL expressions as `f_abs_real`; INTEGER generic overload and complete FORTRAN intrinsic typing are still incomplete. LGPL `f77s_burkl1.f` exercises John Burkardt L1 norm over adjustable REAL vectors and element-tail associations.
 
 Subset FORMAT `Lw` for LOGICAL fixed-bound scalar/array elements now supports padded T/F WRITE and fixed-width READ T/F or dotted boolean input, with bounded width and type diagnostics. The strict `f77s_logio.f` fixture exercises L4 input/output. This is a restricted part of ANSI F77S formatted I/O.
+
+### Native F77S tape release check
+
+The release helper now selects `--std f77s` for `f77s_*` fixed-format
+fixtures, preserves `--native` for **both** the SSX executable and the TZX
+cassette build, and records source hashes, standard mode, and native mode in
+`manifest.json`. Legacy compatibility fixtures retain `--std zxux`.
+
+With the separate matching source SDK and packaged RVM:
+
+```sh
+python rfortranc/tests/check_release.py \
+  --sdk /path/to/src/zx-ux-sdk \
+  --rvm /path/to/dist/sdk/bin/rvm \
+  --sdk-archive /path/to/minizxuxport.zip \
+  --report /tmp/f77s-release-check.json
+```
+
+This checks actual SSX1 and TZX magic, published manifest SHA-256 hashes,
+collision-safe cassette names, and exact real ZX-UX emulator output for a
+small LGPL numerical subset. It is **not** physical cassette load proof.
