@@ -798,4 +798,21 @@ class F77SChecks(unittest.TestCase):
             self.assertIn('f_seqcheck(', generated)
             self.assertIn('f_extent(', generated)
 
+    def test_e_output_descriptor_and_strict_size_errors(self):
+        src = (ROOT/'tests/fortran/f77s_expout.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        c = convert(units)
+        self.assertIn('f_outexp(F_A, 14, 6);', c)
+        self.assertIn('f_outexp(F_B, 14, 6);', c)
+        for fmt in ('E5.6', 'E14.7', 'E300.6'):
+            bad = ("      PROGRAM BAD\n"
+                   "      REAL X\n"
+                   "      WRITE (6,10) X\n"
+                   "   10 FORMAT(" + fmt + ")\n"
+                   "      END\n")
+            with self.subTest(fmt=fmt):
+                with self.assertRaisesRegex(FortranError, 'E field'):
+                    convert(parse(bad, std='f77s'))
+
 if __name__=='__main__': unittest.main()

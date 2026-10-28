@@ -1,0 +1,1711 @@
+{
+  "cases": [
+    {
+      "artifact": {
+        "bytes": 10337,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/hello.c",
+        "sha256": "a0f7c2069a36e49b55cfff0ba06eddc1a1b9051b8922b06e48050aad0079d0d7"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.908,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "Hello FORTRAN on ZX-UX",
+      "kind": "positive",
+      "name": "hello",
+      "passed": true,
+      "source": "hello.f",
+      "source_sha256": "42d8cca97f912505bb3f6459b59d9709ffef0ca2ca4615ce29d3344c6504a1e1"
+    },
+    {
+      "artifact": {
+        "bytes": 11217,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/factorial.c",
+        "sha256": "89bb585d152958db3b2eddd007e9d533b3f7bc5a4c8a328de541d7129beec058"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.968,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "720",
+      "kind": "positive",
+      "name": "factorial",
+      "passed": true,
+      "source": "factorial.f",
+      "source_sha256": "b3a1e188582711b66c8f5902c2b2b162662b338a85edd493060de2d74c097d0f"
+    },
+    {
+      "artifact": {
+        "bytes": 11254,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/arrays.c",
+        "sha256": "6e3ca762e939429c52b7a4704b9784f2476511b87da0bee7910f0e41c67a65f1"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.899,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "55",
+      "kind": "positive",
+      "name": "arrays",
+      "passed": true,
+      "source": "arrays.f",
+      "source_sha256": "32eed015f6b542f3c759910291efdca036a4a9dc247ad4edb2004f6dc9a1d726"
+    },
+    {
+      "artifact": {
+        "bytes": 10771,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/branch.c",
+        "sha256": "1758ac1c2360b9502df99849feca9ed3bfbe135a914d0a33895e20c7f4e9ec5e"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.889,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "NEG",
+      "kind": "positive",
+      "name": "branch",
+      "passed": true,
+      "source": "branch.f",
+      "source_sha256": "b4d3b54cff9db3f385108e3c8873767c64dd33dfe2a43f9612fe2c727dc1fa9c"
+    },
+    {
+      "artifact": {
+        "bytes": 10897,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/function.c",
+        "sha256": "2d7f196813b46dab573108791ee2f753ed4487473f08de4cf51c8f12c780b15e"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.955,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "14",
+      "kind": "positive",
+      "name": "function",
+      "passed": true,
+      "source": "function.f",
+      "source_sha256": "9c2e84335892d8a08512a0a48688062c2341f6c81fdb7baab47a834b6be157ec"
+    },
+    {
+      "artifact": {
+        "bytes": 11614,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/prime.c",
+        "sha256": "789ccdb165190c77e7751429d6aefb37b6a2e3aab4d603667a1ffc5f63f82331"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.739,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "PRIME",
+      "kind": "positive",
+      "name": "prime",
+      "passed": true,
+      "source": "prime.f",
+      "source_sha256": "66372c6f402a69d0d856ccff151f14557d10618134acadcd3e08191525074daa"
+    },
+    {
+      "artifact": {
+        "bytes": 11080,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/backstep.c",
+        "sha256": "b7824c66cdfe9c7e80d82d6d9bf75595a24df6d0adfe107aa06540069f706118"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.794,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "9",
+      "kind": "positive",
+      "name": "backstep",
+      "passed": true,
+      "source": "backstep.f",
+      "source_sha256": "cd64031653e43841cc7982adf70dc77fc9be5f144a796a9a85c9169530d58aad"
+    },
+    {
+      "artifact": {
+        "bytes": 12063,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/bases.c",
+        "sha256": "11655c11dd1e9f165242ac391692b5ebcac15f13e129805f71d687252ff4c38c"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.751,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "1101",
+      "kind": "positive",
+      "name": "bases",
+      "passed": true,
+      "source": "bases.f",
+      "source_sha256": "94bed94e811387b990a6958d90514fd7532a00b66982bc8222c1e20c022597cb"
+    },
+    {
+      "artifact": {
+        "bytes": 11633,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/nested.c",
+        "sha256": "22216ebb798412e0ea9e7159c0ba609449e366e530e601e731db0f95ed04fe24"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.706,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "18",
+      "kind": "positive",
+      "name": "nested",
+      "passed": true,
+      "source": "nested.f",
+      "source_sha256": "0733d2b315b3efe893e366734d4cfa4e0bd60d184a0a7b93b1db2c9f8cf21b12"
+    },
+    {
+      "artifact": {
+        "bytes": 10381,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/strings.c",
+        "sha256": "9f75228eb64b2d8cb4fe66d80994fe136c3cebdc397ed0dc050ba0d789681895"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.673,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "John's ZX-UX OK",
+      "kind": "positive",
+      "name": "strings",
+      "passed": true,
+      "source": "strings.f",
+      "source_sha256": "a8cd382f1adc793b7af789e161d9ff72fa52383beb3ffa013387bf35cee02dd5"
+    },
+    {
+      "artifact": {
+        "bytes": 10913,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/realcmp.c",
+        "sha256": "f34b005f2cd4f3949fbcc656a4b7e2b9a0cfd37b36097373ff2baefa47144980"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.75,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "REAL OK",
+      "kind": "positive",
+      "name": "realcmp",
+      "passed": true,
+      "source": "realcmp.f",
+      "source_sha256": "b58a7f882374d797c9f6b862655239f6bd21b609acc89afb6fbbcaa48e193572"
+    },
+    {
+      "artifact": {
+        "bytes": 10729,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/subcall.c",
+        "sha256": "1981855ccd9c7acc72a8085e606efa3f0f321e3626440ade18cfbc05d1da66a9"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.676,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "8",
+      "kind": "positive",
+      "name": "subcall",
+      "passed": true,
+      "source": "subcall.f",
+      "source_sha256": "2fe7ed7f4796f8ea233d7c80cd21ebfee84aa5a0a1db10d941155650610aadb2"
+    },
+    {
+      "artifact": {
+        "bytes": 10828,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/byref.c",
+        "sha256": "c9b4d3a253670339e7783f784cb22fbea3c4aacc0e6e378c9e802c9bac16b50e"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.724,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "8",
+      "kind": "positive",
+      "name": "byref",
+      "passed": true,
+      "source": "byref.f",
+      "source_sha256": "cf5aca22ea5cf3794092bbcceba0960b8253d12c5f0674501e115de1a095d9e7"
+    },
+    {
+      "artifact": {
+        "bytes": 11202,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/realbyref.c",
+        "sha256": "8052c246acb173c20bf11ef19ebb8edb57334b8755aff928c61196dbca97b473"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.774,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "REF REAL OK",
+      "kind": "positive",
+      "name": "realbyref",
+      "passed": true,
+      "source": "realbyref.f",
+      "source_sha256": "3e3936b0f61305eb9613549010f6b5fcb9e426e0edb7877077f058acfd0a01fb"
+    },
+    {
+      "artifact": {
+        "bytes": 10429,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/fixedcomment.c",
+        "sha256": "64e1ea2e50acff6f3c406e8837efff73af8db3394c52f2a7dbdfe06f1dc28853"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.779,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "3",
+      "kind": "positive",
+      "name": "fixedcomment",
+      "passed": true,
+      "source": "fixedcomment.f",
+      "source_sha256": "4c2139fb9adb6afb0482c53c9212cface0fe2cdf2f0fd60e6ed5e84b5a8ff29d"
+    },
+    {
+      "artifact": {
+        "bytes": 13548,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/arithmetic_if.c",
+        "sha256": "0dea5f04420703e4500e488618a8e7cd42baeb6882e405581e7f414b84089301"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.694,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  99",
+      "kind": "positive",
+      "name": "arithmetic_if",
+      "passed": true,
+      "source": "arithmetic_if.f",
+      "source_sha256": "04f6e9f86a45266f1b4791d1edecb4cfaf985b70655e4dd2315557bc249de02a"
+    },
+    {
+      "artifact": {
+        "bytes": 12768,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/computed_goto.c",
+        "sha256": "158675a2b2f88298dde836b20b82ccdb11f9bba10cf75e422cff95957ca9e0ad"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.706,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  44",
+      "kind": "positive",
+      "name": "computed_goto",
+      "passed": true,
+      "source": "computed_goto.f",
+      "source_sha256": "0655bc1ba04ff52a24d346eaef7771475d988814b05e8b43bfb64add70c7e68a"
+    },
+    {
+      "artifact": {
+        "bytes": 10995,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/format_write.c",
+        "sha256": "351877e30fc2d65442b6fde52739cca5b814dcaeb093de2f13723df52ec479a0"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.72,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "N=****",
+      "kind": "positive",
+      "name": "format_write",
+      "passed": true,
+      "source": "format_write.f",
+      "source_sha256": "654c87a014de8127711ce2fa1c85485e35c2e332fe5675a374d9f5f548a459cb"
+    },
+    {
+      "artifact": {
+        "bytes": 10444,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/fixed_continue.c",
+        "sha256": "e673c622a76705d648d4a3698b1643043e4d6960e43f036f3273b3b5f5af0f89"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.729,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  15",
+      "kind": "positive",
+      "name": "fixed_continue",
+      "passed": true,
+      "source": "fixed_continue.f",
+      "source_sha256": "56106b0d0bf47231b054ce8a229f3d5f7728e7901d1d8733697c9674a17ab8ef"
+    },
+    {
+      "artifact": {
+        "bytes": 10434,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_fmt.c",
+        "sha256": "3c24b690843ec475f4a9e3bae881cc53cfe9f0fe80c4361159e8a6822d589b81"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.678,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_fmt",
+      "passed": true,
+      "source": "f77s_fmt.f",
+      "source_sha256": "524a525fd8d6c58adf4f20003d28ec83a5dd9addc0c7a65140dee899d8810f58"
+    },
+    {
+      "artifact": {
+        "bytes": 10580,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_data.c",
+        "sha256": "caf3a506f7f6fc7edba6defa925d06493129e485194fadf9e2bafc60337357aa"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.861,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  9",
+      "kind": "positive",
+      "name": "f77s_data",
+      "passed": true,
+      "source": "f77s_data.f",
+      "source_sha256": "bae5482e2dfbc239effb6eee312083eb6e82aba278027cb5ab88f10ebdb67980"
+    },
+    {
+      "artifact": {
+        "bytes": 10681,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_implicit.c",
+        "sha256": "658cfc411193876f5f541b5eaee23a61477ab2fea23b834777ed2c2983ef50bd"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.816,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  3",
+      "kind": "positive",
+      "name": "f77s_implicit",
+      "passed": true,
+      "source": "f77s_implicit.f",
+      "source_sha256": "601961e5444aaefb71a5cce1828281c2607cdfad232544d5572d03bad34dea8c"
+    },
+    {
+      "artifact": {
+        "bytes": 10857,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_real.c",
+        "sha256": "0d6b8c6dd19bd81f7a903e5b7c3b4bbd63e4cc1a6582ca7761144dc2dfde84f0"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.721,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  2",
+      "kind": "positive",
+      "name": "f77s_real",
+      "passed": true,
+      "source": "f77s_real.f",
+      "source_sha256": "a4dc02568ac1138d93b5ca06e78b18345b54a0a58123ad8a6375d05a7dee75ff"
+    },
+    {
+      "artifact": {
+        "bytes": 11777,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_2d.c",
+        "sha256": "6989b880595b9f82f87213dade60408d2174a4f33331fac8472e0adc3d2945dc"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.777,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  43",
+      "kind": "positive",
+      "name": "f77s_2d",
+      "passed": true,
+      "source": "f77s_2d.f",
+      "source_sha256": "e7b5e6fc7a49c24257d5471d2327663c0cb68b5d3e07b8cb2b8f55f24123310c"
+    },
+    {
+      "artifact": {
+        "bytes": 10907,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_3d.c",
+        "sha256": "93d8b5aac18a4d466ae2e4fa549af733920200eb71d4efbbbbe1bb65b76b4e25"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.997,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": " 11",
+      "kind": "positive",
+      "name": "f77s_3d",
+      "passed": true,
+      "source": "f77s_3d.f",
+      "source_sha256": "6556b770e6d13672d936896cf3110a8c99d7e9fdb9c1d2b400270f8df2a05d6a"
+    },
+    {
+      "artifact": {
+        "bytes": 10668,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_read.c",
+        "sha256": "130270382eb5add7bffd16518dcd226f44c570f127762daba439c7093ab50eca"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.783,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  49",
+      "kind": "positive",
+      "name": "f77s_read",
+      "passed": true,
+      "source": "f77s_read.f",
+      "source_sha256": "856e2853c54f008525601e5cb71cc0f2ca7512852524e30a01c6ba533aa220ad"
+    },
+    {
+      "artifact": {
+        "bytes": 10923,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_repeat.c",
+        "sha256": "5a9812064714c7718f0a75dbc9c79c8c89a62c67d459cf31f4a43a2b044de768"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.755,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  18",
+      "kind": "positive",
+      "name": "f77s_repeat",
+      "passed": true,
+      "source": "f77s_repeat.f",
+      "source_sha256": "84b323f4fb1272e314d74e782e484fe0ed21dc387e5d78eb918b7eb98be8bc53"
+    },
+    {
+      "artifact": {
+        "bytes": 10745,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_dim.c",
+        "sha256": "5e4fd5a77b6b1e40b8b62569d6b468368b78499f2d138acab824e9a140a5a46b"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.773,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dim",
+      "passed": true,
+      "source": "f77s_dim.f",
+      "source_sha256": "c2e73c925644799af8f3aabe38db02a4e9e8335dffe5a5be1c8e89688da12647"
+    },
+    {
+      "artifact": {
+        "bytes": 10854,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_common.c",
+        "sha256": "69abefa11d129af8866b66adde33a45778f3209424aa0efd3192033bd6be04c5"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.753,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_common",
+      "passed": true,
+      "source": "f77s_common.f",
+      "source_sha256": "eff157fbeee8a7355ab4085dd31a42c85851386180dd75b9d12c1939ef868b12"
+    },
+    {
+      "artifact": {
+        "bytes": 10972,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_comarr.c",
+        "sha256": "f99416ac1f006fe1831a78c67ae52b2bd1f0b0a5d24dfc55c59616994bb9d812"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.737,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  43",
+      "kind": "positive",
+      "name": "f77s_comarr",
+      "passed": true,
+      "source": "f77s_comarr.f",
+      "source_sha256": "0ccd4208a4ee0e8a746deed70fd522d33e6b77e66d609d778b5088325328ff8d"
+    },
+    {
+      "artifact": {
+        "bytes": 10844,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_blank.c",
+        "sha256": "7748b666958546ad4ad4986a1ce02025673d0631d7b8ce4a7986b8d1b52465e1"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.792,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_blank",
+      "passed": true,
+      "source": "f77s_blank.f",
+      "source_sha256": "17fbf930da8043263824a73c448adf7caf33cd358527562718f8505f3f1791ba"
+    },
+    {
+      "artifact": {
+        "bytes": 13252,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_fc3.c",
+        "sha256": "9e34e400083b169d0afc8839e76c2392874726b3a39d65efd084d710919fe781"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.746,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_fc3",
+      "passed": true,
+      "source": "f77s_fc3.f",
+      "source_sha256": "e9af623e4b749abc5ad3add18def922df8f16d5f6e058daaaf7aae2cc393f75c"
+    },
+    {
+      "artifact": {
+        "bytes": 12428,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_fc4.c",
+        "sha256": "e964a68499887e331b51f5e4959d00d81684243f9f6ccb7230772e38d72dc44c"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.67,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_fc4",
+      "passed": true,
+      "source": "f77s_fc4.f",
+      "source_sha256": "2807a3f7ed5c458495657991cd8a47b4669c9129a0d1e94b8f8d8d34cf31ea8e"
+    },
+    {
+      "artifact": {
+        "bytes": 10907,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_fc5.c",
+        "sha256": "3f005f71e20039d76de8418136cb7bae1e292ce9e12e1784f53b1be0176d947f"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.723,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "***",
+      "kind": "positive",
+      "name": "f77s_fc5",
+      "passed": true,
+      "source": "f77s_fc5.f",
+      "source_sha256": "1b0111af49fa836146c46968924dd8c70cdf5f89846944a4d16f2ee581b42aba"
+    },
+    {
+      "artifact": {
+        "bytes": 11121,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_equiv.c",
+        "sha256": "70563bf304d7351b9f439c4f0ee0f1a048cac1dbd409bef5f7bb685f944d0cb1"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.684,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42  42  11  42",
+      "kind": "positive",
+      "name": "f77s_equiv",
+      "passed": true,
+      "source": "f77s_equiv.f",
+      "source_sha256": "c6e9f75c54615f48d727ed1be827d66588d1ac30b7f16b0611adbc3d6e22502b"
+    },
+    {
+      "artifact": {
+        "bytes": 10862,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_save.c",
+        "sha256": "fdb4595ec0b02fe94758d6cebb04ea382567570801ddeb65acc02143fe273eee"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.74,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_save",
+      "passed": true,
+      "source": "f77s_save.f",
+      "source_sha256": "f5351bfd8071d73580db0182e1158f2af210d09313fdda96ddcee14545aec32c"
+    },
+    {
+      "artifact": {
+        "bytes": 11355,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_char.c",
+        "sha256": "aa3693713980146965f7cf17fe5553b4c829f7568653231a62a7e8e76489e51d"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.788,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": ">  HI   <",
+      "kind": "positive",
+      "name": "f77s_char",
+      "passed": true,
+      "source": "f77s_char.f",
+      "source_sha256": "57c3c4050a0d17041d1efc208373514076fea50222a0fc8d7fc7904475443f86"
+    },
+    {
+      "artifact": {
+        "bytes": 10536,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_charread.c",
+        "sha256": "99bf72692d77837919ad31881e6d61e631e8fd28abb1611b53173a49af9c937f"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.736,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": ">XYZ  <",
+      "kind": "positive",
+      "name": "f77s_charread",
+      "passed": true,
+      "source": "f77s_charread.f",
+      "source_sha256": "cc66b2d8973d68f986d17d284a5ccb0233603a269546103e6ccd7746915b9bfc"
+    },
+    {
+      "artifact": {
+        "bytes": 13019,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burkprime.c",
+        "sha256": "47b5b9866d2ce9dea1192cb20d5467799025a8704eafde0e45323bb26cff0d53"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.76,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  25",
+      "kind": "positive",
+      "name": "f77s_burkprime",
+      "passed": true,
+      "source": "f77s_burkprime.f",
+      "source_sha256": "89cabd8e6b4118863332b9c0010291f313cdda1605b8a514db2801825a20a036"
+    },
+    {
+      "artifact": {
+        "bytes": 12017,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_dmarr.c",
+        "sha256": "0509afbcfd1acb5be71a4a7e1b1b81feabf1a0be452b0ba2b37960ecb8a3821e"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.799,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  40",
+      "kind": "positive",
+      "name": "f77s_dmarr",
+      "passed": true,
+      "source": "f77s_dmarr.f",
+      "source_sha256": "c1ca2326f029fe6cb6efb3326066470d3c9b46363ac7397d0d8c6a93ad0c5960"
+    },
+    {
+      "artifact": {
+        "bytes": 11412,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_dmchain.c",
+        "sha256": "4293152032e7919904e1a23b8e429bec2e92a244fa311f553e0c64a2f312b42a"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.768,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  30",
+      "kind": "positive",
+      "name": "f77s_dmchain",
+      "passed": true,
+      "source": "f77s_dmchain.f",
+      "source_sha256": "9828bb5c877055c6be0141090bfc902d6786366ed7cf1eb1bf7450df05166d4c"
+    },
+    {
+      "artifact": {
+        "bytes": 11368,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_dmreal.c",
+        "sha256": "fdc07740fd9e193ff1331ee60a4faa34bafdf41e94117234b4745bb1cb18cee0"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.738,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dmreal",
+      "passed": true,
+      "source": "f77s_dmreal.f",
+      "source_sha256": "f110984adc7e5b923af3b5c6383e7969af47620d5548c63ecf5d5e1d45df2cdc"
+    },
+    {
+      "artifact": {
+        "bytes": 13470,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burkvec.c",
+        "sha256": "917be13e9ab084e0e059bb33e06fa4b907cecaa88de10fcd7d407f232d2c8acb"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.693,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  65",
+      "kind": "positive",
+      "name": "f77s_burkvec",
+      "passed": true,
+      "source": "f77s_burkvec.f",
+      "source_sha256": "d9f4843e959cbbe9a14f593423900eecde38b52d12ad6468e26e33d254637641"
+    },
+    {
+      "artifact": {
+        "bytes": 15113,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burksort.c",
+        "sha256": "3534a6b5d35a93f860b55b6b70bfaeca914df8c798be31574dc50f25554df052"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.713,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  -1",
+      "kind": "positive",
+      "name": "f77s_burksort",
+      "passed": true,
+      "source": "f77s_burksort.f",
+      "source_sha256": "2b105baace10e9b4d507bd6f4e914d35e55e06e340e55039ae52fe8b7ac58aea"
+    },
+    {
+      "artifact": {
+        "bytes": 10886,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_dmseq.c",
+        "sha256": "b7964344bbdbad2cff884b35b1f9fb1d7ef675b0af06a526b6700d14673857e3"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.74,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dmseq",
+      "passed": true,
+      "source": "f77s_dmseq.f",
+      "source_sha256": "3c0fa8de8f71a115af08aa808c90dcfccd009018e3641043220db3fa0a3bf2c6"
+    },
+    {
+      "artifact": {
+        "bytes": 11033,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_dmidx.c",
+        "sha256": "6a62f146d22d0e6ab3ccc67b36ed2c33dc575c87fb2c27b2fd6a678db6f7a894"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.741,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dmidx",
+      "passed": true,
+      "source": "f77s_dmidx.f",
+      "source_sha256": "27142506842b4598977be932e528b4805b8f58ccc4447bea0ee754c7154da7eb"
+    },
+    {
+      "artifact": {
+        "bytes": 11336,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_dmadj.c",
+        "sha256": "3011aa5535c524883d088d8510b00bb6daec4a09a7e26ca74294f54b0a9f8bc7"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.745,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dmadj",
+      "passed": true,
+      "source": "f77s_dmadj.f",
+      "source_sha256": "c539b8eb410f721e4164f6dfc30b8d591776714f645d8d3c2f823acc517e700b"
+    },
+    {
+      "artifact": {
+        "bytes": 11128,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_dmstar.c",
+        "sha256": "f54ec5b28c03a4841fc8b8af75e1e6608993d811f3cd07c7a81d58b33e764226"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.705,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  38",
+      "kind": "positive",
+      "name": "f77s_dmstar",
+      "passed": true,
+      "source": "f77s_dmstar.f",
+      "source_sha256": "2bcf3de3438833129faec8d307961baa82f3ac5ae6300d3a569426ad8b4eb1e8"
+    },
+    {
+      "artifact": {
+        "bytes": 11790,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_dmalt.c",
+        "sha256": "5299bbda83f50ece1f4bc6c97e6060714d1a7585d119d53f0f3918326ad9ac20"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.684,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "   9",
+      "kind": "positive",
+      "name": "f77s_dmalt",
+      "passed": true,
+      "source": "f77s_dmalt.f",
+      "source_sha256": "b656296dc0936a29b90a8cbeb9798504d086f3a7fc177a3654d6b04916c747bc"
+    },
+    {
+      "artifact": {
+        "bytes": 14316,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burkadj.c",
+        "sha256": "d0c2770d8b8679d68218523a6faeddf68a96870cc9ffb4f107127bd78b4ed932"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.712,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  28",
+      "kind": "positive",
+      "name": "f77s_burkadj",
+      "passed": true,
+      "source": "f77s_burkadj.f",
+      "source_sha256": "313a44dcd3be2eaac4acff90c81830d239107765cfe29fb0b61ea639c8288390"
+    },
+    {
+      "artifact": {
+        "bytes": 11346,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_dm2ad.c",
+        "sha256": "8a4a9ad1bdb01b5504853e9cdf1d58eccf2d6e02feb8b53f475858d8dfe03173"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.754,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dm2ad",
+      "passed": true,
+      "source": "f77s_dm2ad.f",
+      "source_sha256": "3de5fa81de10d1254ce8c639930fe1675f7e8d818bb6d0246cb1a53d0a913364"
+    },
+    {
+      "artifact": {
+        "bytes": 11444,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_dm3ad.c",
+        "sha256": "bdaeb1cb029e1c6261027739776c72704c24612b24ed0d584c112ad880b2454a"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.732,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dm3ad",
+      "passed": true,
+      "source": "f77s_dm3ad.f",
+      "source_sha256": "09dd904bb29f071c413585c2e62bc25d6f4353e6706b6ec50d8b34a11b8dca07"
+    },
+    {
+      "artifact": {
+        "bytes": 11154,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_dm2st.c",
+        "sha256": "c13853fd3d7de56e53565926788fa4194ef3a1b6cf764b80880271095be2dac4"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.784,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dm2st",
+      "passed": true,
+      "source": "f77s_dm2st.f",
+      "source_sha256": "87a62772cfafe85adfe5e0569519409d6d3c6add4d7f641a85fc4bdabaa68a3f"
+    },
+    {
+      "artifact": {
+        "bytes": 11252,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_dm3st.c",
+        "sha256": "e2257e4e511b6e40d0abe527f41efb7b5eaa666aba8017c0ca913adc9793e5fc"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.747,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_dm3st",
+      "passed": true,
+      "source": "f77s_dm3st.f",
+      "source_sha256": "0c2a2951b4ccd0593aa9ef5c74a7c362ca470dfe1f834810821d69eb5163145f"
+    },
+    {
+      "artifact": {
+        "bytes": 14412,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burkmm.c",
+        "sha256": "bf11ee3f082eeaca126548207f6560d90f6aca9a33ccef087d5cb6f66be79c9f"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.782,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "    7   22   23",
+      "kind": "positive",
+      "name": "f77s_burkmm",
+      "passed": true,
+      "source": "f77s_burkmm.f",
+      "source_sha256": "7c22e979376a0a5311f52f18e46fb9e53a055151b5159b5ace807dd7759ec481"
+    },
+    {
+      "artifact": {
+        "bytes": 15671,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burkflip.c",
+        "sha256": "439cee2ddf525e60c50bd6305d38521742fb651c9185a2c6fa6985345a7dfd6e"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.732,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "   6   5   2   1",
+      "kind": "positive",
+      "name": "f77s_burkflip",
+      "passed": true,
+      "source": "f77s_burkflip.f",
+      "source_sha256": "ea9497a82225e34ddfb76ca9c4e322acb1e3b5ffa780f8dc8dd280e4beecd305"
+    },
+    {
+      "artifact": {
+        "bytes": 11249,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_dm2el.c",
+        "sha256": "47c1ba8c766522fecaaf312fc1e56b9cda6a236cbeb5e39e21e96bd99c817579"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.766,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42   5",
+      "kind": "positive",
+      "name": "f77s_dm2el",
+      "passed": true,
+      "source": "f77s_dm2el.f",
+      "source_sha256": "28d210b4414aa6027847f684a8b491fc1a4bf6475d2bbf366754de91e768939a"
+    },
+    {
+      "artifact": {
+        "bytes": 11625,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_dm3el.c",
+        "sha256": "7de219129f189ea4799ed71c62bdb50d86457837edca153e83f149964487388d"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.847,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42  10   8",
+      "kind": "positive",
+      "name": "f77s_dm3el",
+      "passed": true,
+      "source": "f77s_dm3el.f",
+      "source_sha256": "e25712e60258a368f709cd09033929735ce72da0a5d54bc2ad802ee50212fa28"
+    },
+    {
+      "artifact": {
+        "bytes": 11309,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_subdata.c",
+        "sha256": "d270ae1d8df959de347bf27d23d815b8cf658bb16485a350c3a806705b1750c0"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.731,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  42",
+      "kind": "positive",
+      "name": "f77s_subdata",
+      "passed": true,
+      "source": "f77s_subdata.f",
+      "source_sha256": "b98481c754dc404ca741d95b15bfbddd1d68e057539bd48b8249d3ed536003e2"
+    },
+    {
+      "artifact": {
+        "bytes": 11470,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_subarr.c",
+        "sha256": "c41979e82e7dc19e6e3063fcdd1d37c1fee4f560be18ee16ab83f30a4d6d45e3"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.751,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "   6",
+      "kind": "positive",
+      "name": "f77s_subarr",
+      "passed": true,
+      "source": "f77s_subarr.f",
+      "source_sha256": "05a0b34ef784b17e8d8874a78923c6c0f3ae17ee3206f1ee10daced4c039188a"
+    },
+    {
+      "artifact": {
+        "bytes": 16781,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burkcum.c",
+        "sha256": "70b27272ccc5be32f650f581b0fb36021079cd01639214e91207a1c1d81b3723"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.757,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "   3   6   9  -2   5",
+      "kind": "positive",
+      "name": "f77s_burkcum",
+      "passed": true,
+      "source": "f77s_burkcum.f",
+      "source_sha256": "e4f0662516baf199e9a17d177c217ca690f1f272e28812e47a666de899101642"
+    },
+    {
+      "artifact": {
+        "bytes": 12911,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burkdot.c",
+        "sha256": "e4367f0b9fe20d8b91cc5402742e4daf57ac93f47405104ac9fd20263403db3c"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.832,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  35",
+      "kind": "positive",
+      "name": "f77s_burkdot",
+      "passed": true,
+      "source": "f77s_burkdot.f",
+      "source_sha256": "bb7d69df462d7fdb4df303f99ceea5c62bed26a7200a94d6f3423934e9db275a"
+    },
+    {
+      "artifact": {
+        "bytes": 14821,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burkgcd.c",
+        "sha256": "7344916311d4e086abe78fb78b1c4b1dae8ea979b22297bc8230206551b04832"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.672,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  14",
+      "kind": "positive",
+      "name": "f77s_burkgcd",
+      "passed": true,
+      "source": "f77s_burkgcd.f",
+      "source_sha256": "305fb33777677db42dc853cc82b173cd07d6eddda540d61478f862dd219cc1fa"
+    },
+    {
+      "artifact": {
+        "bytes": 11167,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_chdata.c",
+        "sha256": "3a43bd0a67221ae1ab81866304d0d5b8d724c4a4bc2b105a5bdee4ea3ce06dba"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.719,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "XY",
+      "kind": "positive",
+      "name": "f77s_chdata",
+      "passed": true,
+      "source": "f77s_chdata.f",
+      "source_sha256": "4ccb5b8acbe7d045a2f9bde0ee170a761a9e10606660d71a635231dba7769a92"
+    },
+    {
+      "artifact": {
+        "bytes": 10391,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_imchar.c",
+        "sha256": "f7d6f0d93ebc7b29e8ba48210946513e1895a56fdaa4d03716fa6d9ae654d278"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.81,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "A/B",
+      "kind": "positive",
+      "name": "f77s_imchar",
+      "passed": true,
+      "source": "f77s_imchar.f",
+      "source_sha256": "de2f38f3e03679fb79d1f3178f07e04d8e7623a2b5aee77ab0c1136fdec27d5e"
+    },
+    {
+      "artifact": {
+        "bytes": 11078,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_charg.c",
+        "sha256": "b4af40469c618931f325faea09aa643a89840222074c058f85730d4a09dffae8"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.718,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "HI",
+      "kind": "positive",
+      "name": "f77s_charg",
+      "passed": true,
+      "source": "f77s_charg.f",
+      "source_sha256": "733f97fcd83346c2ac15d22bc8f2a4ae0e2cfac4daed74ba30a7752af47a523c"
+    },
+    {
+      "artifact": {
+        "bytes": 12742,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_charray.c",
+        "sha256": "00b2b6a00af1422de3637987904b94c50167ed2638b514146d7126ab82164c28"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.847,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "XY OK",
+      "kind": "positive",
+      "name": "f77s_charray",
+      "passed": true,
+      "source": "f77s_charray.f",
+      "source_sha256": "d7377c61b11654059faf36b1997686d89e70a67b80992d6b298a97d70c476026"
+    },
+    {
+      "artifact": {
+        "bytes": 12275,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_chdummy.c",
+        "sha256": "edf102caee0e4a15e402475d2a6ae66e209916ea90b67c4f58a2ef902ea673aa"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.739,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "XY CC HI",
+      "kind": "positive",
+      "name": "f77s_chdummy",
+      "passed": true,
+      "source": "f77s_chdummy.f",
+      "source_sha256": "efaacb65049a6ee7ee706f34b2555dec31a6f65973e3906a7b86d8b422424f10"
+    },
+    {
+      "artifact": {
+        "bytes": 10691,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_arrread.c",
+        "sha256": "f9bd52b55310d316cfebc63f50dbaff069116019a986eba32863b4a3aae35010"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.704,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "NO XYZ",
+      "kind": "positive",
+      "name": "f77s_arrread",
+      "passed": true,
+      "source": "f77s_arrread.f",
+      "source_sha256": "48363e7eecbba4195c9e244fe579fbf482338bf47eaaa42e6d39e76d5b998b82"
+    },
+    {
+      "artifact": {
+        "bytes": 11380,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_chr3d.c",
+        "sha256": "52dfaafec2205d69cd2431c20c7702bbf67c5d7759482b7b82b5feccbaf46458"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.71,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "42GG",
+      "kind": "positive",
+      "name": "f77s_chr3d",
+      "passed": true,
+      "source": "f77s_chr3d.f",
+      "source_sha256": "f81846b27eb2336493a5ab579221818ffc048dbb71cac4ca503b440db2ac23f6"
+    },
+    {
+      "artifact": {
+        "bytes": 11211,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_realio.c",
+        "sha256": "27179036cd8a5ba519327dac43e1670caac5be04db1941856502487ca679ff9c"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.012,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "   -3.25",
+      "kind": "positive",
+      "name": "f77s_realio",
+      "passed": true,
+      "source": "f77s_realio.f",
+      "source_sha256": "639b33702a1f117e7946afed43c657dbd5b9fcf226eb97027a429fcc830d5a5a"
+    },
+    {
+      "artifact": {
+        "bytes": 12534,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burkmean.c",
+        "sha256": "337c7d5ad06a21f615955c318ca70ee4a9f3185cd7e4a93f0d38e95e473bfbd2"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.853,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "    2.50",
+      "kind": "positive",
+      "name": "f77s_burkmean",
+      "passed": true,
+      "source": "f77s_burkmean.f",
+      "source_sha256": "65ba63bb34be190569fd32f0b973d70acdcb0a7fb4f3f1d86e751b95239e7a33"
+    },
+    {
+      "artifact": {
+        "bytes": 14796,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burkmin.c",
+        "sha256": "3451a77cdea66482147330b572f2341d333b63d9ee363a2832d3f54c6cad984d"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.726,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "   -3.25    4.00",
+      "kind": "positive",
+      "name": "f77s_burkmin",
+      "passed": true,
+      "source": "f77s_burkmin.f",
+      "source_sha256": "5234e82c785a1bcc1e942c67609b715ce5cb2aae5900bc5573e17812de3dd7fd"
+    },
+    {
+      "artifact": {
+        "bytes": 12959,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burkreal.c",
+        "sha256": "43d5b34bd6980891cc54aa318bbbd606d78d4a92c7b7efe4b84a82d8c6cb983e"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.787,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "   27.50",
+      "kind": "positive",
+      "name": "f77s_burkreal",
+      "passed": true,
+      "source": "f77s_burkreal.f",
+      "source_sha256": "cb56a64278b6ca9aa1ea7df76bc5948dcb2dbabba25d19ce7f0a43e8d476b8e1"
+    },
+    {
+      "artifact": {
+        "bytes": 12459,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burkl1.c",
+        "sha256": "be92b999f22b0ac7b5bd62edc86ea3831a4e112de7163ff5be818261a33d8feb"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.842,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "   12.00",
+      "kind": "positive",
+      "name": "f77s_burkl1",
+      "passed": true,
+      "source": "f77s_burkl1.f",
+      "source_sha256": "620cf88954d7ae600e67c48b4108118088a3d2a049fb948356c5a2ba35787917"
+    },
+    {
+      "artifact": {
+        "bytes": 10861,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_logio.c",
+        "sha256": "3abb90e82cf611cb3a221472fd4bfa944676bbe3305a15a9a2be36dd056568ed"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.906,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "   F   T",
+      "kind": "positive",
+      "name": "f77s_logio",
+      "passed": true,
+      "source": "f77s_logio.f",
+      "source_sha256": "a730fa0e8ca2da5191072317ef5ce921e10b1cdf8eefd58c20923972d7c4530a"
+    },
+    {
+      "artifact": {
+        "bytes": 14496,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burkvar.c",
+        "sha256": "8f0127daa24c101fb632dce2e7a5ac49445b21f61c56b8bd63144db608cea995"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.739,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "    2.50",
+      "kind": "positive",
+      "name": "f77s_burkvar",
+      "passed": true,
+      "source": "f77s_burkvar.f",
+      "source_sha256": "12d5573d1291ca1e71c5d52681b9656c9dcb45935788fa917c6c125c39c79a7e"
+    },
+    {
+      "artifact": {
+        "bytes": 13050,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burkscale.c",
+        "sha256": "2af0dfea034c7d7e06cb7f1f8ed0a1a47ee37855fca0071a300436cb0e0e3332"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.756,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "    2.00   -4.00    6.00    8.00  -10.00",
+      "kind": "positive",
+      "name": "f77s_burkscale",
+      "passed": true,
+      "source": "f77s_burkscale.f",
+      "source_sha256": "11e9ae308c477e23adf8b2ab804a276aae8d4b1e592d0a1c9f7cc40f26acee79"
+    },
+    {
+      "artifact": {
+        "bytes": 13963,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burkl2.c",
+        "sha256": "c4378b5d994f948c311672caa6537f941033d10b69568d26c3367a1c38bffc24"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.877,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "    5.00",
+      "kind": "positive",
+      "name": "f77s_burkl2",
+      "passed": true,
+      "source": "f77s_burkl2.f",
+      "source_sha256": "f1a67de23a034ed88ee52da13be201f21bb8dfe7d7eb4362a3d81b7dbaa2d429"
+    },
+    {
+      "artifact": {
+        "bytes": 13150,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burkcopy.c",
+        "sha256": "8e53ce187499a6d8c1355a8fa635a2b4fed4bf4e957f304c48acdc8c5e551dc3"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.921,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "   -2.00    3.25",
+      "kind": "positive",
+      "name": "f77s_burkcopy",
+      "passed": true,
+      "source": "f77s_burkcopy.f",
+      "source_sha256": "b6b35dedd8bf773501299ac62676c1902648aab9c1096f30f6e642d8da56f17c"
+    },
+    {
+      "artifact": {
+        "bytes": 14250,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_burkrsrt.c",
+        "sha256": "a67966f4fcffd514e543d84981b5010b63e70c42adb2d895f23a3e81f8e2d44e"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.856,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "    3.00   -1.00",
+      "kind": "positive",
+      "name": "f77s_burkrsrt",
+      "passed": true,
+      "source": "f77s_burkrsrt.f",
+      "source_sha256": "50dc1aaec9abcc6bdf131dc80f46b6933916b5e26b14341c6ac87ac53bc4d031"
+    },
+    {
+      "artifact": {
+        "bytes": 11633,
+        "file": "/tmp/rfortranc-tests-pl5ntzox/f77s_expout.c",
+        "sha256": "c147cee955f9708fbd1f02e5ee5525f31fafc461a23a830593cf62a2791247ad"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.84,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_output_contains": "  0.123400E+02",
+      "kind": "positive",
+      "name": "f77s_expout",
+      "passed": true,
+      "source": "f77s_expout.f",
+      "source_sha256": "de03a0d03c24963005722f1e5db16057da3e9db47c85cc1feefa2c5873fcd19f"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.741,
+        "stderr": "rfortranc: line 3: undefined statement label: 70\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "undefined-label",
+      "passed": true,
+      "source_sha256": "2114dc8a838a16d4b205efc880ade3018321ea8755f2cf01914d3baad7f2eaba"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.707,
+        "stderr": "rfortranc: line 2: undeclared variable: N\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "undefined-variable",
+      "passed": true,
+      "source_sha256": "89872835237ace69c8c7dc01e635f0707bf9e9caa3bf9466dd0ddae8b52079ec"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.72,
+        "stderr": "rfortranc: line 2: FORMAT requires a statement label\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "unsupported-format",
+      "passed": true,
+      "source_sha256": "0dec6fbf3ac38d761cb59eda1936a3bd7a5f471cb3a0f997af8a23ae7806e617"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.739,
+        "stderr": "rfortranc: line 3: READ requires an INTEGER variable\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "real-read",
+      "passed": true,
+      "source_sha256": "55f34f46bc083329e7b82ec90313ac32ed51b387b5c849ed3ba333e22d64817c"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.634,
+        "stderr": "rfortranc: line 4: undefined statement label: 30\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "arithmetic-undefined-target",
+      "passed": true,
+      "source_sha256": "577ad329aedb12100f8b2ddd246c2a91a4290ec11188a99d9381bc5536db80e3"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.655,
+        "stderr": "rfortranc: line 4: undefined statement label: 20\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "computed-undefined-target",
+      "passed": true,
+      "source_sha256": "9f18d349d56a664cc17272289a9052a069cb9ed16668a0635e4b25b78757f955"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.733,
+        "stderr": "rfortranc: line 4: computed GO TO selector must be INTEGER\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "computed-real-selector",
+      "passed": true,
+      "source_sha256": "fec1401b8107eb47dc9d7afb4a4a6b0154d0b36c55048a5f26e324486e26177c"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.651,
+        "stderr": "rfortranc: line 4: undefined FORMAT label: 10\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "write-undefined-format",
+      "passed": true,
+      "source_sha256": "2aa41df0c6aeb635ee98ec644bd8475f5c8b6a6b4212a4b753bbf9fd9e393dd8"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.783,
+        "stderr": "rfortranc: line 4: FORMAT F/E needs REAL variable/element\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "write-bad-descriptor",
+      "passed": true,
+      "source_sha256": "9265719c973bee1d5e0826c8d6a7fd40efb00a16e6b7a668f96360286945a888"
+    },
+    {
+      "compile": {
+        "exit_code": 1,
+        "seconds": 0.691,
+        "stderr": "rfortranc: line 3: DATA INTEGER value outside ZX-UX 16-bit range: 32768\n",
+        "stdout": ""
+      },
+      "kind": "negative",
+      "name": "data-int-overflow",
+      "passed": true,
+      "source_sha256": "3136cd667a6355d714ab52fe4114a87d016e4d6427db4b22bc13a4e98483f144"
+    }
+  ],
+  "driver_sha256": {
+    "bytes": 5237,
+    "file": "/mnt/data/zx-work/rfortranc-next/rfortranc/driver.py",
+    "sha256": "89f0304b5cb89c4b2e0a460e7bffc23775a26715dd274ddeae98cb9a01c72e5d"
+  },
+  "frontend_sha256": {
+    "bytes": 72685,
+    "file": "/mnt/data/zx-work/rfortranc-next/rfortranc/translator.py",
+    "sha256": "ccca4ea21828835290289f548f1900f677519081c5da0daaa47e64d9a63663eb"
+  },
+  "inputs": {
+    "rvm": null,
+    "sdk_archive": null
+  },
+  "mode": "frontend-only",
+  "options": {
+    "rvm_frames": null,
+    "timeout_seconds": 20
+  },
+  "platform": "Linux-6.18.55-x86_64-with-glibc2.41",
+  "python": "3.13.5",
+  "result": {
+    "failed": 0,
+    "failed_cases": [],
+    "passed": 92,
+    "total": 92
+  },
+  "schema": 1,
+  "tool": "rfortranc"
+}

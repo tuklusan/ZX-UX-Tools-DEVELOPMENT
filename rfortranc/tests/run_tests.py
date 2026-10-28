@@ -98,6 +98,7 @@ PROGRAMS = {
     'f77s_burkl2': '    5.00',
     'f77s_burkcopy': '   -2.00    3.25',
     'f77s_burkrsrt': '    3.00   -1.00',
+    'f77s_expout': '  0.123400E+02',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',

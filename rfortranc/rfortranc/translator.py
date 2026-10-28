@@ -597,6 +597,70 @@ static void f_outrealw(float value, int width, int places) {
         divisor = divisor / 10;
     }
 }
+/* Restricted ANSI F77S Ew.d output (two-digit exponent, 1..6 digits).
+   Compute digits separately to avoid 16-bit integer overflow on Z80. */
+static void f_outexp(float value, int width, int places) {
+    int negative;
+    int exponent;
+    int digs[7];
+    int i;
+    int digit;
+    int carry;
+    int chars;
+    float v;
+    negative = value < 0.0;
+    v = value;
+    if (negative) v = -v;
+    exponent = 0;
+    if (v != 0.0) {
+        while (v >= 1.0 && exponent < 100) { v = v / 10.0; exponent++; }
+        while (v < 0.1 && exponent > -100) { v = v * 10.0; exponent--; }
+    }
+    if (exponent >= 100 || exponent <= -100) {
+        for (i = 0; i < width; i++) putchar('*');
+        return;
+    }
+    for (i = 0; i <= places; i++) {
+        v = v * 10.0;
+        digit = (int)v;
+        if (digit < 0) digit = 0;
+        if (digit > 9) digit = 9;
+        digs[i] = digit;
+        v = v - (float)digit;
+    }
+    carry = digs[places] >= 5;
+    for (i = places - 1; i >= 0; i--) {
+        if (carry) {
+            digs[i]++;
+            if (digs[i] == 10) digs[i] = 0;
+            else carry = 0;
+        }
+    }
+    if (carry) {
+        digs[0] = 1;
+        for (i = 1; i < places; i++) digs[i] = 0;
+        exponent++;
+        if (exponent >= 100) {
+            for (i = 0; i < width; i++) putchar('*');
+            return;
+        }
+    }
+    chars = places + 6 + negative;
+    if (chars > width) {
+        for (i = 0; i < width; i++) putchar('*');
+        return;
+    }
+    for (i = chars; i < width; i++) putchar(' ');
+    if (negative) putchar('-');
+    putchar('0');
+    putchar('.');
+    for (i = 0; i < places; i++) putchar('0' + digs[i]);
+    putchar('E');
+    if (exponent < 0) { putchar('-'); exponent = -exponent; }
+    else putchar('+');
+    putchar('0' + exponent / 10);
+    putchar('0' + exponent % 10);
+}
 /* ANSI F77S formatted INTEGER input (limited Iw/X/slash subset).
    Fields are blank-padded to the end of each input record. */
 static int f_fmt_eor;
@@ -861,6 +925,14 @@ def subset_format(source, line):
                     raise FortranError(line, 'F field size/decimal places exceed supported limits')
                 append(('real', (width, places)), repeat)
                 continue
+            exponential = re.fullmatch(r'([1-9][0-9]*)?E([1-9][0-9]*)\.([0-9]+)', token)
+            if exponential:
+                repeat = int(exponential.group(1) or 1)
+                width, places = int(exponential.group(2)), int(exponential.group(3))
+                if width > 255 or not (1 <= places <= 6) or width < places + 6:
+                    raise FortranError(line, 'E field width/precision exceeds supported limits')
+                append(('realexp', (width, places)), repeat)
+                continue
             logical = re.fullmatch(r'([1-9][0-9]*)?L([1-9][0-9]*)', token)
             if logical:
                 repeat, width = int(logical.group(1) or 1), int(logical.group(2))
@@ -1055,15 +1127,15 @@ def convert(units):
                             raise FortranError(line, 'FORMAT L needs LOGICAL scalar/array element')
                         operations.append('f_outlogw(' + E(name, line) + ', ' + str(item) + ');')
                         pos += 1
-                    elif mode == 'real':
+                    elif mode in ('real', 'realexp'):
                         if pos == len(values):
                             raise FortranError(line, 'WRITE has fewer items than FORMAT')
                         name = values[pos].strip()
                         m = re.fullmatch(r'(' + NAME + r')(?:\s*\(([^()]*)\))?', name)
                         info = u.vars.get(m.group(1)) if m else None
                         if not info or info[0] != 'REAL' or (info[1] is None) != (m.group(2) is None):
-                            raise FortranError(line, 'FORMAT F needs REAL variable/element')
-                        operations.append('f_outrealw(' + E(name, line) + ', ' + str(item[0]) + ', ' + str(item[1]) + ');')
+                            raise FortranError(line, 'FORMAT F/E needs REAL variable/element')
+                        operations.append(('f_outrealw(' if mode == 'real' else 'f_outexp(') + E(name, line) + ', ' + str(item[0]) + ', ' + str(item[1]) + ');')
                         pos += 1
                     elif mode == 'integer':
                         if pos == len(values):

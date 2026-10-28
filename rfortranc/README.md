@@ -174,3 +174,5 @@ python rfortranc/tests/check_release.py \
 This checks actual SSX1 and TZX magic, published manifest SHA-256 hashes,
 collision-safe cassette names, and exact real ZX-UX emulator output for a
 small LGPL numerical subset. It is **not** physical cassette load proof.
+
+Restricted ANSI subset REAL `Ew.d` formatted WRITE output (1..6 fractional digits, two-digit signed exponent, numeric padding/overflow handling) is exercised in `tests/fortran/f77s_expout.f`. Its native ZX-UX SSX1 runtime output is compared line-by-line with host gfortran. Reading E input, scale factors, full-range and exact IEEE formatting remain unsupported; this is not complete ANSI F77S conformance.

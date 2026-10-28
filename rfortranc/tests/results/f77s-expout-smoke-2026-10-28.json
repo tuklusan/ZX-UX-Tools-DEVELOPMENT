@@ -1,0 +1,74 @@
+{
+  "compile_host": {
+    "argv": [
+      "gfortran",
+      "-std=legacy",
+      "-ffixed-form",
+      "-o",
+      "/tmp/f77s-expout-proof-rfj8q1h7/expout.host",
+      "/mnt/data/zx-work/rfortranc-next/tests/fortran/f77s_expout.f"
+    ],
+    "exit_code": 0,
+    "stderr": "",
+    "stdout": ""
+  },
+  "compile_zx": {
+    "argv": [
+      "/opt/pyvenv/bin/python",
+      "/mnt/data/zx-work/rfortranc-next/bin/rfortranc",
+      "--std",
+      "f77s",
+      "--sdk",
+      "/mnt/data/zx-work/src/zx-ux-sdk",
+      "--native",
+      "-o",
+      "/tmp/f77s-expout-proof-rfj8q1h7/expout.ssx",
+      "/mnt/data/zx-work/rfortranc-next/tests/fortran/f77s_expout.f"
+    ],
+    "exit_code": 0,
+    "stderr": "",
+    "stdout": ""
+  },
+  "expected_lines": [
+    "  0.123400E+02 -0.125000E-01",
+    "  0.000000E+00",
+    "  0.100000E+01",
+    "  0.100000E+03",
+    " -0.123000E-04"
+  ],
+  "host_run": {
+    "argv": [
+      "/tmp/f77s-expout-proof-rfj8q1h7/expout.host"
+    ],
+    "exit_code": 0,
+    "stderr": "",
+    "stdout": "  0.123400E+02 -0.125000E-01\n  0.000000E+00\n  0.100000E+01\n  0.100000E+03\n -0.123000E-04\n"
+  },
+  "partial_subset_not_certification": true,
+  "purpose": "restricted F77S E14.6 REAL formatted output differential",
+  "result": {
+    "passed": 1,
+    "total": 1
+  },
+  "rvm_sha256": "e7cfb59b6c76e49faf4a0876520e44d3fcb34a5d9bce45831ae0d25242cc7830",
+  "schema": 1,
+  "sdk_zip_sha256": "42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17",
+  "source_sha256": "de03a0d03c24963005722f1e5db16057da3e9db47c85cc1feefa2c5873fcd19f",
+  "ssx_bytes": 2688,
+  "ssx_sha256": "2ec2ba1c23bbd3bf013665250fdb27954837e915ab15faab78c7aaccf1b78638",
+  "translator_sha256": "ccca4ea21828835290289f548f1900f677519081c5da0daaa47e64d9a63663eb",
+  "zxux_run": {
+    "argv": [
+      "/opt/pyvenv/bin/python",
+      "/mnt/data/zx-work/dist/sdk/bin/rvm",
+      "--headless",
+      "--text",
+      "--frames",
+      "1000",
+      "/tmp/f77s-expout-proof-rfj8q1h7/expout.ssx"
+    ],
+    "exit_code": 0,
+    "stderr": "rvm: expout: exit 0 (exit) after 178 frames, 25 system calls, started from the cache\n",
+    "stdout": "  0.123400E+02 -0.125000E-01\n  0.000000E+00\n  0.100000E+01\n  0.100000E+03\n -0.123000E-04\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+  }
+}
