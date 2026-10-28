@@ -44,7 +44,7 @@ def initializers(unit):
                 raise FortranError(st.line, 'empty DATA name or value list')
             targets = []
             for spec in split_items(name_src):
-                item = re.fullmatch(r'(' + NAME + r')(?:\(\s*(\d+)\s*\))?', spec)
+                item = re.fullmatch(r'(' + NAME + r')(?:\(\s*(\d+(?:\s*,\s*\d+){0,2})\s*\))?', spec)
                 if not item:
                     raise FortranError(st.line, 'unsupported DATA object: ' + spec)
                 name, idx = item.groups()
@@ -54,12 +54,15 @@ def initializers(unit):
                 if name in unit.args or name == unit.name:
                     raise FortranError(st.line, 'DATA cannot initialize dummy/result object')
                 if idx is not None:
-                    n = int(idx)
-                    if size is None or not 1 <= n <= size:
-                        raise FortranError(st.line, 'invalid DATA array index')
-                    targets.append((f'F_{name}[{n-1}]', typ))
+                    from .arrays import literal_offset
+                    if size is None:
+                        raise FortranError(st.line, 'DATA subscript on scalar')
+                    indices = tuple(int(n.strip()) for n in idx.split(','))
+                    n = literal_offset(indices, size, st.line)
+                    targets.append((f'F_{name}[{n}]', typ))
                 elif size is not None:
-                    targets.extend((f'F_{name}[{i}]', typ) for i in range(size))
+                    from .arrays import size as total_extent
+                    targets.extend((f'F_{name}[{i}]', typ) for i in range(total_extent(size)))
                 else:
                     targets.append((f'F_{name}', typ))
             values = []

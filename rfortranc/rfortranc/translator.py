@@ -29,7 +29,7 @@ class Unit:
     args: list[str] = field(default_factory=list)
     type: str = 'INTEGER'
     statements: list[Statement] = field(default_factory=list)
-    vars: dict[str, tuple[str, int | None]] = field(default_factory=dict)
+    vars: dict[str, tuple[str, int | tuple[int, ...] | None]] = field(default_factory=dict)
     temps: list[tuple[str, str]] = field(default_factory=list)
 
 
@@ -220,13 +220,16 @@ def parse(source, std='zxux'):
                 continue
             ty, rest = m.groups()
             for spec in split_items(rest):
-                var = re.fullmatch(r'(' + NAME + r')(?:\s*\(\s*(\d+)\s*\))?', spec)
+                var = re.fullmatch(r'(' + NAME + r')(?:\s*\(\s*(\d+(?:\s*,\s*\d+){0,2})\s*\))?', spec)
                 if not var:
                     raise FortranError(st.line, 'unsupported declaration: ' + spec)
                 name, count = var.groups()
-                size = int(count) if count else None
-                if size is not None and not 1 <= size <= 32767:
-                    raise FortranError(st.line, 'array extent out of bounds')
+                dims = tuple(int(d.strip()) for d in count.split(',')) if count else None
+                if dims is not None:
+                    from .arrays import size as total_extent
+                    if any(not 1 <= d <= 32767 for d in dims) or total_extent(dims) > 32767:
+                        raise FortranError(st.line, 'array extent or total size out of bounds')
+                size = dims[0] if dims is not None and len(dims) == 1 else dims
                 if name in u.vars and name not in u.args and name != u.name:
                     raise FortranError(st.line, 'duplicate declaration: ' + name)
                 u.vars[name] = (ty, size)
@@ -303,9 +306,8 @@ class Expr:
                 if self.pop() != ')':
                     raise FortranError(self.line, 'bad function or array argument list')
                 if t in self.unit.vars and self.unit.vars[t][1] is not None:
-                    if len(params) != 1:
-                        raise FortranError(self.line, 'only 1D arrays supported')
-                    lhs = 'F_' + t + '[f_index(' + params[0] + ', ' + str(self.unit.vars[t][1]) + ')]'
+                    from .arrays import offset
+                    lhs = 'F_' + t + '[' + offset(params, self.unit.vars[t][1], self.line) + ']'
                 elif t == 'MOD' and len(params) == 2:
                     lhs = '((' + params[0] + ') % (' + params[1] + '))'
                 elif t in self.known and self.known[t].kind == 'function':
@@ -490,7 +492,8 @@ def convert(units):
             output.append('    ' + text)
         for var, (ty, n) in u.vars.items():
             if var not in u.args:
-                decl(ctype(ty) + ' F_' + var + (('[' + str(n) + ']') if n else '') + ';')
+                from .arrays import size as total_extent
+                decl(ctype(ty) + ' F_' + var + (('[' + str(total_extent(n)) + ']') if n else '') + ';')
         decl('int f_pc;')
         if u.kind == 'function':
             decl('F_' + u.name + ' = 0;')

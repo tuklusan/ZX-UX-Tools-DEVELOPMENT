@@ -1,0 +1,391 @@
+{
+  "cases": [
+    {
+      "compile_gfortran": {
+        "argv": [
+          "gfortran",
+          "-std=legacy",
+          "-ffixed-form",
+          "-o",
+          "/tmp/tmphdi281me/f77s_fmt.host",
+          "/mnt/data/rfortranc/tests/fortran/f77s_fmt.f"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "compile_zx": {
+        "argv": [
+          "/opt/pyvenv/bin/python",
+          "/mnt/data/rfortranc/bin/rfortranc",
+          "--std",
+          "f77s",
+          "--sdk",
+          "/mnt/data/workzx/src/zx-ux-sdk",
+          "--native",
+          "-o",
+          "/tmp/tmphdi281me/f77s_fmt.ssx",
+          "/mnt/data/rfortranc/tests/fortran/f77s_fmt.f"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_lines": [
+        "  42"
+      ],
+      "gfortran_run": {
+        "argv": [
+          "/tmp/tmphdi281me/f77s_fmt.host"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n"
+      },
+      "name": "f77s_fmt",
+      "passed": true,
+      "source_sha256": "524a525fd8d6c58adf4f20003d28ec83a5dd9addc0c7a65140dee899d8810f58",
+      "ssx_bytes": 1158,
+      "ssx_sha256": "15baef488cded659993a081f7a22b8d10a3786c320661ff0356fae9cf975fb1b",
+      "zxux_run": {
+        "argv": [
+          "/opt/pyvenv/bin/python",
+          "/mnt/data/workzx/dist/sdk/bin/rvm",
+          "--headless",
+          "--text",
+          "--frames",
+          "1000",
+          "/tmp/tmphdi281me/f77s_fmt.ssx"
+        ],
+        "exit_code": 0,
+        "stderr": "rvm: f77s_fmt: exit 0 (exit) after 156 frames, 27 system calls, started from the cache\n",
+        "stdout": "  42\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      }
+    },
+    {
+      "compile_gfortran": {
+        "argv": [
+          "gfortran",
+          "-std=legacy",
+          "-ffixed-form",
+          "-o",
+          "/tmp/tmphdi281me/f77s_data.host",
+          "/mnt/data/rfortranc/tests/fortran/f77s_data.f"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "compile_zx": {
+        "argv": [
+          "/opt/pyvenv/bin/python",
+          "/mnt/data/rfortranc/bin/rfortranc",
+          "--std",
+          "f77s",
+          "--sdk",
+          "/mnt/data/workzx/src/zx-ux-sdk",
+          "--native",
+          "-o",
+          "/tmp/tmphdi281me/f77s_data.ssx",
+          "/mnt/data/rfortranc/tests/fortran/f77s_data.f"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_lines": [
+        "  9",
+        "  2"
+      ],
+      "gfortran_run": {
+        "argv": [
+          "/tmp/tmphdi281me/f77s_data.host"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  9\n  2\n"
+      },
+      "name": "f77s_data",
+      "passed": true,
+      "source_sha256": "bae5482e2dfbc239effb6eee312083eb6e82aba278027cb5ab88f10ebdb67980",
+      "ssx_bytes": 1270,
+      "ssx_sha256": "161ec7364f38755a35aa29a348d0222d52fcf5959a847f4704480f0fcc888e8f",
+      "zxux_run": {
+        "argv": [
+          "/opt/pyvenv/bin/python",
+          "/mnt/data/workzx/dist/sdk/bin/rvm",
+          "--headless",
+          "--text",
+          "--frames",
+          "1000",
+          "/tmp/tmphdi281me/f77s_data.ssx"
+        ],
+        "exit_code": 0,
+        "stderr": "rvm: f77s_data: exit 0 (exit) after 163 frames, 28 system calls, started from the cache\n",
+        "stdout": "  9\n  2\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      }
+    },
+    {
+      "compile_gfortran": {
+        "argv": [
+          "gfortran",
+          "-std=legacy",
+          "-ffixed-form",
+          "-o",
+          "/tmp/tmphdi281me/f77s_implicit.host",
+          "/mnt/data/rfortranc/tests/fortran/f77s_implicit.f"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "compile_zx": {
+        "argv": [
+          "/opt/pyvenv/bin/python",
+          "/mnt/data/rfortranc/bin/rfortranc",
+          "--std",
+          "f77s",
+          "--sdk",
+          "/mnt/data/workzx/src/zx-ux-sdk",
+          "--native",
+          "-o",
+          "/tmp/tmphdi281me/f77s_implicit.ssx",
+          "/mnt/data/rfortranc/tests/fortran/f77s_implicit.f"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_lines": [
+        "  3",
+        "  7"
+      ],
+      "gfortran_run": {
+        "argv": [
+          "/tmp/tmphdi281me/f77s_implicit.host"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  3\n  7\n"
+      },
+      "name": "f77s_implicit",
+      "passed": true,
+      "source_sha256": "601961e5444aaefb71a5cce1828281c2607cdfad232544d5572d03bad34dea8c",
+      "ssx_bytes": 1226,
+      "ssx_sha256": "7d338eec34d6a662c88d22fa0bee732376600fc8384a7e1bf055d2eefd43394f",
+      "zxux_run": {
+        "argv": [
+          "/opt/pyvenv/bin/python",
+          "/mnt/data/workzx/dist/sdk/bin/rvm",
+          "--headless",
+          "--text",
+          "--frames",
+          "1000",
+          "/tmp/tmphdi281me/f77s_implicit.ssx"
+        ],
+        "exit_code": 0,
+        "stderr": "rvm: f77s_impli: exit 0 (exit) after 168 frames, 29 system calls, started from the cache\n",
+        "stdout": "  3\n  7\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      }
+    },
+    {
+      "compile_gfortran": {
+        "argv": [
+          "gfortran",
+          "-std=legacy",
+          "-ffixed-form",
+          "-o",
+          "/tmp/tmphdi281me/f77s_real.host",
+          "/mnt/data/rfortranc/tests/fortran/f77s_real.f"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "compile_zx": {
+        "argv": [
+          "/opt/pyvenv/bin/python",
+          "/mnt/data/rfortranc/bin/rfortranc",
+          "--std",
+          "f77s",
+          "--sdk",
+          "/mnt/data/workzx/src/zx-ux-sdk",
+          "--native",
+          "-o",
+          "/tmp/tmphdi281me/f77s_real.ssx",
+          "/mnt/data/rfortranc/tests/fortran/f77s_real.f"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_lines": [
+        "  2"
+      ],
+      "gfortran_run": {
+        "argv": [
+          "/tmp/tmphdi281me/f77s_real.host"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  2\n"
+      },
+      "name": "f77s_real",
+      "passed": true,
+      "source_sha256": "a4dc02568ac1138d93b5ca06e78b18345b54a0a58123ad8a6375d05a7dee75ff",
+      "ssx_bytes": 1582,
+      "ssx_sha256": "9b69906dc8e272008d39dcea0e6b2ef16bb1fdb426e3d857207e17001b1223fd",
+      "zxux_run": {
+        "argv": [
+          "/opt/pyvenv/bin/python",
+          "/mnt/data/workzx/dist/sdk/bin/rvm",
+          "--headless",
+          "--text",
+          "--frames",
+          "1000",
+          "/tmp/tmphdi281me/f77s_real.ssx"
+        ],
+        "exit_code": 0,
+        "stderr": "rvm: f77s_real: exit 0 (exit) after 165 frames, 28 system calls, started from the cache\n",
+        "stdout": "  2\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      }
+    },
+    {
+      "compile_gfortran": {
+        "argv": [
+          "gfortran",
+          "-std=legacy",
+          "-ffixed-form",
+          "-o",
+          "/tmp/tmphdi281me/f77s_2d.host",
+          "/mnt/data/rfortranc/tests/fortran/f77s_2d.f"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "compile_zx": {
+        "argv": [
+          "/opt/pyvenv/bin/python",
+          "/mnt/data/rfortranc/bin/rfortranc",
+          "--std",
+          "f77s",
+          "--sdk",
+          "/mnt/data/workzx/src/zx-ux-sdk",
+          "--native",
+          "-o",
+          "/tmp/tmphdi281me/f77s_2d.ssx",
+          "/mnt/data/rfortranc/tests/fortran/f77s_2d.f"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_lines": [
+        "  43"
+      ],
+      "gfortran_run": {
+        "argv": [
+          "/tmp/tmphdi281me/f77s_2d.host"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  43\n"
+      },
+      "name": "f77s_2d",
+      "passed": true,
+      "source_sha256": "e7b5e6fc7a49c24257d5471d2327663c0cb68b5d3e07b8cb2b8f55f24123310c",
+      "ssx_bytes": 1728,
+      "ssx_sha256": "836186e9b9957e532438b6cbbd167c06f540fec81278757f3d48277aa2f1474a",
+      "zxux_run": {
+        "argv": [
+          "/opt/pyvenv/bin/python",
+          "/mnt/data/workzx/dist/sdk/bin/rvm",
+          "--headless",
+          "--text",
+          "--frames",
+          "1000",
+          "/tmp/tmphdi281me/f77s_2d.ssx"
+        ],
+        "exit_code": 0,
+        "stderr": "rvm: f77s_2d: exit 0 (exit) after 157 frames, 26 system calls, started from the cache\n",
+        "stdout": "  43\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      }
+    },
+    {
+      "compile_gfortran": {
+        "argv": [
+          "gfortran",
+          "-std=legacy",
+          "-ffixed-form",
+          "-o",
+          "/tmp/tmphdi281me/f77s_3d.host",
+          "/mnt/data/rfortranc/tests/fortran/f77s_3d.f"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "compile_zx": {
+        "argv": [
+          "/opt/pyvenv/bin/python",
+          "/mnt/data/rfortranc/bin/rfortranc",
+          "--std",
+          "f77s",
+          "--sdk",
+          "/mnt/data/workzx/src/zx-ux-sdk",
+          "--native",
+          "-o",
+          "/tmp/tmphdi281me/f77s_3d.ssx",
+          "/mnt/data/rfortranc/tests/fortran/f77s_3d.f"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "expected_lines": [
+        " 11"
+      ],
+      "gfortran_run": {
+        "argv": [
+          "/tmp/tmphdi281me/f77s_3d.host"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": " 11\n"
+      },
+      "name": "f77s_3d",
+      "passed": true,
+      "source_sha256": "6556b770e6d13672d936896cf3110a8c99d7e9fdb9c1d2b400270f8df2a05d6a",
+      "ssx_bytes": 1491,
+      "ssx_sha256": "9e6763bbf8ecfc9f1791bec0a2ab91ef3cb49719302a377b717474559794ff9a",
+      "zxux_run": {
+        "argv": [
+          "/opt/pyvenv/bin/python",
+          "/mnt/data/workzx/dist/sdk/bin/rvm",
+          "--headless",
+          "--text",
+          "--frames",
+          "1000",
+          "/tmp/tmphdi281me/f77s_3d.ssx"
+        ],
+        "exit_code": 0,
+        "stderr": "rvm: f77s_3d: exit 0 (exit) after 154 frames, 26 system calls, started from the cache\n",
+        "stdout": " 11\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+      }
+    }
+  ],
+  "not_full_conformance": true,
+  "purpose": "F77S example differential execution",
+  "result": {
+    "passed": 6,
+    "total": 6
+  },
+  "schema": 1,
+  "tools": {
+    "gfortran": "GNU Fortran (Debian 14.2.0-19) 14.2.0",
+    "rfortranc_sha256": "48531369387d84d71e8de7bd25bc0f897cf081d3ab72e9098b7c74bb1cfa1820",
+    "rvm_sha256": "e7cfb59b6c76e49faf4a0876520e44d3fcb34a5d9bce45831ae0d25242cc7830",
+    "sdk_archive_sha256": "42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17"
+  }
+}

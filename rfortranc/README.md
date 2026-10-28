@@ -45,13 +45,14 @@ installation is performed before the SDK's `build/build.py` stages sources.
 ```
 
 A FORTRAN `INTEGER`/`LOGICAL` is represented as a 16-bit C48 integer.
-One-dimensional arrays are zero-based in generated C but **one-based in
-FORTRAN**; index checks trap outside `[1, extent]`. Native and bytecode
+One-, two- and three-dimensional fixed-size arrays use flattened column-major
+storage in generated C but **one-based subscripts in FORTRAN**. Bounds checks
+trap outside `[1, extent]` in each dimension. Native and bytecode
 backend fitting is delegated to `rcc` (default memory ceiling ~14 KB).
 The runtime only uses the existing `libc48.ssa` and ZX-UX services.
 
 Implemented: fixed and free-layout basic source, labels and continuations,
-INTEGER/LOGICAL scalars, one-dimensional arrays, INTEGER functions,
+INTEGER/LOGICAL scalars, 1D/2D/3D fixed-size arrays, INTEGER functions,
 subroutines with **by-reference scalar arguments**, assignment, integer arithmetic,
 `MOD`, integer `**`, logical/relational expressions, `IF/THEN/ELSE/ENDIF`,
 logical single-line IF, numbered `DO` including negative increments,
@@ -60,10 +61,10 @@ logical single-line IF, numbered `DO` including negative increments,
 passed by reference; expression/literal actuals are copied to temporary storage
 (as in conventional FORTRAN calls). Array dummy arguments are not supported.
 
-**Not production grade.** F77S requires implicit typing, COMMON/EQUIVALENCE,
-DATA, formatted I/O, DIMENSION in a separate statement, multidimensional
-arrays, CHARACTER, COMPLEX, array dummy arguments, full call aliasing validation, RECURSIVE, full
-floating-point semantics, or REAL printing. Unsupported syntax fails with
+**Not production grade.** F77S-required features still missing or incomplete include
+COMMON/EQUIVALENCE, DIMENSION, CHARACTER, array dummy arguments,
+full DATA storage lifetime, formatted READ and full numeric/REAL I/O.
+Implicit typing, 3D arrays and DATA are partially implemented. Unsupported syntax fails with
 an explicit diagnostic rather than generating misleading machine code.
 
 ## Tests
@@ -94,6 +95,8 @@ testing plan, source licences, and release blockers.
 
 Read [docs/F77S-MATRIX.md](docs/F77S-MATRIX.md) before declaring any language feature out of scope. ANSI subset **includes** DATA, COMMON, EQUIVALENCE, numeric implicit typing, character data, and formatted I/O. It **excludes** PRINT and list-directed I/O; legacy PRINT-based examples are ZX-UX compatibility extensions, not subset conformance. Use `--std f77s` for the current **partial** subset restriction checks; `--std zxux` remains the default.
 
-DATA statements: integer/logical/real scalar and fixed 1D array initialization are implemented for the main program only (`tests/fortran/f77s_data.f`). A DATA statement in a subprogram currently fails explicitly; correct persistent-storage semantics are pending.
+DATA statements: integer/logical/real scalar and fixed 1D/2D/3D array initialization are implemented for the main program only (`tests/fortran/f77s_data.f`). A DATA statement in a subprogram currently fails explicitly; correct persistent-storage semantics are pending.
 
 ANSI subset `--std f77s` now implements default I–N INTEGER / other-letter REAL variables and `IMPLICIT INTEGER/REAL/LOGICAL` letter ranges. Default `zxux` mode still requires explicit declarations. Cross-check tests `f77s_implicit.f` and `f77s_real.f` compile to SSX and match gfortran output; see `tests/compare_f77s.py`.
+
+Fixed-size 2D/3D arrays are checked against host gfortran in `tests/fortran/f77s_2d.f` and `f77s_3d.f`. They use column-major flattened C48 storage; variable dimension bounds and array dummy arguments are not yet implemented.

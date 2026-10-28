@@ -78,6 +78,28 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaises(FortranError):
             parse(src, std='f77s')
 
+    def test_2d_column_major_flattening(self):
+        src=(ROOT/'tests/fortran/f77s_2d.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('int F_A[6];',c)
+        self.assertIn('f_index(F_I, 2)',c)
+        self.assertIn('f_index(F_J, 3)',c)
+
+    def test_3d_column_major_flattening(self):
+        src=(ROOT/'tests/fortran/f77s_3d.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('int F_C[8];',c)
+        self.assertIn(' * 4)',c)
+
+    def test_4d_decl_rejected(self):
+        src='      PROGRAM AR4D\n      INTEGER A(2,2,2,2)\n      END\n'
+        with self.assertRaises(FortranError):
+            parse(src,std='f77s')
+
     def test_free_form_rejected(self):
         src='PROGRAM F77S\nINTEGER I\nEND\n'
         with self.assertRaises(FortranError):
