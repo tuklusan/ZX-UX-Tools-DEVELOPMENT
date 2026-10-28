@@ -59,4 +59,4 @@ ZX-UX kernel, runtime archive, ROM, or original EWVM compiler.
 
 ## F77S array-element storage sequence checkpoint
 
-Fixed-size dummy numeric arrays now accept a constant-subscript actual array element, as in `CALL SUB(A(3))`, passing the address of that element and the subsequent column-major storage. Static extent checks reject actuals with fewer trailing elements than the dummy needs. A variable-index element actual remains explicitly unsupported (until runtime sequence checks are added). `f77s_dmseq.f` tests this with actual gfortran and ZX-UX SSX/RVM execution.
+Fixed-size dummy numeric arrays now accept a constant-subscript actual array element, as in `CALL SUB(A(3))`, passing the address of that element and the subsequent column-major storage. Static extent checks reject actuals with fewer trailing elements than the dummy needs. A variable-index element actual is now evaluated once and checked against the remaining tail extent at runtime, exiting with status 2 if the dummy would extend past its parent array. `f77s_dmseq.f` tests this with actual gfortran and ZX-UX SSX/RVM execution.

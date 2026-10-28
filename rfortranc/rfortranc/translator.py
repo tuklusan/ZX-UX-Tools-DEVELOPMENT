@@ -407,6 +407,11 @@ static int f_index(int n, int size) {
     if (n < 1 || n > size) exit(2);
     return n - 1;
 }
+/* Check an array-element actual covers the complete dummy sequence. */
+static int f_seqcheck(int start, int total, int needed) {
+    if (start < 0 || needed < 1 || start > total - needed) exit(2);
+    return start;
+}
 static int f_ipow(int base, int e) {
     int n;
     int result;
@@ -875,8 +880,8 @@ def convert(units):
                         # sequence of storage elements. For element actuals,
                         # constant subscripts let us prove the remaining
                         # extent before emitting a by-reference pointer.
-                        # Non-constant starting subscripts require a later
-                        # runtime extent check and are rejected for now.
+                        # Dynamic starting subscripts additionally check
+                        # that the remaining sequence covers the dummy.
                         element = re.fullmatch(r'(' + NAME + r')\s*\((.*)\)', actual)
                         actual_name = element.group(1) if element else actual
                         info = u.vars.get(actual_name)
@@ -886,17 +891,22 @@ def convert(units):
                             raise FortranError(line, 'array argument type mismatch: ' + actual)
                         from .arrays import size as total_extent, literal_offset
                         start = 0
+                        ptr_offset = '0'
                         if element:
                             subscripts = split_items(element.group(2))
-                            if not all(re.fullmatch(r'\d+', sub.strip()) for sub in subscripts):
-                                raise FortranError(line, 'array-element dummy sequence requires constant subscripts: ' + actual)
-                            start = literal_offset([int(sub.strip()) for sub in subscripts], info[1], line)
-                        if total_extent(info[1]) - start < total_extent(dims):
+                            if all(re.fullmatch(r'\d+', sub.strip()) for sub in subscripts):
+                                start = literal_offset([int(sub.strip()) for sub in subscripts], info[1], line)
+                                if total_extent(info[1]) - start < total_extent(dims):
+                                    raise FortranError(line, 'array actual shorter than dummy: ' + actual)
+                                ptr_offset = str(start)
+                            else:
+                                from .arrays import offset
+                                ptr_offset = 'f_seqcheck(' + offset(
+                                    [E(sub, line) for sub in subscripts], info[1], line
+                                ) + ', ' + str(total_extent(info[1])) + ', ' + str(total_extent(dims)) + ')'
+                        elif total_extent(info[1]) < total_extent(dims):
                             raise FortranError(line, 'array actual shorter than dummy: ' + actual)
-                        if element:
-                            refs.append('&F_' + actual_name + '[' + str(start) + ']')
-                        else:
-                            refs.append('F_' + actual_name)
+                        refs.append('&F_' + actual_name + '[' + ptr_offset + ']' if element else 'F_' + actual_name)
                     else:
                         refs.append(reference_actual(E(actual, line), u, ty))
                 add(['f_' + f + '(' + ', '.join(refs) + ');'])

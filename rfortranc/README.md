@@ -83,7 +83,7 @@ Strict F77S mode now implements **named/blank numeric COMMON with fixed-size sca
 
 Restricted F77S `EQUIVALENCE` now associates local same-typed numeric scalar and fixed-array storage, including constant element offsets and transitive groups. COMMON/dummy association, mixed-type equivalence and full sequence association are deliberately rejected. Test `f77s_equiv.f` compares ZX-UX and gfortran outputs.
 
-Strict F77S mode accepts separate fixed-bound DIMENSION declarations (up to 3 ranks), with implicit INTEGER/REAL typing; fixed-size numeric dummy arrays now pass by reference with column-major index checks, cross-rank sequence association for same typed sufficient extents, and nested subroutine forwarding. Constant-index array-element actuals now pass a checked trailing storage sequence by reference; variable-index element actuals and adjustable/assumed-size dummy bounds remain unsupported.
+Strict F77S mode accepts separate fixed-bound DIMENSION declarations (up to 3 ranks), with implicit INTEGER/REAL typing; fixed-size numeric dummy arrays now pass by reference with column-major index checks, cross-rank sequence association for same typed sufficient extents, and nested subroutine forwarding. Constant-index array-element actuals now pass a checked trailing storage sequence by reference; variable-index element actuals now have runtime trailing-extent checks; adjustable/assumed-size dummy bounds remain unsupported.
 
 The implemented FORMAT Iw/Aw/A/X/slash/literal subset accepts bounded repeat counts and nested groups (three parenthesis levels total).
 This is still a **partial F77S FORMAT implementation**, not full subset certification.

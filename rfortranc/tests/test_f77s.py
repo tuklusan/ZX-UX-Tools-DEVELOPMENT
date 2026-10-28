@@ -115,6 +115,14 @@ class F77SChecks(unittest.TestCase):
         validate_source(src, units)
         self.assertIn('f_ADDSEQ(&F_A[2]);', convert(units))
 
+    def test_dynamic_array_element_sequence_f77s(self):
+        src = (ROOT/'tests/fortran/f77s_dmidx.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        c = convert(units)
+        self.assertIn('f_seqcheck(', c)
+        self.assertIn('f_ADDSEQ(&F_A[', c)
+
     def test_element_sequence_too_short_rejected(self):
         src = ('      PROGRAM BAD\n      INTEGER A(5)\n'
                '      CALL SUB(A(4))\n      END\n'
@@ -123,13 +131,12 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaisesRegex(FortranError, 'array actual shorter'):
             convert(parse(src, std='f77s'))
 
-    def test_element_sequence_nonconstant_rejected(self):
+    def test_element_sequence_dynamic_subscript_guarded(self):
         src = ('      PROGRAM BAD\n      INTEGER A(5),I\n'
                '      I=3\n      CALL SUB(A(I))\n      END\n'
                '      SUBROUTINE SUB(B)\n      INTEGER B(3)\n'
                '      RETURN\n      END\n')
-        with self.assertRaisesRegex(FortranError, 'constant subscripts'):
-            convert(parse(src, std='f77s'))
+        self.assertIn('f_seqcheck(', convert(parse(src, std='f77s')))
 
     def test_implicit_dummy_dimension_kept(self):
         src=('      PROGRAM DIMT\n      REAL A(3)\n      CALL SUB(A)\n'
