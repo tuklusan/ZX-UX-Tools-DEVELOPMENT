@@ -79,6 +79,7 @@ PROGRAMS = {
     'f77s_subarr': '   6',
     'f77s_burkcum': '   3   6   9  -2   5',
     'f77s_burkdot': '  35',
+    'f77s_burkgcd': '  14',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',

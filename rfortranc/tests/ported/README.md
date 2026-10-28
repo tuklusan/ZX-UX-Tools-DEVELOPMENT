@@ -51,3 +51,5 @@ actual RVM output against an independently compiled host gfortran run.
 
 | [John Burkardt `i4lib/i4lib.f`](https://github.com/johannesgerer/jburkardt-f77/blob/master/i4lib/i4lib.f), `I4VEC_DOT_PRODUCT` | `e0a7be6024463bc0d34ec036080d875ed66f4c31` | [`../fortran/f77s_burkdot.f`](../fortran/f77s_burkdot.f) | **GNU LGPL**; original John Burkardt routine (19 Dec 2011). Converted function to F77S subroutine with by-reference result, renamed `DOTVEC`, adjusted `X(N),Y(N)`, labelled DO loop. Checks N=5 whole arrays and N=4 dynamic tail sequences `X(2),Y(2)`. |
 
+
+| [John Burkardt `i4lib/i4lib.f`](https://github.com/johannesgerer/jburkardt-f77/blob/master/i4lib/i4lib.f), `I4_GCD` | `e0a7be6024463bc0d34ec036080d875ed66f4c31` | [`../fortran/f77s_burkgcd.f`](../fortran/f77s_burkgcd.f) | **GNU LGPL**; adapted the Euclidean integer GCD computation to six-character fixed-format F77S routines. Numeric `GCDVAL` supplies a result by reference; `GCDARR` folds over adjustable INTEGER `A(N)`, including rank-1 variable element-tail actuals and signed inputs. Checks outputs 2, 6, 14 from array lengths 5, 4 and 3. |

@@ -524,4 +524,14 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_index(F_I, 2)', generated)
         self.assertIn('f_index(F_J, 3)', generated)
 
+    def test_burkardt_adjustable_gcd_array_port(self):
+        source = (ROOT/'tests/fortran/f77s_burkgcd.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        generated = convert(units)
+        self.assertIn('f_GCDARR(', generated)
+        self.assertIn('f_GCDVAL(', generated)
+        self.assertIn('f_extent(', generated)
+        self.assertIn('f_seqcheck(', generated)
+
 if __name__=='__main__': unittest.main()
