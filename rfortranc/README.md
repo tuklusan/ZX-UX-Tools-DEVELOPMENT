@@ -79,7 +79,7 @@ python rfortranc/tools/release.py --sdk /path/to/src/zx-ux-sdk \
   --native --out /tmp/rfortranc-dist --only hello byref
 ```
 
-Strict F77S mode now implements **named/blank numeric COMMON with fixed-size scalar or array members** by positional storage association across main and subprograms, with mismatch diagnostics. Different-sized blank COMMON views, SAVE, and partial-storage COMMON aliasing remain unsupported.
+Strict F77S mode now implements **named/blank numeric COMMON with fixed-size scalar or array members** by positional storage association across main and subprograms, with mismatch diagnostics. Different-sized blank COMMON views and partial-storage COMMON aliasing remain unsupported. ANSI F77S `SAVE /named-block/` declarations are checked; COMMON is already global static storage.
 
 Restricted F77S `EQUIVALENCE` now associates local same-typed numeric scalar and fixed-array storage, including constant element offsets and transitive groups. COMMON/dummy association, mixed-type equivalence and full sequence association are deliberately rejected. Test `f77s_equiv.f` compares ZX-UX and gfortran outputs.
 

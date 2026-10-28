@@ -2,7 +2,8 @@
 
 Fixed scalar and constant-bound INTEGER/REAL/LOGICAL arrays are handled here.
 Layout uses storage sequence position; array extents can differ in rank if the
-flat storage extent and numeric element type agree. Blank COMMON is unsupported.
+flat storage extent and numeric element type agree. Named and blank COMMON
+are supported with restricted equal-size views. F77S SAVE /name/ is validated.
 """
 import re
 from .translator import FortranError, NAME, split_items
@@ -58,6 +59,30 @@ def layout(units):
                     raise FortranError(st.line, 'COMMON block type mismatch at position ' + str(slot + 1))
                 members.append(entry)
                 per_name[name] = 'f_com_' + block + '_' + str(slot)
+        # ANSI F77S Appendix D3.8: SAVE permits *only* named COMMON blocks.
+        # COMMON objects are emitted as static storage, so this is a checked
+        # source-level lifetime declaration, not an extra allocation.
+        saved = set()
+        for st in unit.statements:
+            if not re.match(r'^SAVE\b', st.text):
+                continue
+            tail = st.text[4:].strip()
+            if not tail:
+                raise FortranError(st.line, 'F77S SAVE must list named COMMON blocks')
+            try:
+                entries = split_items(tail)
+            except ValueError as exc:
+                raise FortranError(st.line, 'malformed SAVE common block list') from exc
+            for entry in entries:
+                m = re.fullmatch(r'/([A-Z][A-Z0-9]{0,5})/', entry.strip())
+                if not m:
+                    raise FortranError(st.line, 'F77S SAVE accepts only /named COMMON/ blocks')
+                name = m.group(1)
+                if name not in per_block:
+                    raise FortranError(st.line, 'SAVE names COMMON block absent from unit: /' + name + '/')
+                if name in saved:
+                    raise FortranError(st.line, 'duplicate SAVE common block: /' + name + '/')
+                saved.add(name)
         for block, members in per_block.items():
             types = list(members)
             if block not in blocks:

@@ -35,7 +35,7 @@ class Unit:
 
 NAME = r'[A-Z][A-Z0-9_]*'
 NAME_RE = re.compile(r'^' + NAME + r'$')
-UNSUPPORTED = ('SAVE', 'DATA', 'BLOCK DATA', 'EXTERNAL',
+UNSUPPORTED = ('DATA', 'BLOCK DATA', 'EXTERNAL',
                'INTRINSIC', 'OPEN', 'CLOSE', 'REWIND', 'BACKSPACE',
                'ENDFILE', 'ENTRY', 'PAUSE', 'WRITE', 'INQUIRE', 'NAMELIST',
                'CHARACTER', 'COMPLEX', 'DOUBLE PRECISION', 'ASSIGN ', 'ASSIGNED ',
@@ -654,6 +654,8 @@ def convert(units):
                 return  # EQUIVALENCE objects share local storage
             if re.match(r'^DATA\s+', s):
                 return  # initialized in function entry (main program only so far)
+            if re.match(r'^SAVE\b', s):
+                return  # checked by common.layout; storage is already global/static
             fm = re.fullmatch(r'WRITE\s*\(\s*(6|\*)\s*,\s*(\d{1,5})\s*\)\s*(.*)', s)
             if fm:
                 _, format_label, arguments = fm.groups()

@@ -86,6 +86,27 @@ class F77SChecks(unittest.TestCase):
                 validate_source(src,units)
                 self.assertIn('int main',convert(units))
 
+    def test_subset_save_named_common(self):
+        source = (ROOT/'tests/fortran/f77s_save.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        c = convert(units)
+        self.assertIn('static int f_com_FLAG_0;', c)
+        self.assertNotIn('F_SAVE', c)
+        self.assertNotIn('F_FLAG', c)
+
+    def test_subset_save_rejects_invalid_forms(self):
+        bodies = [
+            ['INTEGER X', 'SAVE X'],
+            ['INTEGER X', 'SAVE'],
+            ['INTEGER X', 'SAVE /MISSING/'],
+            ['INTEGER X', 'COMMON /YES/ X', 'SAVE /NO/'],
+            ['INTEGER X', 'COMMON /YES/ X', 'SAVE /YES/,/YES/'],
+        ]
+        for body in bodies:
+            with self.subTest(body=body):
+                self.check(body, False)
+
     def test_equivalence_transitive_local_storage(self):
         src = (ROOT/'tests/fortran/f77s_equiv.f').read_text()
         units = parse(src, std='f77s')

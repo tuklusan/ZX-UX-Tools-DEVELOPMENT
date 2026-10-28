@@ -41,7 +41,7 @@ separately compiled linkage remain unsupported.
 Target is Appendix D of X3.9-1978, not full F77. See `F77S-MATRIX.md`.
 
 1. Complete F77S fixed-form lexical/label rules and all permitted scalar, INTEGER/REAL/LOGICAL and constant-length CHARACTER expressions; test negative rejections.
-2. Finish required F77S storage: named and blank COMMON with complete sequence association, EQUIVALENCE beyond safe same-type local groups, SAVE restricted to common block names, DATA and adjustable dummy arrays.
+2. Finish required F77S storage: named and blank COMMON with complete sequence association, EQUIVALENCE beyond safe same-type local groups, SAVE restricted to common block names (declaration validated; lifetime covered by static COMMON), DATA and adjustable dummy arrays.
 3. Implement all F77S allowed formatted READ/WRITE and FORMAT descriptors, numeric and CHARACTER record semantics, limited direct-access unformatted OPEN and permitted intrinsics. Do not chase disallowed full-F77 features (COMPLEX, DOUBLE PRECISION, PRINT, etc.).
 4. Validate every implemented type, by-reference call and legal storage alias against an independent compiler and test actual ZX-UX executable output, memory and error conditions.
 5. Build a legally reviewed, versioned substantial **F77S-relevant** external test corpus. Record complete attempted, compiled, executed, correct and unsupported counts; adapted FCVS themes are not full FCVS passes.
