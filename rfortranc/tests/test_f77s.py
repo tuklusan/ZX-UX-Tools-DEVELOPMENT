@@ -100,6 +100,20 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaises(FortranError):
             parse(src,std='f77s')
 
+    def test_repeat_group_and_integer_descriptor(self):
+        src=(ROOT/'tests/fortran/f77s_repeat.f').read_text()
+        units=parse(src, std='f77s')
+        validate_source(src, units)
+        c=convert(units)
+        self.assertEqual(c.count('f_fmt_int(3);'), 3)
+        self.assertIn('f_outintw(F_S, 4);', c)
+
+    def test_format_unsupported_or_excess_nesting(self):
+        from rfortranc.translator import subset_format
+        for fmt in ('I4.2', '3(2(2(I4)))', '256(I3)', '2F8.2'):
+            with self.subTest(fmt=fmt), self.assertRaises(FortranError):
+                subset_format(fmt, 10)
+
     def test_formatted_read_two_fields(self):
         src=(ROOT/'tests/fortran/f77s_read.f').read_text()
         units=parse(src, std='f77s')

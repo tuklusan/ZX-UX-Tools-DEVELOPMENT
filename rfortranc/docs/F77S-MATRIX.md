@@ -28,7 +28,7 @@ are tracked below rather than discarded as full-F77-only work.
 | Formatted READ/WRITE; **no list-directed READ/WRITE or PRINT** (D3.12) | `WRITE(6,label)` limited Iw, X, literals, slash | Formatted READ; general permitted FORMAT and I/O |
 | Formatted I/O list items variables, array names/elements; **not constants/expressions** (D3.12) | Strict gate checks limited READ/WRITE variable lists; Iw/X and slash for numeric input | Check all supported I/O forms |
 | Limited OPEN only for direct-access *unformatted* units; no named files (D3.12) | Not implemented | ZX-UX device mapping and record semantics |
-| No FORMAT `Iw.m`, `Dw.d`, `Gw.d`, `Gw.dEe`, `Tc`, `TLc`, `TRc`, `S`, `SP`, `SS`, colon; <=3 parenthesis levels (D3.13) | Minimal FORMAT parser rejects most unsupported | Implement other required descriptors, repeats/groups |
+| No FORMAT `Iw.m`, `Dw.d`, `Gw.d`, `Gw.dEe`, `Tc`, `TLc`, `TRc`, `S`, `SP`, `SS`, colon; <=3 parenthesis levels (D3.13) | Supports Iw/X/slash/literal descriptors, positive repeat counts and up to three nested levels; rejects unsupported | Add other required descriptors and full record semantics |
 | No ENTRY/alternate returns/generic intrinsic refs; no complex/double intrinsics (D3.15) | By-reference scalar calls; limited functions | Required permitted argument types and intrinsic functions |
 | CHARACTER subset includes constant-length variables/arrays, assignment/comparison and I/O; excludes substrings, concatenation, character functions (D3.19) | Not implemented | Implement subset CHARACTER, not forbidden extras |
 

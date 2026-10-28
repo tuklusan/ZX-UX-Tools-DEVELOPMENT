@@ -79,6 +79,9 @@ python rfortranc/tools/release.py --sdk /path/to/src/zx-ux-sdk \
   --native --out /tmp/rfortranc-dist --only hello byref
 ```
 
+The implemented FORMAT Iw/X/slash/literal subset accepts bounded repeat counts and nested groups (three parenthesis levels total).
+This is still a **partial F77S FORMAT implementation**, not full subset certification.
+
 The regression harness compiles `.ssx` using the **real** compiler toolchain,
 boots the **real ZX-UX kernel** in `rvm` (when `--rvm` is supplied), checks
 printed results, verifies expected semantic rejections, and checks TZX magic.

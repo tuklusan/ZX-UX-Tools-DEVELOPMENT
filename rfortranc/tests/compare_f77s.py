@@ -14,10 +14,10 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-CASES = {'f77s_fmt': ['  42'], 'f77s_data': ['  9', '  2'], 'f77s_implicit': ['  3', '  7'], 'f77s_real': ['  2'], 'f77s_2d': ['  43'], 'f77s_3d': [' 11'], 'f77s_read': ['  49']}
+CASES = {'f77s_fmt': ['  42'], 'f77s_data': ['  9', '  2'], 'f77s_implicit': ['  3', '  7'], 'f77s_real': ['  2'], 'f77s_2d': ['  43'], 'f77s_3d': [' 11'], 'f77s_read': ['  49'], 'f77s_repeat': ['  3   5  10   18']}
 
 
-INPUTS = {'f77s_read': '0042 007\n'}
+INPUTS = {'f77s_read': '0042 007\n', 'f77s_repeat': '003 005 010\n'}
 
 def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()

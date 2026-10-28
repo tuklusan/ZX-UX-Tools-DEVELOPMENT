@@ -494,31 +494,58 @@ def c_string(s):
 
 
 def subset_format(source, line):
-    """Read the implemented **small** subset of F77S FORMAT descriptors.
+    """Parse the implemented F77S Iw/X/slash/literal FORMAT operations.
 
-    Deliberately reject unsupported descriptors; treating them as whitespace
-    or silently ignoring them would produce incorrect ZX-UX programs.
+    Nested parenthesized groups and repeat counts are expanded at compile
+    time.  Reject the not-yet-implemented descriptors instead of ignoring
+    them; bound expansion for a 48K microcomputer target.
     """
-    ops = []
-    for token in split_items(source):
-        token = token.strip()
-        if re.fullmatch(r"'(?:[^']|'')*'", token):
-            ops.append(('literal', token))
-        elif re.fullmatch(r'I[1-9][0-9]*', token):
-            width = int(token[1:])
-            if width > 255:
-                raise FortranError(line, 'I field width exceeds supported output limit')
-            ops.append(('integer', width))
-        elif re.fullmatch(r'(?:[1-9][0-9]*)?X', token):
-            count = int(token[:-1]) if len(token) > 1 else 1
-            if count > 255:
-                raise FortranError(line, 'X spacing exceeds supported output limit')
-            ops.append(('space', count))
-        elif token == '/':
-            ops.append(('newline', None))
-        else:
+    operations = []
+
+    def append(op, count=1):
+        if count < 1 or count > 255 or len(operations) + count > 255:
+            raise FortranError(line, 'FORMAT repetition exceeds 255 operations')
+        operations.extend([op] * count)
+
+    def descend(items, depth):
+        if depth > 3:
+            raise FortranError(line, 'F77S FORMAT permits at most three parenthesis levels')
+        for token in split_items(items):
+            token = token.strip()
+            group = re.fullmatch(r'([1-9][0-9]*)?\((.*)\)', token)
+            if group:
+                repeat = int(group.group(1) or 1)
+                if repeat > 255:
+                    raise FortranError(line, 'FORMAT group repetition exceeds 255')
+                before = len(operations)
+                descend(group.group(2), depth + 1)
+                pattern = operations[before:]
+                if len(operations) + (repeat - 1) * len(pattern) > 255:
+                    raise FortranError(line, 'FORMAT expands beyond 255 operations')
+                operations.extend(pattern * (repeat - 1))
+                continue
+            if re.fullmatch(r"'(?:[^']|'')*'", token):
+                append(('literal', token))
+                continue
+            integer = re.fullmatch(r'([1-9][0-9]*)?I([1-9][0-9]*)', token)
+            if integer:
+                repeat, width = int(integer.group(1) or 1), int(integer.group(2))
+                if width > 255:
+                    raise FortranError(line, 'I field width exceeds 255')
+                append(('integer', width), repeat)
+                continue
+            spacing = re.fullmatch(r'([1-9][0-9]*)?X', token)
+            if spacing:
+                append(('space', 1), int(spacing.group(1) or 1))
+                continue
+            slash = re.fullmatch(r'([1-9][0-9]*)?/', token)
+            if slash:
+                append(('newline', None), int(slash.group(1) or 1))
+                continue
             raise FortranError(line, 'unsupported FORMAT descriptor: ' + token)
-    return ops
+
+    descend(source, 1)
+    return operations
 
 
 def convert(units):

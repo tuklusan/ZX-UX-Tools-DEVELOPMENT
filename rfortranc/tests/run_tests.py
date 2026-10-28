@@ -43,6 +43,7 @@ PROGRAMS = {
     'f77s_2d': '  43',
     'f77s_3d': ' 11',
     'f77s_read': '  49',
+    'f77s_repeat': '  18',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',
@@ -151,8 +152,8 @@ def main(argv=None):
             if valid and args.rvm and not args.frontend_only:
                 emu_argv = [sys.executable, args.rvm, '--headless', '--text',
                             '--frames', str(args.rvm_frames)]
-                if name == 'f77s_read':
-                    emu_argv += ['--keys', '0042 007\n']
+                if name in ('f77s_read', 'f77s_repeat'):
+                    emu_argv += ['--keys', '0042 007\n' if name == 'f77s_read' else '003 005 010\n']
                 emu_argv += [str(binary)]
                 emu = command(emu_argv, args.timeout)
                 valid = (emu['exit_code'] == 0 and '(exit)' in emu['stderr']
