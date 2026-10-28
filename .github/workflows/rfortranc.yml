@@ -31,6 +31,15 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y gfortran
           python rfortranc/tests/check_gfortran_reference.py --report /tmp/f77s-host-reference.json
+      - name: Archive exact rfortranc source for SDK reproduction
+        run: tar -czf /tmp/rfortranc-source.tgz rfortranc .github/workflows/rfortranc.yml PROGRESS.MD
+      - name: Keep source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: rfortranc-source
+          path: /tmp/rfortranc-source.tgz
+          if-no-files-found: error
+          retention-days: 2
       - name: Keep host reference output report
         if: always()
         uses: actions/upload-artifact@v4

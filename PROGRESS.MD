@@ -444,3 +444,10 @@ The `--rvm` binary must be the matching built/packaged emulator with the correct
 - Hardened INTEGER DATA initialization to reject literals outside the ZX-UX signed 16-bit range **[-32768, 32767]**, including a new deliberate negative compile case and boundary tests. This prevents silent overflow of static initialization data.
 - Expanded targets: **71** SDK/RVM/TZX checks (59 positive, 10 negative, one tape), **41** gfortran-vs-ZX-UX differential cases, and **6** negative emulator bounds traps. These totals are **pending**, not successes. Latest previously verified host CI https://github.com/tuklusan/ZX-UX-Tools-DEVELOPMENT/actions/runs/40753279146 (57/68/40), latest real emulator reports 66/37.
 - **Single next concrete action:** Confirm CI unit/frontend/host checks for the added DATA cases, then run and checkpoint 71/41/6 real ZX-UX SDK/RVM evidence; add further ANSI F77S semantics once actual execution passes.
+
+### Source snapshot handoff for reproducible SDK testing (2026-10-28)
+
+- Added a GitHub Actions `rfortranc-source` artifact: exact revision's source tree, tests, workflow and PROGRESS.MD packed as a gzip tarball (retention 2 days), allowing fresh sessions to reconstruct a clean source checkout via the authorized GitHub Actions connector without relying on blocked local Git networking. The full persisted source remains GitHub itself.
+- The uploaded `minizxuxport.zip` supplies the external SDK and matching `rvm`; it is **not** included in the public source artifact because it is separately licensed. The source snapshot does not claim tests.
+- Targets: 71 SDK/RVM/TZX, 41 independent differential, 6 negative emulator bounds checks, all pending at latest implementation.
+- **Single next concrete action:** Fetch the new `rfortranc-source` artifact from this commit's successful workflow, unpack alongside the user SDK zip, run the 71/41/6 real kernel tests and checkpoint results into GitHub. Preserve other contributors' directories.
