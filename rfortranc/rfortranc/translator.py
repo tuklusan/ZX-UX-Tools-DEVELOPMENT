@@ -411,6 +411,8 @@ class Expr:
                     lhs = 'F_' + t + '[' + array_subscript(params, t, self.unit, self.line) + ']'
                 elif t == 'ABS' and len(params) == 1:
                     lhs = 'f_abs_real(' + params[0] + ')'
+                elif t == 'SQRT' and len(params) == 1:
+                    lhs = 'f_sqrt_real(' + params[0] + ')'
                 elif t == 'MOD' and len(params) == 2:
                     lhs = '((' + params[0] + ') % (' + params[1] + '))'
                 elif t in self.known and self.known[t].kind == 'function':
@@ -467,6 +469,21 @@ static int *f_ref_int(int *p, int value) { *p = value; return p; }
 static float *f_ref_real(float *p, float value) { *p = value; return p; }
 /* F77S real absolute value (numeric generic typing remains partial). */
 static float f_abs_real(float x) { if (x < 0.0) return -x; return x; }
+/* ANSI subset REAL SQRT, Newton iteration with domain check. */
+static float f_sqrt_real(float x) {
+    float y;
+    int k;
+    if (x < 0.0) exit(2);
+    if (x == 0.0) return 0.0;
+    y = 1.0;
+    if (x >= 1.0) {
+        while (y < x / y) y = y * 2.0;
+    } else {
+        while (y > x / y) y = y * 0.5;
+    }
+    for (k = 0; k < 9; k++) y = (y + x / y) * 0.5;
+    return y;
+}
 static int f_index(int n, int size) {
     if (n < 1 || n > size) exit(2);
     return n - 1;
