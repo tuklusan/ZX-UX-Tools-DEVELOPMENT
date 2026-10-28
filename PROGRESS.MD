@@ -302,3 +302,9 @@ The `--rvm` binary must be the matching built/packaged emulator with the correct
 - Added `rfortranc/tests/fortran/f77s_dmseq.f`. Locally compiled `--std f77s --native` to actual SSX1 and executed on matching ZX-UX RVM: output `  42`, exit 0. Independently compiled fixed-form host gfortran: same output. This single-case runtime check is **not** a full differential report.
 - `python -m unittest discover -s tests -p test_f77s.py -q`: **48/48 PASS**, including new sequence and negative diagnostics. `python -m compileall -q rfortranc tests tools`: PASS. Full expanded SDK/RVM/TZX suite is **55 expected** and differential suite **26 expected**, both **PENDING**; prior pinned 54/54 and 25/25 reports validate preceding source only.
 - **Single next concrete action:** Run complete 26-case strict-F77S gfortran-vs-SSX/RVM and 55-case SDK/RVM/TZX tests, commit hashes/results; then support variable-index array-element actual storage sequences with runtime bounds. Keep F77S, not full F77, as the mandatory target and checkpoint every milestone.
+
+### Constant-element dummy sequence complete independent differential (2026-10-28)
+
+- Implemented source commit `f548889326517e07509c8cff81c71afdca670181`. `python tests/compare_f77s.py --sdk /mnt/data/workzx/src/zx-ux-sdk --rvm /mnt/data/workzx/dist/sdk/bin/rvm --sdk-archive /mnt/data/minizxuxport.zip --out tests/results/f77s-differential-dmseq-2026-10-28.json`: **26/26 PASS**, exit code 0. Pin report under `rfortranc/tests/results/f77s-differential-dmseq-2026-10-28.json`, gfortran and actual ZX-UX compiled SSX+RVM with source/runtime hashes and outputs.
+- Full expanded 55-case SDK/RVM/TZX suite launched, currently pending; do not report 55/55 until complete report is committed.
+- **Single next concrete action:** Commit completed 55-case report with checkpoint, then add safe runtime extent checks for F77S variable-index array-element actuals.
