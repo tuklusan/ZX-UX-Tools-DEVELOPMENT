@@ -769,13 +769,17 @@ def convert(units):
                 if 'F_' + var in aliases:
                     raise FortranError(u.line, 'DATA with storage-associated object not yet supported: ' + var)
                 typ, extent = u.vars[var]
-                if typ not in ('INTEGER', 'REAL', 'LOGICAL'):
+                if typ not in ('INTEGER', 'REAL', 'LOGICAL') and not typ.startswith('CHARACTER*'):
                     raise FortranError(u.line, 'unsupported subprogram DATA type: ' + typ)
                 global_name = 'f_sd' + str(unit_ordinal) + '_' + var
                 if len(global_name) > 15:
                     raise FortranError(u.line, 'DATA storage name exceeds C48 limit')
-                chunks.append('static ' + ctype(typ) + ' ' + global_name +
-                              ('[' + str(total_extent(extent)) + ']' if extent else '') + ';')
+                if typ.startswith('CHARACTER*'):
+                    chunks.append('static char ' + global_name + '[' +
+                                  str(int(typ.split('*')[1]) + 1) + '];')
+                else:
+                    chunks.append('static ' + ctype(typ) + ' ' + global_name +
+                                  ('[' + str(total_extent(extent)) + ']' if extent else '') + ';')
                 aliases['F_' + var] = global_name
             data_guard = 'f_sdi' + str(unit_ordinal)
             chunks.append('static int ' + data_guard + ';')
@@ -796,15 +800,19 @@ def convert(units):
         decl('int f_pc;')
         if u.kind == 'function':
             decl('F_' + u.name + ' = 0;')
+        def data_init_statement(target, value):
+            if isinstance(value, tuple) and value[0] == 'character':
+                return 'f_char_copy(' + target + ', ' + str(value[1]) + ', ' + value[2] + ');'
+            return target + ' = ' + value + ';'
         if data_guard is not None:
             decl('if (!' + data_guard + ') {')
             for target, value in data_entries:
-                decl('    ' + target + ' = ' + value + ';')
+                decl('    ' + data_init_statement(target, value))
             decl('    ' + data_guard + ' = 1;')
             decl('}')
         else:
             for target, value in data_entries:
-                decl(target + ' = ' + value + ';')
+                decl(data_init_statement(target, value))
         code = []
         labels = {}
         gotos = []
