@@ -232,6 +232,27 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_index(F_J, 2)', c)
         self.assertIn('static char f_sd1_T[6];', c)
 
+    def test_burkardt_real_minmax_adjustable_element_tail(self):
+        source = (ROOT/'tests/fortran/f77s_burkmin.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        generated = convert(units)
+        self.assertIn('f_RVSMIN(', generated)
+        self.assertIn('f_RVSMAX(', generated)
+        self.assertIn('f_extent(', generated)
+        self.assertIn('f_seqcheck(', generated)
+        self.assertIn('f_outrealw(', generated)
+
+    def test_burkardt_real_adjustable_mean_port(self):
+        src = (ROOT/'tests/fortran/f77s_burkmean.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        c = convert(units)
+        self.assertIn('f_RVMEAN(', c)
+        self.assertIn('f_extent(', c)
+        self.assertIn('f_outrealw(', c)
+        self.assertIn('f_seqcheck(', c)
+
     def test_formatted_real_input_output_fields(self):
         src = (ROOT/'tests/fortran/f77s_realio.f').read_text()
         units = parse(src, std='f77s')
@@ -239,8 +260,9 @@ class F77SChecks(unittest.TestCase):
         c = convert(units)
         self.assertIn('f_outrealw(F_A, 8, 2);', c)
         self.assertIn('F_B = f_fmt_real(8, 2);', c)
+        self.assertEqual(c.count(' = f_fmt_real(8, 2);'), 2)
         self.assertIn('f_outrealw(F_C[', c)
-        self.assertEqual(c.count('f_outrealw('), 5)
+        self.assertEqual(c.count('f_outrealw('), 6)
 
     def test_real_format_type_diagnostics(self):
         src = ('      PROGRAM BAD\n      INTEGER I\n'

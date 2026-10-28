@@ -34,6 +34,9 @@ FIXTURES = {
         '      N=4\n      CALL GCDARR(N,A(3),G)\n'),
     'character_array_element_tail_storage_trap': (
         'f77s_chdummy.f', '      I=2\n', '      I=3\n'),
+    'burkardt_real_mean_extent_trap': (
+        'f77s_burkmean.f', '      N=4\n      CALL RVMEAN(N,A,R)\n',
+        '      N=5\n      CALL RVMEAN(N,A,R)\n'),
 }
 
 

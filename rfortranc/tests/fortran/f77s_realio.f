@@ -6,6 +6,8 @@ C     Restricted F77S formatted REAL input and output.
       READ(5,20) B
       WRITE(6,10) B
       WRITE(6,30) C(1),C(2)
+      READ(5,20) B
+      WRITE(6,10) B
    10 FORMAT(F8.2)
    20 FORMAT(F8.2)
    30 FORMAT(2F8.2)

@@ -88,6 +88,8 @@ PROGRAMS = {
     'f77s_arrread': 'NO XYZ',
     'f77s_chr3d': '42GG',
     'f77s_realio': '   -3.25',
+    'f77s_burkmean': '    2.50',
+    'f77s_burkmin': '   -3.25    4.00',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',
@@ -199,7 +201,7 @@ def main(argv=None):
                             '--frames', str(args.rvm_frames)]
                 if name in ('f77s_read', 'f77s_repeat', 'f77s_charread', 'f77s_arrread', 'f77s_realio'):
                     keys = {'f77s_read': '0042 007\n', 'f77s_repeat': '003 005 010\n',
-                            'f77s_charread': 'XYZ\n', 'f77s_arrread': 'XYZ\n', 'f77s_realio': '   -3.25\n'}
+                            'f77s_charread': 'XYZ\n', 'f77s_arrread': 'XYZ\n', 'f77s_realio': '   -3.25\n  001234\n'}
                     emu_argv += ['--keys', keys[name]]
                 emu_argv += [str(binary)]
                 emu = command(emu_argv, args.timeout)

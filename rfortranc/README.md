@@ -143,3 +143,7 @@ Fixed CHARACTER array element formatted READ(Aw) is tested against host gfortran
 A strict rank-three CHARACTER*2 A(2,2,2) test `f77s_chr3d.f` checks column-major DATA ordering and variable (I,J,K) element addressing; expected formatted text `42GG`, checked against host gfortran.
 
 The numeric FORMAT subset now includes restricted REAL `Fw.d` descriptors (width at most 255, at most 4 decimals) for formatted READ(5,label) and WRITE(6,label). It supports signed plain decimal fields and fixed-size numeric array elements; exponent forms, scale controls, full numeric range and complete Fortran blank behavior remain unsupported. Reference sample: `tests/fortran/f77s_realio.f`, validated against host gfortran and actual SSX/RVM.
+
+`tests/fortran/f77s_burkmean.f` adapts Burkardt GNU LGPL `R4VEC_MEAN` to strict F77S adjustable REAL arrays (`A(N)`), REAL by-reference output and F8.2 formatting, comparing N=4 and N=3 means against host gfortran. Original LGPL file/blob are credited in `tests/ported/README.md`.
+
+GNU LGPL Burkardt real numerical examples `f77s_burkmean.f` and `f77s_burkmin.f` exercise adjustable REAL vectors, floating division, extrema, by-reference REAL result arguments, formatted `F8.2` output and array-element tail sequences. Original source attribution is in `tests/ported/README.md`.
