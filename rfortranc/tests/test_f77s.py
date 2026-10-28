@@ -375,6 +375,14 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_MATMUL(int *F_K, int *F_N, int *F_A, int *F_B, int *F_C, int F__LEN_B, int F__LEN_C)', c)
         self.assertIn('f_seqcheck(', c)
 
+    def test_burkardt_matrix_flip_ports(self):
+        src = (ROOT/'tests/fortran/f77s_burkflip.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        generated = convert(units)
+        self.assertIn('f_FLROWS(int *F_N, int *F_A, int F__LEN_A)', generated)
+        self.assertIn('f_FLCOLS(int *F_N, int *F_A, int F__LEN_A)', generated)
+
     def test_ranked_adjustable_bounds_invalid(self):
         cases = ('INTEGER N,A(N,2)', 'INTEGER N,A(2,0,N)', 'INTEGER N,A(2,3,4,N)')
         for decl in cases:

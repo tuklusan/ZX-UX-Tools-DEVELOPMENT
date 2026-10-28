@@ -131,3 +131,5 @@ The compiler now supports one- to three-dimensional `INTEGER`, `REAL` and `LOGIC
 Multi-rank adjustable/assumed-size F77S fixtures: `f77s_dm2ad.f`, `f77s_dm3ad.f`, `f77s_dm2st.f`, `f77s_dm3st.f`. Each independently compares actual SSX/RVM output to host gfortran; rank-2/rank-3 out-of-capacity writes are checked by `tests/check_adjustable_bounds.py` for exit 2.
 
 Numeric library exercise: `tests/fortran/f77s_burkmm.f` adapts John Burkardt LGPL integer matrix multiplication to strict F77S. It uses actual rank-2 adjustable `B(2,N)`/`C(2,N)` dummy arrays, nested labelled DO, and passes through `rcc -> ras -> rld` to real SSX1. Independent gfortran and ZX-UX RVM outputs match for N=3 and N=1.
+
+The LGPL `I4MAT_FLIP_ROWS` and `I4MAT_FLIP_COLS` ports in `tests/fortran/f77s_burkflip.f` exercise mutable rank-2 adjustable matrix storage and reversal, with independent gfortran-vs-SSX/RVM output comparison.
