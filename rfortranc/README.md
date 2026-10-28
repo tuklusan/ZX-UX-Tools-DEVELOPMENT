@@ -79,7 +79,7 @@ python rfortranc/tools/release.py --sdk /path/to/src/zx-ux-sdk \
   --native --out /tmp/rfortranc-dist --only hello byref
 ```
 
-Strict F77S mode now implements **named scalar numeric COMMON** by positional storage association across main and subprograms, with mismatch diagnostics. COMMON arrays, blank COMMON, EQUIVALENCE and SAVE remain unsupported.
+Strict F77S mode now implements **named numeric COMMON with fixed-size scalar or array members** by positional storage association across main and subprograms, with mismatch diagnostics. Blank COMMON, EQUIVALENCE, SAVE, and partial-storage COMMON aliasing remain unsupported.
 
 Strict F77S mode now accepts separate fixed-bound DIMENSION declarations (up to 3 ranks), with implicit INTEGER/REAL typing; dummy adjustable arrays remain unsupported.
 

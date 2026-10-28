@@ -1,7 +1,8 @@
 """Early ANSI F77S named COMMON support: scalar numeric sequence association.
 
-Only fixed scalar INTEGER/REAL/LOGICAL blocks are handled here. This remains
-partial; layout mismatches, arrays and blank COMMON fail closed.
+Fixed scalar and constant-bound INTEGER/REAL/LOGICAL arrays are handled here.
+Layout uses storage sequence position; array extents can differ in rank if the
+flat storage extent and numeric element type agree. Blank COMMON is unsupported.
 """
 import re
 from .translator import FortranError, NAME, split_items
@@ -34,19 +35,25 @@ def layout(units):
                     from .implicit import mapping
                     unit.vars[name] = (mapping(unit.statements)[name[0]], None)
                     spec = unit.vars[name]
-                if spec[1] is not None or spec[0] not in ('INTEGER', 'REAL', 'LOGICAL'):
-                    raise FortranError(st.line, 'COMMON arrays/character storage not yet supported: ' + name)
+                if spec[0] not in ('INTEGER', 'REAL', 'LOGICAL'):
+                    raise FortranError(st.line, 'COMMON requires INTEGER, REAL or LOGICAL: ' + name)
+                if spec[1] is None:
+                    length, is_array = 1, False
+                else:
+                    from .arrays import size as total_extent
+                    length, is_array = total_extent(spec[1]), True
+                signature = (spec[0], length, is_array)
                 slot = len(members)
                 # C48 identifiers have a 15-char maximum.
                 if slot > 99:
                     raise FortranError(st.line, 'COMMON block exceeds 100 scalar slots')
-                entry = (spec[0], slot)
-                if block in blocks and slot < len(blocks[block]) and blocks[block][slot] != spec[0]:
+                entry = signature
+                if block in blocks and slot < len(blocks[block]) and blocks[block][slot] != signature:
                     raise FortranError(st.line, 'COMMON block type mismatch at position ' + str(slot + 1))
                 members.append(entry)
                 per_name[name] = 'f_com_' + block + '_' + str(slot)
         for block, members in per_block.items():
-            types = [t for t, _ in members]
+            types = list(members)
             if block not in blocks:
                 blocks[block] = types
             elif blocks[block] != types:
@@ -57,8 +64,9 @@ def layout(units):
             uses[unit.name] = {'F_' + key: value for key, value in per_name.items()}
     result=[]
     for block in sorted(blocks):
-        for slot, ty in enumerate(blocks[block]):
-            result.append('static ' + ('float' if ty == 'REAL' else 'int') + ' f_com_' + block + '_' + str(slot) + ';')
+        for slot, (ty, count, is_array) in enumerate(blocks[block]):
+            result.append('static ' + ('float' if ty == 'REAL' else 'int') + ' f_com_' + block + '_' + str(slot)
+                          + ('[' + str(count) + ']' if is_array else '') + ';')
     return result, uses
 
 

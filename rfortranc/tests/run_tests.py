@@ -46,6 +46,7 @@ PROGRAMS = {
     'f77s_repeat': '  18',
     'f77s_dim': '  42',
     'f77s_common': '  42',
+    'f77s_comarr': '  43',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',
