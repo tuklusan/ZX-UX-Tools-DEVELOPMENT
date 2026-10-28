@@ -409,3 +409,11 @@ The `--rvm` binary must be the matching built/packaged emulator with the correct
 - Registered case in `tests/run_tests.py` and `tests/compare_f77s.py`, expanding suite expectations to **67 full SDK/RVM/TZX** and **38 strict-F77S differential**. Full expanded suites **not verified** yet; one frontend run was interrupted by runtime time limit.
 - Previous saved evidence: **66/66** SDK/RVM/TZX and **37/37** strict-F77S differential, committed in prior checkpoint. No physical Spectrum test yet.
 - **Single next concrete action:** Execute entire 67-case SDK/RVM/TZX and 38-case gfortran-vs-ZX-UX suites to completion, pin JSON output and all hashes in `tests/results/`; update PROGRESS.MD. Then expand stress testing for F77S adjustable/assumed-size dummy arguments and public numerical library workloads.
+
+### Rank-3 element sequence + host reference CI checkpoint (2026-10-28)
+
+- Added strict fixed-form F77S `f77s_dm3el.f`: dynamic rank-3 element actual `A(I,J,K)` to rank-1 `B(4)`; column-major write checks A(1,1,3)=42 with adjacent values unchanged. Independently compiled and ran the fixture with host `gfortran -std=legacy -ffixed-form` in the resuming session: exact output `  42  10   8`. No ZX-UX run of this new fixture is claimed yet.
+- Registered it in the frontend/SDK-RVM suite and the strict F77S differential suite. New expanded targets: **68** full SDK/RVM/TZX checks and **39** gfortran-vs-ZX-UX cases. Added frontend C48 assertion and a *pending* RVM exit-2 negative test for an inadequate trailing rank-3 storage sequence.
+- Added `tests/check_gfortran_reference.py`, a host-only gfortran reference-output check for every strict fixture, and a GitHub Actions step executing it. This CI step is **not** ZX-UX integration and is not an ANSI conformance certificate.
+- The most recent checked-in *end-to-end* reports remain **66/66** and **37/37**; the intermediate 67/38 and latest 68/39 suites have **not** been rerun in full, and unrun tests must not be called passed.
+- **Single next concrete action:** Obtain a clean working copy and use the attached `minizxuxport.zip` SDK and matching `rvm` to run the complete 68-case SDK/RVM/TZX, 39-case strict gfortran-vs-ZX-UX differential, and 6-case bounds suites. Commit machine-readable hashed reports under `rfortranc/tests/results/`. Preserve unrelated shared-repo work.

@@ -26,6 +26,8 @@ FIXTURES = {
     'rank3_assumed_size_out_of_storage': (
         'f77s_dm3st.f', '      B(2,2,2)=B(2,2,2)+34\n',
         '      B(2,2,3)=B(2,2,3)+34\n'),
+    'rank3_element_sequence_too_short': (
+        'f77s_dm3el.f', '      K=2\n', '      K=3\n'),
 }
 
 

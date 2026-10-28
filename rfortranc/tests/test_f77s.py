@@ -367,6 +367,15 @@ class F77SChecks(unittest.TestCase):
                 self.assertIn(signature, c)
                 self.assertIn(limit, c)
 
+    def test_rank3_dynamic_element_sequence(self):
+        source = (ROOT/'tests/fortran/f77s_dm3el.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        c = convert(units)
+        self.assertIn('int F_A[12];', c)
+        self.assertIn('f_seqcheck(', c)
+        self.assertIn('f_SETSEQ(&F_A[', c)
+
     def test_burkardt_matrix_multiplication_port(self):
         source = (ROOT/'tests/fortran/f77s_burkmm.f').read_text()
         units = parse(source, std='f77s')
