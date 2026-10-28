@@ -5,6 +5,7 @@
 **Branch:** `main`
 **Completed implementation checkpoint:** `ca9bdca216622363027e9e1421ca7e86699d3bb0`
 **Area:** `rfortranc/`
+**NON-NEGOTIABLE SCOPE:** ANSI X3.9-1978 **Subset FORTRAN** (F77S), NOT the full FORTRAN 77 language. Full-F77-only features are out of scope unless explicitly adopted as optional ZX-UX extensions. The F77S subset uses its own Appendix D feature restrictions. User supplied this correction on 2026-10-28.
 **This file is the handoff for a fresh chat. All local files, notebooks, containers, `/mnt/data` files and downloaded zip contents are disposable. Do not rely on them.**
 
 ## Resume here — precise state
@@ -47,17 +48,17 @@ The `--rvm` binary must be the matching built/packaged emulator with the correct
 - INTEGER/LOGICAL are C48 16-bit integers; REAL support is partial/experimental; full numerical correctness and machine limits still need checking.
 - Labelled DO/GOTO are handled by generated C program-counter dispatch rather than a native FORTRAN/Z80 backend; verify tricky control-flow and memory consumption.
 - By-reference scalar subroutine/function calls implemented; array element addresses and expression temporaries covered in tests, but full aliasing and procedure argument ABI are not established.
-- No evidence currently checked in of a complete FCVS conformance pass, production certification or a physical ZX Spectrum validation.
+- No evidence currently checked in of a complete F77S-targeted FCVS conformance pass, production certification or a physical ZX Spectrum validation.
 - Respect upstream licences. Do **not** import the original EWVM implementation without copyright permission or blindly vendor GCC/Netlib/SDK/kernel/ROM assets.
 
 ## NEXT ACTION — resume without asking for earlier chat data
 
-**Immediate priority:** Make end-to-end build and execution verification reproducible and durable. Obtain the source SDK and matching `rvm`, run all 20 integration checks plus tape generation in a clean checkout, and commit a machine-readable test report (including SDK/kernel/tool versions, command lines, outputs, pass/fail counts and SHA-256 hashes) in `rfortranc/tests/results/`. If the external SDK is unavailable, work independently on frontend regression tests and negative semantics, and explicitly record the SDK dependency rather than reporting unrun tests as passed.
+**Immediate priority:** Prioritize an ANSI X3.9-1978 F77S feature matrix, with explicit distinction between subset-standard constructs and ZX-UX convenience extensions. The original smoke corpus uses PRINT and list-directed I/O, which are not ANSI subset language; never label those programs F77S-conforming. Then Make end-to-end build and execution verification reproducible and durable. Obtain the source SDK and matching `rvm`, run all 20 integration checks plus tape generation in a clean checkout, and commit a machine-readable test report (including SDK/kernel/tool versions, command lines, outputs, pass/fail counts and SHA-256 hashes) in `rfortranc/tests/results/`. If the external SDK is unavailable, work independently on frontend regression tests and negative semantics, and explicitly record the SDK dependency rather than reporting unrun tests as passed.
 
 **Following milestones:**
 1. Add CI job for legally redistributable/accessible SDK or a documented reproducible SDK build, with actual SSX/TZX and emulator execution; do not confuse frontend-only CI with runtime CI.
 2. Build a pinned, license-reviewed **FCVS** subset (plus cross-check with `gfortran`), with accepted/rejected/executed counts, reference outputs, and regression manifests. Do not hide unsupported tests.
-3. Fix missing F77 semantics/storage/procedure ABI and add compiler diagnostics plus positive/negative tests per feature, then repeat emulator/hardware runs.
+3. Fix missing F77S semantics/storage/procedure ABI and add compiler diagnostics plus positive/negative tests per feature, then repeat emulator/hardware runs.
 4. Validate on physical 48K Spectrum hardware and cassette loading before claiming a production-grade release.
 
 **Persistence rule:** At **every milestone**, update and **push this repository-root `PROGRESS.MD` to GitHub** in the same milestone (or immediately after). Include the newest implementation commit, the exact verified commands/results and URLs, what is blocked, and the **single next concrete action**. Never use `/mnt/data` or chat memory as the only record of work.
