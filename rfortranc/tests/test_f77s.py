@@ -337,9 +337,9 @@ class F77SChecks(unittest.TestCase):
 
     def test_adjustable_and_assumed_size_dummies(self):
         cases = (
-            ('f77s_dmadj', 'f_ADJUST(int *F_N, int *F_B, int F__LEN_B)', 'f_extent((*F_N), F__LEN_B)'),
+            ('f77s_dmadj', 'f_ADJUST(int *F_N, int *F_B, int F__LEN_B)', 'f_extent((*F_N), (F__LEN_B / 1))'),
             ('f77s_dmstar', 'f_MODIFY(int *F_B, int F__LEN_B)', 'f_index(2, F__LEN_B)'),
-            ('f77s_dmalt', 'f_SCLARR(int *F_N, int *F_B, int F__LEN_B)', 'f_extent((*F_N), F__LEN_B)'),
+            ('f77s_dmalt', 'f_SCLARR(int *F_N, int *F_B, int F__LEN_B)', 'f_extent((*F_N), (F__LEN_B / 1))'),
             ('f77s_burkadj', 'f_REVRSE(int *F_N, int *F_A, int F__LEN_A)', 'f_SUMVEC'),
         )
         for name, signature, body in cases:
@@ -352,9 +352,34 @@ class F77SChecks(unittest.TestCase):
                 self.assertIn(body, generated)
                 self.assertIn('f_seqcheck(', generated)
 
+    def test_ranked_adjustable_dummies(self):
+        for name, signature, limit in (
+            ('f77s_dm2ad', 'f_CHANG2(int *F_N, int *F_B, int F__LEN_B)', '(F__LEN_B / 2)'),
+            ('f77s_dm3ad', 'f_CHANG3(int *F_N, int *F_B, int F__LEN_B)', '(F__LEN_B / 4)'),
+            ('f77s_dm2st', 'f_CHAST2(int *F_B, int F__LEN_B)', 'f_seqcheck('),
+            ('f77s_dm3st', 'f_CHAST3(int *F_B, int F__LEN_B)', 'f_seqcheck('),
+        ):
+            with self.subTest(name=name):
+                source = (ROOT/'tests/fortran'/(name+'.f')).read_text()
+                units = parse(source, std='f77s')
+                validate_source(source, units)
+                c = convert(units)
+                self.assertIn(signature, c)
+                self.assertIn(limit, c)
+
+    def test_ranked_adjustable_bounds_invalid(self):
+        cases = ('INTEGER N,A(N,2)', 'INTEGER N,A(2,0,N)', 'INTEGER N,A(2,3,4,N)')
+        for decl in cases:
+            source=('      PROGRAM MAIN\n      INTEGER A(4)\n'
+                    '      CALL ALTER(2,A)\n      END\n'
+                    '      SUBROUTINE ALTER(N,A)\n      ' + decl +
+                    '\n      RETURN\n      END\n')
+            with self.subTest(decl=decl), self.assertRaises(FortranError):
+                convert(parse(source, std='f77s'))
+
     def test_adjustable_bound_rejections(self):
         for declaration, args, declared, expected in (
-            ('INTEGER N,A(N,2)', 'N,A', 'INTEGER A(5)', 'only supported for 1D'),
+            ('INTEGER N,A(N,2)', 'N,A', 'INTEGER A(5)', 'fixed leading dimensions'),
             ('INTEGER A(N)', 'A', 'INTEGER A(5)', 'bound must be a scalar dummy'),
             ('INTEGER A(N)', 'N,A', 'INTEGER A(5)', 'INTEGER scalar dummy'),
             ('INTEGER A(0)', 'A', 'INTEGER A(5)', 'out of bounds'),

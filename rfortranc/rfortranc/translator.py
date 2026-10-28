@@ -274,7 +274,7 @@ def parse(source, std='zxux'):
     for u in units:
         for name, (ty, dims) in u.vars.items():
             if dynamic_extent(dims):
-                bound = dims[0]
+                bound = dims[-1]
                 if bound != '*' and u.vars.get(bound) != ('INTEGER', None):
                     raise FortranError(u.line, 'adjustable array bound must be INTEGER scalar dummy: ' + bound)
                 if u.kind == 'function':
@@ -287,8 +287,9 @@ def parse(source, std='zxux'):
 def parse_dims(spec, name, unit, line):
     """Constant extents or a restricted ANSI F77S numeric dummy extent.
 
-    The current adjustable subset accepts one-dimensional A(N) and A(*).
-    Anything more involved is rejected rather than silently miscompiled.
+    The checked subset accepts A(N), A(*), A(2,N), A(2,*), and
+    A(2,3,N), with fixed leading extents and dynamic final bound only.
+    Unsupported dimension expressions fail rather than silently miscompile.
     """
     pieces = [p.strip() for p in spec.split(',')]
     if len(pieces) > 3 or not pieces or any(not p for p in pieces):
@@ -299,27 +300,39 @@ def parse_dims(spec, name, unit, line):
         if any(d < 1 or d > 32767 for d in dims) or total_extent(dims) > 32767:
             raise FortranError(line, 'array extent or total size out of bounds')
         return dims[0] if len(dims) == 1 else dims
-    if len(pieces) != 1 or name not in unit.args:
-        raise FortranError(line, 'adjustable/assumed size only supported for 1D dummy arrays')
-    value = pieces[0]
+    if name not in unit.args or any(not re.fullmatch(r'\d+', v) for v in pieces[:-1]):
+        raise FortranError(line, 'adjustable/assumed size only supported for dummy arrays with fixed leading dimensions')
+    leading = tuple(int(v) for v in pieces[:-1])
+    from .arrays import size as total_extent
+    if any(v < 1 or v > 32767 for v in leading) or total_extent(leading) > 32767:
+        raise FortranError(line, 'array extent or total size out of bounds')
+    value = pieces[-1]
     if value != '*' and (not NAME_RE.fullmatch(value) or value not in unit.args or value == name):
         raise FortranError(line, 'adjustable bound must be a scalar dummy argument: ' + value)
-    return (value,)
+    return leading + (value,)
 
 
 def dynamic_extent(dims):
-    return isinstance(dims, tuple) and len(dims) == 1 and isinstance(dims[0], str)
+    return isinstance(dims, tuple) and len(dims) >= 1 and isinstance(dims[-1], str)
 
 
 def array_subscript(indices, name, unit, line):
-    """Generate a checked offset, including a real caller storage ceiling."""
+    """Checked column-major offset, honoring the actual caller's capacity."""
     dims = unit.vars[name][1]
     if dynamic_extent(dims):
-        if len(indices) != 1:
-            raise FortranError(line, 'dummy array requires one subscript')
-        bound = dims[0]
-        limit = 'F__LEN_' + name if bound == '*' else 'f_extent((*F_' + bound + '), F__LEN_' + name + ')'
-        return 'f_index(' + indices[0] + ', ' + limit + ')'
+        if len(indices) != len(dims):
+            raise FortranError(line, 'dummy array subscript count must match rank')
+        capacity = 'F__LEN_' + name
+        stride, terms = 1, []
+        for sub, bound in zip(indices[:-1], dims[:-1]):
+            part = 'f_index(' + sub + ', ' + str(bound) + ')'
+            terms.append('(' + part + ' * ' + str(stride) + ')' if stride != 1 else part)
+            stride *= bound
+        dynamic_bound = dims[-1]
+        limit = capacity if dynamic_bound == '*' else 'f_extent((*F_' + dynamic_bound + '), (' + capacity + ' / ' + str(stride) + '))'
+        last = 'f_index(' + indices[-1] + ', ' + limit + ')'
+        terms.append('(' + last + ' * ' + str(stride) + ')' if stride != 1 else last)
+        return 'f_seqcheck((' + ' + '.join(terms) + '), ' + capacity + ', 1)'
     from .arrays import offset
     return offset(indices, dims, line)
 
@@ -945,13 +958,14 @@ def convert(units):
                         from .arrays import size as total_extent, literal_offset
                         variable_actual = dynamic_extent(info[1])
                         actual_total = 'F__LEN_' + actual_name if variable_actual else str(total_extent(info[1]))
-                        required = dims[0] if dynamic_extent(dims) else total_extent(dims)
-                        if isinstance(required, str) and required != '*':
-                            bound_pos = known[f].args.index(required)
-                            required = E(args[bound_pos], line)
-                        elif required == '*':
-                            required = '1'
-                        required = str(required)
+                        required = total_extent(dims) if not dynamic_extent(dims) else None
+                        last_bound = dims[-1] if dynamic_extent(dims) else None
+                        last_value = None
+                        if last_bound is not None and last_bound != '*':
+                            bound_pos = known[f].args.index(last_bound)
+                            last_value = E(args[bound_pos], line)
+                        prefix = total_extent(dims[:-1]) if dynamic_extent(dims) else 1
+                        required = str(required) if required is not None else None
                         ptr_offset = '0'
                         if element:
                             subscripts = split_items(element.group(2))
@@ -972,7 +986,10 @@ def convert(units):
                             # Capture once to prevent duplicate side effects.
                             key = 'f_cap_' + str(len(code)) + '_' + str(len(refs))
                             extra_decls.append('int ' + key + ';')
-                            guard = 'f_seqcheck(0, ' + capacity + ', ' + required + ')'
+                            def guard_against(cap):
+                                if last_bound == '*':
+                                    return 'f_seqcheck(0, ' + cap + ', ' + str(prefix) + ');'
+                                return 'f_extent(' + last_value + ', (' + cap + ' / ' + str(prefix) + '));'
                             if element:
                                 # Compute index once; the caller's passed pointer and
                                 # hidden capacity must start at the same element.
@@ -981,11 +998,11 @@ def convert(units):
                                 refs.append('&F_' + actual_name + '[' + idxkey + ']')
                                 extra_capacity.append(key)
                                 prelude.extend([idxkey + ' = ' + ptr_offset + ';', key + ' = (' + actual_total + ' - ' + idxkey + ');',
-                                                'f_seqcheck(0, ' + key + ', ' + required + ');'])
+                                                guard_against(key)])
                             else:
                                 refs.append('F_' + actual_name)
                                 extra_capacity.append(key)
-                                prelude.extend([guard + ';', key + ' = ' + capacity + ';'])
+                                prelude.extend([key + ' = ' + capacity + ';', guard_against(key)])
                         else:
                             if element and not variable_actual and not re.fullmatch(r'\d+', ptr_offset):
                                 ptr_offset = 'f_seqcheck(' + ptr_offset + ', ' + actual_total + ', ' + required + ')'

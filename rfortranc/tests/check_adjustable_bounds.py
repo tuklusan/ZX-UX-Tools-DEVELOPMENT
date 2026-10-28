@@ -21,6 +21,11 @@ FIXTURES = {
     'callee_changes_extent': (
         'f77s_dmadj.f', '      B(2)=B(2)+38\n',
         '      N=4\n      B(2)=B(2)+38\n'),
+    'rank2_declared_last_extent_exceeds_storage': (
+        'f77s_dm2ad.f', '      N=3\n', '      N=4\n'),
+    'rank3_assumed_size_out_of_storage': (
+        'f77s_dm3st.f', '      B(2,2,2)=B(2,2,2)+34\n',
+        '      B(2,2,3)=B(2,2,3)+34\n'),
 }
 
 

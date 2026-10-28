@@ -64,3 +64,7 @@ Fixed-size dummy numeric arrays now accept a constant-subscript actual array ele
 ## Adjustable 1D numeric dummy argument milestone
 
 For `SUBROUTINE S(N,A)` with `INTEGER N,A(N)` or `DIMENSION A(N)`, generated C48 receives `int *F_N`, `int *F_A`, and an extra `int F__LEN_A` (the actual storage capacity). `A(*)` uses the capacity alone. Every one-based subscript checks its declared bound and actual capacity with `f_extent`/`f_index`; the caller uses `f_seqcheck` to ensure the declared adjustable bound fits its remaining array extent. Element actuals like `A(I)` compute their start offset once. This is an intentionally limited F77S subset: only one adjustable dimension is supported, and adjusted FUNCTION dummy arrays remain rejected; multi-rank adjustable bounds are still a required task.
+
+## 2D/3D adjustable last-dimension F77S arrays
+
+For numeric SUBROUTINE dummy arrays such as `A(2,N)`, `A(2,2,N)` or `A(2,*)`, generated code carries a hidden physical storage capacity, checks `N` against `capacity / product(fixed leading extents)` at call sites and in callee, then computes column-major offsets with first dimension varying fastest. Every element access checks final flattened address with `f_seqcheck` before dereferencing; remaining partial-column storage is handled by the check. Variable leading dimensions, dynamic dimension arithmetic expressions, adjusted FUNCTION dummy arrays and CHARACTER arrays remain unsupported.
