@@ -117,6 +117,16 @@ class F77SChecks(unittest.TestCase):
         self.assertEqual(units[1].vars['X'], ('REAL', 3))
         self.assertIn('float *F_X', convert(units))
 
+    def test_burkardt_sort_and_binary_search_f77s_port(self):
+        source = (ROOT/'tests/fortran/f77s_burksort.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        c = convert(units)
+        self.assertIn('f_SRTINS(', c)
+        self.assertIn('f_BINSRC(', c)
+        self.assertIn('f_SRTINS(&(F_N), F_A);', c)
+        self.assertIn('f_BINSRC(&(F_N), F_A, &(F_B), &(F_IND));', c)
+
     def test_burkardt_vector_library_f77s_port(self):
         source = (ROOT/'tests/fortran/f77s_burkvec.f').read_text()
         units = parse(source, std='f77s')
