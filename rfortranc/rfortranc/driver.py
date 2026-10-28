@@ -41,11 +41,14 @@ def main(argv=None):
     backend.add_argument('--no-fit', action='store_true', help='disable automatic fitting')
     p.add_argument('--max', type=int, help='max bytes required in ZX-UX memory')
     p.add_argument('--stack', type=int, help='reserved stack bytes')
+    p.add_argument('--tape-name', help='ZX-UX program name (1..10 ASCII chars; --tzx only)')
     args = p.parse_args(argv)
     suffix = '.c' if args.emit_c else '.s' if args.S else '.sso' if args.c else '.tzx' if args.tzx else '.ssx'
     target = Path(args.output or str(Path(args.source).with_suffix(suffix))).resolve()
     source = Path(args.source).resolve()
     try:
+        if args.tape_name is not None and not args.tzx:
+            raise ValueError('--tape-name requires --tzx')
         if target == source:
             raise ValueError('output would overwrite FORTRAN source')
         program = source.read_text(encoding='utf-8')
@@ -83,11 +86,12 @@ def main(argv=None):
             if result.returncode:
                 return result.returncode
             if args.tzx:
-                # ZX Spectrum tape name is limited to ten ASCII characters.
-                if not (1 <= len(source.stem) <= 10 and source.stem.isascii()):
-                    raise ValueError('TZX program name must be 1..10 ASCII chars')
+                # ZX-UX rtap stores a name of at most ten printable ASCII chars.
+                name = args.tape_name if args.tape_name is not None else source.stem[:10]
+                if not (1 <= len(name) <= 10 and all(32 < ord(c) < 127 and c != '/' for c in name)):
+                    raise ValueError('TZX program name must have 1..10 printable ASCII chars without /')
                 return subprocess.run([sys.executable, str(rtap), '-o', str(target),
-                                       str(binary) + '=' + source.stem], check=False).returncode
+                                       str(binary) + '=' + name], check=False).returncode
         return 0
     except (OSError, ValueError, FortranError) as e:
         print('rfortranc: ' + str(e), file=sys.stderr)

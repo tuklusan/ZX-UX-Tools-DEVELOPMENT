@@ -74,7 +74,7 @@ python rfortranc/tests/run_tests.py --sdk /path/to/src/zx-ux-sdk \
 python rfortranc/tools/corpus_probe.py /path/to/licensed/FCVS \
   --report /tmp/rfortranc-fcvs-acceptance.json
 python rfortranc/tools/release.py --sdk /path/to/src/zx-ux-sdk \
-  --native --out /tmp/rfortranc-dist
+  --native --out /tmp/rfortranc-dist --only hello byref
 ```
 
 The regression harness compiles `.ssx` using the **real** compiler toolchain,
@@ -82,6 +82,9 @@ boots the **real ZX-UX kernel** in `rvm` (when `--rvm` is supplied), checks
 printed results, verifies expected semantic rejections, and checks TZX magic.
 `rvm` should come from the packaged SDK with the matching verified kernel.
 Tests are not a substitute for physical Spectrum 48K testing.
+TZX program names are capped at 10 printable ASCII characters; long source
+filenames are truncated by default, or supply `--tape-name` with `--tzx`.
+The release tool selects collision-safe names and writes SHA-256 manifests.
 
 See `docs/PORTING.md` and `docs/TEST-CORPUS.md` for the upstream comparison,
 testing plan, source licences, and release blockers.
