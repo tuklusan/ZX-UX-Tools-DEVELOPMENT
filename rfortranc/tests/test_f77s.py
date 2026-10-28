@@ -406,6 +406,17 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_seqcheck(', c)
         self.assertIn('f_SETSEQ(&F_A[', c)
 
+    def test_burkardt_cumulative_min_max_port(self):
+        source=(ROOT/'tests/fortran/f77s_burkcum.f').read_text()
+        units=parse(source,std='f77s')
+        validate_source(source,units)
+        c=convert(units)
+        self.assertIn('f_CUMVEC(',c)
+        self.assertIn('f_MINVEC(',c)
+        self.assertIn('f_MAXVEC(',c)
+        self.assertIn('f_extent(',c)
+        self.assertIn('f_seqcheck(',c)
+
     def test_burkardt_matrix_multiplication_port(self):
         source = (ROOT/'tests/fortran/f77s_burkmm.f').read_text()
         units = parse(source, std='f77s')
