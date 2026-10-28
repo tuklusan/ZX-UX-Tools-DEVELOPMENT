@@ -86,6 +86,34 @@ class F77SChecks(unittest.TestCase):
                 validate_source(src,units)
                 self.assertIn('int main',convert(units))
 
+    def test_character_scalar_formatted_io(self):
+        for name in ('f77s_char', 'f77s_charread'):
+            with self.subTest(name=name):
+                source = (ROOT / 'tests/fortran' / (name + '.f')).read_text()
+                units = parse(source, std='f77s')
+                validate_source(source, units)
+                c = convert(units)
+                self.assertIn('char F_A[6];' if name.endswith('read') else 'char F_B[6];', c)
+                if name.endswith('read'):
+                    self.assertIn('f_fmt_inchar(F_A, 5, 3);', c)
+                else:
+                    self.assertIn('f_char_cmp(F_B, 5, "HI", 2)', c)
+                    self.assertIn('f_outcharw(F_B, 5, 7);', c)
+
+    def test_character_rejects_unsupported_forms(self):
+        for body in (
+            ['CHARACTER*0 A'],
+            ['CHARACTER*256 A'],
+            ['CHARACTER*4 A(2)'],
+            ['CHARACTER*3 A', "A='H' // 'I'"],
+            ['CHARACTER*4 A', "A(1:2)='AB'"],
+            ['CHARACTER*5 A', 'INTEGER N', 'N=A+1'],
+            ['INTEGER A', 'WRITE(6,10) A', '10 FORMAT(A5)'],
+            ['CHARACTER*2 A', 'WRITE(6,10) A', '10 FORMAT(I2)'],
+        ):
+            with self.subTest(body=body):
+                self.check(body, False)
+
     def test_subset_save_named_common(self):
         source = (ROOT/'tests/fortran/f77s_save.f').read_text()
         units = parse(source, std='f77s')

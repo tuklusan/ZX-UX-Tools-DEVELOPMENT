@@ -38,7 +38,7 @@ NAME_RE = re.compile(r'^' + NAME + r'$')
 UNSUPPORTED = ('DATA', 'BLOCK DATA', 'EXTERNAL',
                'INTRINSIC', 'OPEN', 'CLOSE', 'REWIND', 'BACKSPACE',
                'ENDFILE', 'ENTRY', 'PAUSE', 'WRITE', 'INQUIRE', 'NAMELIST',
-               'CHARACTER', 'COMPLEX', 'DOUBLE PRECISION', 'ASSIGN ', 'ASSIGNED ',
+               'COMPLEX', 'DOUBLE PRECISION', 'ASSIGN ', 'ASSIGNED ',
                'BLOCK ', 'PARAMETER')
 
 
@@ -215,15 +215,23 @@ def parse(source, std='zxux'):
         if u.kind == 'function':
             u.vars[u.name] = (u.type, None)
         for st in u.statements:
-            m = re.fullmatch(r'(INTEGER|REAL|LOGICAL)\s+(.+)', st.text)
+            m = re.fullmatch(r'(INTEGER|REAL|LOGICAL|CHARACTER(?:\s*\*\s*(?:\d+|\(\s*\d+\s*\)))?)\s+(.+)', st.text)
             if not m:
                 continue
             ty, rest = m.groups()
+            if ty.startswith('CHARACTER'):
+                mlen = re.fullmatch(r'CHARACTER(?:\s*\*\s*(?:([0-9]+)|\(\s*([0-9]+)\s*\)))?', ty)
+                width = int(mlen.group(1) or mlen.group(2)) if (mlen.group(1) or mlen.group(2)) else 1
+                if not 1 <= width <= 255:
+                    raise FortranError(st.line, 'F77S CHARACTER length must be 1..255')
+                ty = 'CHARACTER*' + str(width)
             for spec in split_items(rest):
                 var = re.fullmatch(r'(' + NAME + r')(?:\s*\(\s*(\d+(?:\s*,\s*\d+){0,2})\s*\))?', spec)
                 if not var:
                     raise FortranError(st.line, 'unsupported declaration: ' + spec)
                 name, count = var.groups()
+                if ty.startswith('CHARACTER*') and count:
+                    raise FortranError(st.line, 'CHARACTER arrays are not yet implemented')
                 dims = tuple(int(d.strip()) for d in count.split(',')) if count else None
                 if dims is not None:
                     from .arrays import size as total_extent
@@ -355,6 +363,8 @@ class Expr:
                 else:
                     raise FortranError(self.line, 'unknown function: ' + t)
             elif t in self.unit.vars and self.unit.vars[t][1] is None:
+                if self.unit.vars[t][0].startswith('CHARACTER*'):
+                    raise FortranError(self.line, 'CHARACTER must use character assignment/comparison or A FORMAT')
                 lhs = '(*F_' + t + ')' if t in self.unit.args else 'F_' + t
             else:
                 raise FortranError(self.line, 'undeclared variable: ' + t)
@@ -499,6 +509,46 @@ static void f_fmt_end(void) {
     }
     f_fmt_eor = 0;
 }
+/* F77S CHARACTER is fixed length, padded with spaces (not C zeroes). */
+static void f_char_copy(char *dst, int length, char *src) {
+    int i;
+    for (i = 0; i < length; i++) {
+        if (*src) { dst[i] = *src; src++; }
+        else dst[i] = ' ';
+    }
+    dst[length] = 0;
+}
+static int f_char_cmp(char *a, int na, char *b, int nb) {
+    int i;
+    int n;
+    int ca;
+    int cb;
+    n = na;
+    if (nb > n) n = nb;
+    for (i = 0; i < n; i++) {
+        if (i < na) ca = a[i]; else ca = ' ';
+        if (i < nb) cb = b[i]; else cb = ' ';
+        if (ca < cb) return -1;
+        if (ca > cb) return 1;
+    }
+    return 0;
+}
+static void f_outcharw(char *src, int length, int width) {
+    int i;
+    for (i = length; i < width; i++) putchar(' ');
+    for (i = 0; i < width && i < length; i++) putchar(src[i]);
+}
+static void f_fmt_inchar(char *dst, int length, int width) {
+    int i;
+    int ch;
+    for (i = 0; i < length; i++) dst[i] = ' ';
+    for (i = 0; i < width; i++) {
+        ch = f_fmt_get();
+        if (width <= length) dst[i] = ch;
+        else if (i >= width - length) dst[i - (width - length)] = ch;
+    }
+    dst[length] = 0;
+}
 static int f_inint(void) {
     int ch;
     int sign;
@@ -517,6 +567,26 @@ static int f_inint(void) {
 
 
 def expression(src, unit, units, line):
+    # F77S CHARACTER operands are blank-padded to equal length for comparison.
+    # Restrict lowering to scalar CHARACTER names and string literals.
+    m = re.fullmatch(r'\s*(.*?)\s*(\.(?:EQ|NE|LT|LE|GT|GE)\.)\s*(.*?)\s*', src)
+    if m:
+        def char_operand(token):
+            token = token.strip()
+            if re.fullmatch(r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"", token):
+                q = token[0]
+                return c_string(token), len(token[1:-1].replace(q * 2, q))
+            info = unit.vars.get(token)
+            if info and info[1] is None and info[0].startswith('CHARACTER*'):
+                return 'F_' + token, int(info[0].split('*')[1])
+            return None
+        lhs, rhs = char_operand(m.group(1)), char_operand(m.group(3))
+        if lhs or rhs:
+            if not lhs or not rhs:
+                raise FortranError(line, 'CHARACTER comparison requires CHARACTER operands')
+            operators = {'.EQ.': '==', '.NE.': '!=', '.LT.': '<',
+                         '.LE.': '<=', '.GT.': '>', '.GE.': '>='}
+            return '(f_char_cmp(' + lhs[0] + ', ' + str(lhs[1]) + ', ' + rhs[0] + ', ' + str(rhs[1]) + ') ' + operators[m.group(2)] + ' 0)'
     return Expr(src, unit, units, line).read()
 
 
@@ -569,6 +639,14 @@ def subset_format(source, line):
                     raise FortranError(line, 'I field width exceeds 255')
                 append(('integer', width), repeat)
                 continue
+            character = re.fullmatch(r'([1-9][0-9]*)?A([1-9][0-9]*)?', token)
+            if character:
+                repeat = int(character.group(1) or 1)
+                width = int(character.group(2)) if character.group(2) else None
+                if width is not None and width > 255:
+                    raise FortranError(line, 'A field width exceeds 255')
+                append(('character', width), repeat)
+                continue
             spacing = re.fullmatch(r'([1-9][0-9]*)?X', token)
             if spacing:
                 append(('space', 1), int(spacing.group(1) or 1))
@@ -615,7 +693,12 @@ def convert(units):
         for var, (ty, n) in u.vars.items():
             if var not in u.args and ('F_' + var) not in aliases:
                 from .arrays import size as total_extent
-                decl(ctype(ty) + ' F_' + var + (('[' + str(total_extent(n)) + ']') if n else '') + ';')
+                if ty.startswith('CHARACTER*'):
+                    if n is not None:
+                        raise FortranError(u.line, 'CHARACTER array storage not yet implemented')
+                    decl('char F_' + var + '[' + str(int(ty.split('*')[1]) + 1) + '];')
+                else:
+                    decl(ctype(ty) + ' F_' + var + (('[' + str(total_extent(n)) + ']') if n else '') + ';')
         decl('int f_pc;')
         if u.kind == 'function':
             decl('F_' + u.name + ' = 0;')
@@ -672,6 +755,16 @@ def convert(units):
                         operations.extend(["putchar(' ');"] * item)
                     elif mode == 'newline':
                         operations.append('putchar(10);')
+                    elif mode == 'character':
+                        if pos == len(values):
+                            raise FortranError(line, 'WRITE has fewer items than FORMAT')
+                        name = values[pos].strip()
+                        spec = u.vars.get(name)
+                        if not spec or spec[1] is not None or not spec[0].startswith('CHARACTER*'):
+                            raise FortranError(line, 'FORMAT A requires CHARACTER scalar item')
+                        length = int(spec[0].split('*')[1])
+                        operations.append('f_outcharw(F_' + name + ', ' + str(length) + ', ' + str(item or length) + ');')
+                        pos += 1
                     elif mode == 'integer':
                         if pos == len(values):
                             raise FortranError(line, 'WRITE has fewer items than FORMAT')
@@ -699,6 +792,16 @@ def convert(units):
                         operations.append('f_fmt_skip(' + str(item) + ');')
                     elif mode == 'newline':
                         operations.append('f_fmt_end();')
+                    elif mode == 'character':
+                        if pos == len(values):
+                            raise FortranError(line, 'READ has fewer items than FORMAT')
+                        name = values[pos].strip()
+                        spec = u.vars.get(name)
+                        if not spec or spec[1] is not None or not spec[0].startswith('CHARACTER*'):
+                            raise FortranError(line, 'FORMAT A requires CHARACTER scalar item')
+                        length = int(spec[0].split('*')[1])
+                        operations.append('f_fmt_inchar(F_' + name + ', ' + str(length) + ', ' + str(item or length) + ');')
+                        pos += 1
                     elif mode == 'integer':
                         if pos == len(values):
                             raise FortranError(line, 'READ has fewer items than FORMAT')
@@ -721,7 +824,8 @@ def convert(units):
                 return
             if s.startswith(UNSUPPORTED):
                 raise FortranError(line, 'unsupported FORTRAN statement: ' + s.split()[0])
-            if re.match(r'^(INTEGER|REAL|LOGICAL|IMPLICIT|DIMENSION)\s+', s) or s == 'IMPLICIT NONE':
+            if (re.match(r'^(INTEGER|REAL|LOGICAL|IMPLICIT|DIMENSION)\s+', s)
+                    or re.match(r'^CHARACTER(?:\*|\s)', s) or s == 'IMPLICIT NONE'):
                 return
             if s == 'CONTINUE':
                 return
@@ -791,6 +895,19 @@ def convert(units):
                 add(operations); return
             m = re.fullmatch(r'(' + NAME + r'(?:\s*\([^)]*\))?)\s*=\s*(.*)', s)
             if m:
+                lhs, rhs = m.group(1).strip(), m.group(2).strip()
+                ty = u.vars.get(lhs)
+                if ty and ty[1] is None and ty[0].startswith('CHARACTER*'):
+                    length = int(ty[0].split('*')[1])
+                    if re.fullmatch(r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"", rhs):
+                        value = c_string(rhs)
+                    elif (rhs in u.vars and u.vars[rhs][1] is None
+                          and u.vars[rhs][0].startswith('CHARACTER*')):
+                        value = 'F_' + rhs
+                    else:
+                        raise FortranError(line, 'CHARACTER assignment must use a literal or CHARACTER scalar')
+                    add(['f_char_copy(F_' + lhs + ', ' + str(length) + ', ' + value + ');'])
+                    return
                 dest, value = E(m.group(1), line), E(m.group(2), line)
                 if not (dest.startswith('F_') or dest.startswith('(*F_')):
                     raise FortranError(line, 'assignment requires a scalar or array element')
