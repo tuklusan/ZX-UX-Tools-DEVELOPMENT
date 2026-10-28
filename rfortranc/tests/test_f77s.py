@@ -534,4 +534,25 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_extent(', generated)
         self.assertIn('f_seqcheck(', generated)
 
+    def test_character_data_storage_and_lifetime(self):
+        source = (ROOT/'tests/fortran/f77s_chdata.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        generated = convert(units)
+        self.assertIn('f_char_copy(F_A, 5, "A/B");', generated)
+        self.assertIn('static char f_sd1_S[4];', generated)
+        self.assertIn('f_char_copy(f_sd1_S, 3, "AB");', generated)
+        self.assertIn('if (!f_sdi1)', generated)
+
+    def test_character_data_quote_and_slash(self):
+        source = "      PROGRAM QCHAR\n      CHARACTER*5 A\n      DATA A/'A''/B'/\n      END\n"
+        generated = convert(parse(source, std='f77s'))
+        self.assertIn('f_char_copy(F_A, 5, "A\'/B");', generated)
+
+    def test_character_data_wrong_type_rejected(self):
+        source = ('      PROGRAM BAD\n      CHARACTER*3 A\n'
+                  '      DATA A/123/\n      END\n')
+        with self.assertRaises(FortranError):
+            convert(parse(source, std='f77s'))
+
 if __name__=='__main__': unittest.main()
