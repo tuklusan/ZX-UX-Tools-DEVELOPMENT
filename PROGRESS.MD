@@ -458,3 +458,9 @@ The `--rvm` binary must be the matching built/packaged emulator with the correct
 - Checked-in report: `rfortranc/tests/results/f77s-bounds-subarr-2026-10-28.json`, SHA-256 `a357f23b4d0cbe0742f321f3f6197d7831a1bdcd5f88a5a7bfd57b429d14b51b`, source/tool/archive and binary hashes plus actual outputs. SDK archive SHA-256 `42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17`.
 - Expanded **71/41** full real SDK and differential suites are running independently; no pass claimed until their exact JSON reports finish and are checked.
 - **Single next concrete action:** Pin both complete 71 and 41 real kernel suite JSON results, fix failures if any, then continue feature correctness and substantial F77S executable library work.
+
+### Current compiler frontend and host reference CI (2026-10-28)
+
+- Workflow https://github.com/tuklusan/ZX-UX-Tools-DEVELOPMENT/actions/runs/40753661860 succeeded for source commit `4718a7afa5c9b96b2ac8a5dce6258f89d1417304`. Actual logs: **59/59 F77S unit**, **70/70 frontend positive/negative**, **41/41 gfortran host reference**, Python compileall PASS. Source and host report are archived as short-lived GitHub Actions artifacts.
+- Real ZX-UX 6/6 negative bounds trap report pinned in prior checkpoint. Full 71-case SDK/RVM/TZX and 41-case gfortran-vs-real-ZX-UX differential jobs are still executing in a recovered CI-source checkout against the uploaded SDK archive. None is claimed passed yet.
+- **Single next concrete action:** Finish and pin those exact end-to-end 71/41 reports; preserve current source revision for reproducibility and never hide failures.
