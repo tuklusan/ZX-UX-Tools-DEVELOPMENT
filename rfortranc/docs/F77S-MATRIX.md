@@ -49,3 +49,5 @@ Rank-three CHARACTER fixed arrays are independently exercised by `tests/fortran/
 Restricted decimal Fw.d REAL input/output (up to 4 decimal places, plain signed decimal fields) is now implemented and represented by `f77s_realio.f`; it is intentionally NOT full numeric FORMAT coverage (E/G, scale, exponent and record controls remain incomplete).
 
 Partial LOGICAL format `Lw` READ/WRITE is implemented for fixed LOGICAL scalar/array elements, with T/F and optional dotted input; other record editing and multi-record I/O cases remain incomplete. See `tests/fortran/f77s_logio.f`.
+
+Restricted REAL `SQRT` intrinsic now maps to an explicit Newton iteration helper in ZX-UX C48 with zero/negative domain guards and scale-adjusted starting estimate. Strict F77S REAL norm-L2 examples cover perfect and non-perfect squares, large and small magnitudes; generic intrinsic typing still partial and not certified.
