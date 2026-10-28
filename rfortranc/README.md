@@ -62,7 +62,7 @@ passed by reference; expression/literal actuals are copied to temporary storage
 (as in conventional FORTRAN calls). Array dummy arguments are not supported.
 
 **Not production grade.** F77S-required features still missing or incomplete include
-complete COMMON/EQUIVALENCE storage association and CHARACTER arrays/dummies,
+complete COMMON/EQUIVALENCE storage association and CHARACTER arrays/returns,
 general adjustable/assumed-size multi-dimensional dummy arrays, full DATA storage lifetime, complete formatted READ/WRITE and REAL I/O.
 Implicit typing, fixed 3D arrays, DIMENSION and DATA are partially implemented. Unsupported syntax fails with
 an explicit diagnostic rather than generating misleading machine code.
@@ -116,7 +116,7 @@ A genuine John Burkardt LGPL prime-count subroutine port (`f77s_burkprime.f`) no
 
 The first public-source test-theme adaptations from NIST FCVS are documented in `tests/ported/README.md` (FM003/FM004/FM005). These are reduced independent F77S stress tests, **not complete FCVS programs**.
 
-F77S restricted constant-length CHARACTER scalars (`CHARACTER*n`, `CHARACTER*(n)` and default length one) now support assignment with blank padding/truncation, relational comparisons, and formatted `A`/`Aw` READ/WRITE with fixed record width. Verified examples `f77s_char.f` and `f77s_charread.f` compare generated SSX execution with gfortran. **Still missing:** CHARACTER arrays, dummy arguments/returns, COMMON/EQUIVALENCE storage association, and additional FORMAT descriptors. `f77s_imchar.f` tests implicit constant-length CHARACTER plus DATA. CHARACTER scalar DATA works, including persistent initialized subprogram variables. No substring or concatenation (excluded by F77S).
+F77S restricted constant-length CHARACTER scalars (`CHARACTER*n`, `CHARACTER*(n)` and default length one) now support assignment with blank padding/truncation, relational comparisons, and formatted `A`/`Aw` READ/WRITE with fixed record width. Verified examples `f77s_char.f` and `f77s_charread.f` compare generated SSX execution with gfortran. **Still missing:** CHARACTER arrays, CHARACTER function returns, general CHARACTER dummy ABI/length association, COMMON/EQUIVALENCE storage association, and additional FORMAT descriptors. Constant-length scalar CHARACTER dummy variables now pass by reference in SUBROUTINE calls, including forwarding, when the actual has exactly the declared length; other CHARACTER actual expressions and differing lengths are rejected. `f77s_imchar.f` tests implicit constant-length CHARACTER plus DATA. CHARACTER scalar DATA works, including persistent initialized subprogram variables. No substring or concatenation (excluded by F77S).
 
 Fixed-size F77S numeric dummy arrays: `tests/fortran/f77s_dmarr.f`, `f77s_dmchain.f`, `f77s_dmreal.f`. The caller passes array storage by address (not copied), and the callee uses declared 1-based FORTRAN bounds. Type and insufficient extent are rejected; array-element actuals (including variable index) and one-dimensional adjustable/assumed-size dummies are implemented with runtime bounds checks; procedure arguments and adjustable higher-rank dimensions remain pending.
 

@@ -735,7 +735,7 @@ def convert(units):
     chunks = [RUNTIME] + common_decls
     ctype = lambda ty: 'float' if ty == 'REAL' else 'int'
     def signature(u):
-        args = [ctype(u.vars[a][0]) + ' *F_' + a for a in u.args]
+        args = [('char' if u.vars[a][0].startswith('CHARACTER*') else ctype(u.vars[a][0])) + ' *F_' + a for a in u.args]
         args.extend('int F__LEN_' + a for a in u.args if dynamic_extent(u.vars[a][1]))
         return ', '.join(args) or 'void'
     for u in units:
@@ -1050,6 +1050,13 @@ def convert(units):
                             refs.append('&F_' + actual_name + '[' + ptr_offset + ']' if element else 'F_' + actual_name)
                             if variable_actual:
                                 prelude.append('f_seqcheck(0, ' + capacity + ', ' + required + ');')
+                    elif ty.startswith('CHARACTER*'):
+                        # Restricted F77S constant-length CHARACTER scalar dummies.
+                        # Reject literals, expressions, arrays and mismatched lengths.
+                        if (not NAME_RE.fullmatch(actual) or actual not in u.vars
+                                or u.vars[actual] != (ty, None)):
+                            raise FortranError(line, 'CHARACTER dummy requires same-length CHARACTER scalar actual: ' + actual)
+                        refs.append('F_' + actual)
                     else:
                         refs.append(reference_actual(E(actual, line), u, ty))
                 add(prelude + ['f_' + f + '(' + ', '.join(refs + extra_capacity) + ');'])

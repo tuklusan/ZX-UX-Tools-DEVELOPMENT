@@ -582,4 +582,38 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(width=width), self.assertRaises(FortranError):
                 convert(parse(source, std='f77s'))
 
+    def test_character_scalar_dummy_by_reference(self):
+        source = (ROOT/'tests/fortran/f77s_charg.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        generated = convert(units)
+        self.assertIn('void f_CHPASS(char *F_C);', generated)
+        self.assertIn('void f_CHSET(char *F_C);', generated)
+        self.assertIn('f_CHPASS(F_A);', generated)
+        self.assertIn('f_CHSET(F_C);', generated)
+        self.assertIn('f_char_copy(F_C, 5, "HI");', generated)
+
+    def test_character_scalar_dummy_mismatched_length_rejected(self):
+        source = ("      PROGRAM BAD\n"
+                  "      CHARACTER*3 A\n"
+                  "      CALL CHSET(A)\n"
+                  "      END\n"
+                  "      SUBROUTINE CHSET(C)\n"
+                  "      CHARACTER*5 C\n"
+                  "      C='HI'\n"
+                  "      END\n")
+        with self.assertRaisesRegex(FortranError, 'CHARACTER dummy requires same-length'):
+            convert(parse(source, std='f77s'))
+
+    def test_character_dummy_non_variable_rejected(self):
+        source = ("      PROGRAM BAD\n"
+                  "      CALL CHSET('ABCDE')\n"
+                  "      END\n"
+                  "      SUBROUTINE CHSET(C)\n"
+                  "      CHARACTER*5 C\n"
+                  "      C='HI'\n"
+                  "      END\n")
+        with self.assertRaisesRegex(FortranError, 'CHARACTER dummy requires same-length'):
+            convert(parse(source, std='f77s'))
+
 if __name__=='__main__': unittest.main()
