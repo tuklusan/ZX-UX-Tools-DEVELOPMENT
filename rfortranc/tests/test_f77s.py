@@ -787,4 +787,15 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('if (x < 0.0) exit(2);', generated)
         self.assertIn('f_seqcheck(', generated)
 
+    def test_burkardt_real_copy_and_sort_with_adjustable_aliases(self):
+        for name, entry in [('f77s_burkcopy.f','f_RVCOPY('),
+                            ('f77s_burkrsrt.f','f_RVSORT(')]:
+            src = (ROOT/'tests/fortran'/name).read_text()
+            units = parse(src, std='f77s')
+            validate_source(src, units)
+            generated = convert(units)
+            self.assertIn(entry, generated)
+            self.assertIn('f_seqcheck(', generated)
+            self.assertIn('f_extent(', generated)
+
 if __name__=='__main__': unittest.main()
