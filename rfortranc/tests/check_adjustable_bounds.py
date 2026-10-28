@@ -44,6 +44,14 @@ FIXTURES = {
         'f77s_burkscale.f',
         '      N=3\n      S=-0.5\n      CALL RVSCL(N,S,A(2))\n',
         '      N=5\n      S=-0.5\n      CALL RVSCL(N,S,A(2))\n'),
+    'burkardt_real_copy_dest_extent_trap': (
+        'f77s_burkcopy.f',
+        '      N=3\n      CALL RVCOPY(N,A(2),B)\n',
+        '      N=5\n      CALL RVCOPY(N,A(2),B)\n'),
+    'burkardt_real_sort_tail_extent_trap': (
+        'f77s_burkrsrt.f',
+        '      N=3\n      CALL RVSORT(N,A(2))\n',
+        '      N=5\n      CALL RVSORT(N,A(2))\n'),
 }
 
 
