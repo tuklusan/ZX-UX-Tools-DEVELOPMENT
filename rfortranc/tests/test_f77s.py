@@ -78,6 +78,21 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaises(FortranError):
             parse(src, std='f77s')
 
+    def test_common_scalar_alias(self):
+        src=(ROOT/'tests/fortran/f77s_common.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('static int f_com_BLK_0;', c)
+        self.assertIn('f_com_BLK_0 =', c)
+        self.assertNotIn('int F_N;', c)
+        self.assertNotIn('int F_X;', c)
+
+    def test_common_type_mismatch(self):
+        src="""      PROGRAM CMNT\n      INTEGER N\n      COMMON /BLK/ N\n      END\n      SUBROUTINE SUB()\n      REAL X\n      COMMON /BLK/ X\n      END\n"""
+        with self.assertRaises(FortranError):
+            convert(parse(src, std='f77s'))
+
     def test_dimension_separate_declaration(self):
         src=(ROOT/'tests/fortran/f77s_dim.f').read_text()
         units=parse(src,std='f77s')

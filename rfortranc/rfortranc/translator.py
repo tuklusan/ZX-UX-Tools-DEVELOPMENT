@@ -35,7 +35,7 @@ class Unit:
 
 NAME = r'[A-Z][A-Z0-9_]*'
 NAME_RE = re.compile(r'^' + NAME + r'$')
-UNSUPPORTED = ('COMMON', 'EQUIVALENCE', 'SAVE', 'DATA', 'BLOCK DATA', 'EXTERNAL',
+UNSUPPORTED = ('EQUIVALENCE', 'SAVE', 'DATA', 'BLOCK DATA', 'EXTERNAL',
                'INTRINSIC', 'OPEN', 'CLOSE', 'REWIND', 'BACKSPACE',
                'ENDFILE', 'ENTRY', 'PAUSE', 'WRITE', 'INQUIRE', 'NAMELIST',
                'CHARACTER', 'COMPLEX', 'DOUBLE PRECISION', 'ASSIGN ', 'ASSIGNED ',
@@ -590,7 +590,9 @@ def convert(units):
     into and out of nested FORTRAN constructs, including numbered DO loops.
     """
     known = {u.name: u for u in units}
-    chunks = [RUNTIME]
+    from .common import layout, bind
+    common_decls, common_uses = layout(units)
+    chunks = [RUNTIME] + common_decls
     ctype = lambda ty: 'float' if ty == 'REAL' else 'int'
     for u in units:
         if u.kind != 'program':
@@ -604,10 +606,11 @@ def convert(units):
         name = 'main' if is_main else 'f_' + u.name
         u.temps = []
         output = [ret + ' ' + name + '(' + sig + ') {']
+        aliases = common_uses.get(u.name, {})
         def decl(text):
             output.append('    ' + text)
         for var, (ty, n) in u.vars.items():
-            if var not in u.args:
+            if var not in u.args and ('F_' + var) not in aliases:
                 from .arrays import size as total_extent
                 decl(ctype(ty) + ' F_' + var + (('[' + str(total_extent(n)) + ']') if n else '') + ';')
         decl('int f_pc;')
@@ -642,6 +645,8 @@ def convert(units):
         def stmt(s, line):
             if re.fullmatch(r'FORMAT\s*\((.*)\)', s):
                 return  # FORMAT is a non-executable specification statement
+            if re.match(r'^COMMON\s+', s):
+                return  # COMMON names use global positional storage
             if re.match(r'^DATA\s+', s):
                 return  # initialized in function entry (main program only so far)
             fm = re.fullmatch(r'WRITE\s*\(\s*(6|\*)\s*,\s*(\d{1,5})\s*\)\s*(.*)', s)
@@ -919,5 +924,5 @@ def convert(units):
         decl('    ' + ret_stmt())
         decl('}')
         output.append('}')
-        chunks.append('\n'.join(output))
+        chunks.append(bind('\n'.join(output), aliases))
     return '\n\n'.join(chunks) + '\n'
