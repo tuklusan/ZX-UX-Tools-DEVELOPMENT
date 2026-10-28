@@ -424,3 +424,10 @@ The `--rvm` binary must be the matching built/packaged emulator with the correct
 - The CI workflow now retains the host-only JSON report as a downloadable workflow artifact for 30 days. This is not a substitute for checked-in end-to-end SDK evidence.
 - Last *committed* SDK/RVM/TZX results remain **66/66**, and last committed gfortran-vs-ZX-UX RVM results remain **37/37**. The new full targets are **68**, **39**, and **6** negative runtime-bound cases, respectively; not yet executed at those totals.
 - **Single next concrete action:** Reconstruct a clean checkout with the user-supplied SDK archive, run and commit 68/39/6 end-to-end results with hashes; then pursue remaining ANSI F77S required semantics and broaden the runnable library.
+
+### F77S subprogram local DATA initialization (2026-10-28)
+
+- Implemented numeric INTEGER/REAL/LOGICAL scalar and fixed-array DATA in subprogram local storage (previously rejected). The translator emits short C48 static globals and a one-time initialization guard. DATA with COMMON/EQUIVALENCE, CHARACTER DATA and implied DO remain unsupported and rejected.
+- Added strict fixed-form `f77s_subdata.f`, calling a subroutine twice with two formatted `  42` output lines; independently compiled and executed with `gfortran -std=legacy -ffixed-form` locally. Added C48 static-storage unit assertion.
+- New targets: **69** full SDK/RVM/TZX checks, **40** gfortran-vs-ZX-UX cases, **6** runtime-bound traps. End-to-end ZX-UX runs for the new change are NOT yet verified. Earlier frontend/host CI https://github.com/tuklusan/ZX-UX-Tools-DEVELOPMENT/actions/runs/40752572225 verified 56 unit, 67 frontend, and 39 host cases before this change; last pinned SDK/RVM results are 66/37.
+- **Single next concrete action:** Verify new compiler code in GitHub Actions; fix any failures; then rerun and hash-pin the entire 69/40/6 SDK/RVM suite. Continue ANSI F77S subset, not full F77.

@@ -743,7 +743,7 @@ def convert(units):
             ty = 'void' if u.kind == 'subroutine' else ctype(u.type)
             sig = signature(u)
             chunks.append(ty + ' f_' + u.name + '(' + sig + ');')
-    for u in units:
+    for unit_ordinal, u in enumerate(units):
         is_main = u.kind == 'program'
         ret = 'int' if is_main else 'void' if u.kind == 'subroutine' else ctype(u.type)
         sig = 'void' if is_main else signature(u)
@@ -752,6 +752,33 @@ def convert(units):
         output = [ret + ' ' + name + '(' + sig + ') {']
         eq_decls, eq_uses = equivalence_layout(u, common_uses.get(u.name, {}))
         aliases = {**common_uses.get(u.name, {}), **eq_uses}
+        from .data_init import initializers
+        data_entries = initializers(u)
+        data_guard = None
+        if data_entries and not is_main:
+            # A DATA object must outlive the subprogram's stack frame.
+            # C48 identifiers are limited to 15 characters.
+            from .arrays import size as total_extent
+            data_names = set()
+            for target, _ in data_entries:
+                m = re.fullmatch(r'F_([A-Z0-9_]+)(?:\[\d+\])?', target)
+                if not m:
+                    raise FortranError(u.line, 'internal DATA storage target')
+                data_names.add(m.group(1))
+            for var in sorted(data_names):
+                if 'F_' + var in aliases:
+                    raise FortranError(u.line, 'DATA with storage-associated object not yet supported: ' + var)
+                typ, extent = u.vars[var]
+                if typ not in ('INTEGER', 'REAL', 'LOGICAL'):
+                    raise FortranError(u.line, 'unsupported subprogram DATA type: ' + typ)
+                global_name = 'f_sd' + str(unit_ordinal) + '_' + var
+                if len(global_name) > 15:
+                    raise FortranError(u.line, 'DATA storage name exceeds C48 limit')
+                chunks.append('static ' + ctype(typ) + ' ' + global_name +
+                              ('[' + str(total_extent(extent)) + ']' if extent else '') + ';')
+                aliases['F_' + var] = global_name
+            data_guard = 'f_sdi' + str(unit_ordinal)
+            chunks.append('static int ' + data_guard + ';')
         output.extend('    ' + declaration for declaration in eq_decls)
         def decl(text):
             output.append('    ' + text)
@@ -769,9 +796,15 @@ def convert(units):
         decl('int f_pc;')
         if u.kind == 'function':
             decl('F_' + u.name + ' = 0;')
-        from .data_init import initializers
-        for target, value in initializers(u):
-            decl(target + ' = ' + value + ';')
+        if data_guard is not None:
+            decl('if (!' + data_guard + ') {')
+            for target, value in data_entries:
+                decl('    ' + target + ' = ' + value + ';')
+            decl('    ' + data_guard + ' = 1;')
+            decl('}')
+        else:
+            for target, value in data_entries:
+                decl(target + ' = ' + value + ';')
         code = []
         labels = {}
         gotos = []
@@ -803,7 +836,7 @@ def convert(units):
             if re.match(r'^EQUIVALENCE\s*\(', s):
                 return  # EQUIVALENCE objects share local storage
             if re.match(r'^DATA\s+', s):
-                return  # initialized in function entry (main program only so far)
+                return  # initialized once for subprogram DATA
             if re.match(r'^SAVE\b', s):
                 return  # checked by common.layout; storage is already global/static
             fm = re.fullmatch(r'WRITE\s*\(\s*(6|\*)\s*,\s*(\d{1,5})\s*\)\s*(.*)', s)

@@ -75,6 +75,7 @@ PROGRAMS = {
     'f77s_burkflip': '   6   5   2   1',
     'f77s_dm2el': '  42   5',
     'f77s_dm3el': '  42  10   8',
+    'f77s_subdata': '  42',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',

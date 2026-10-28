@@ -54,6 +54,18 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('F_A[2] = 3;', c)
         self.assertIn('F_N = 9;', c)
 
+    def test_subprogram_data_static_one_time_init(self):
+        src=(ROOT/'tests/fortran/f77s_subdata.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('static int f_sd1_N;', c)
+        self.assertIn('static int f_sdi1;', c)
+        self.assertIn('if (!f_sdi1)', c)
+        self.assertIn('f_sd1_N = 40;', c)
+        self.assertIn('f_sdi1 = 1;', c)
+        self.assertNotIn('int F_N;', c)
+
     def test_data_count_error(self):
         source=(ROOT / 'tests/negative/f77s_data_bad.f').read_text()
         with self.assertRaises(FortranError):

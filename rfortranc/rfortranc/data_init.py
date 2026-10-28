@@ -1,8 +1,9 @@
 """Minimal ANSI F77S DATA initializer lowering.
 
-Supports single numeric/logical main-program scalar and 1D array objects.
-Deliberately rejects implied DO, repeated initialization, type conversion,
-subprogram DATA, and other forms not yet correctly modeled.
+Supports numeric/logical scalar and fixed-array initialization in programs and
+subroutines. Subprogram DATA storage is allocated statically and initialized
+once by the translator. Implied DO, character DATA and overlapping storage
+association remain unsupported.
 """
 from __future__ import annotations
 import re
@@ -25,8 +26,6 @@ def initializers(unit):
                 saw_exec = True
             continue
         saw_data = True
-        if unit.kind != 'program':
-            raise FortranError(st.line, 'DATA in subprogram not yet supported; persistent storage required')
         if saw_exec:
             raise FortranError(st.line, 'F77S DATA must precede executable statements')
         parts = m.group(1)
