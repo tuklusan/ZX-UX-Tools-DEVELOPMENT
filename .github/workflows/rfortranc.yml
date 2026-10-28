@@ -39,7 +39,7 @@ jobs:
           name: rfortranc-source
           path: /tmp/rfortranc-source.tgz
           if-no-files-found: error
-          retention-days: 2
+          retention-days: 90
       - name: Keep host reference output report
         if: always()
         uses: actions/upload-artifact@v4
