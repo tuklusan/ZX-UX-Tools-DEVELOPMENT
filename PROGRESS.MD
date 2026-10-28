@@ -525,3 +525,9 @@ The `--rvm` binary must be the matching built/packaged emulator with the correct
 - GitHub connector could read/write repository, but local shell DNS cannot resolve github.com, so the full working tree could not be cloned in this session. **No test execution or new ZX-UX end-to-end pass claimed here.** Existing pinned 71/71 and 41/41 results remain the last completed full reports noted above; current 73/43 expanded suites remain unverified.
 - The source SDK archive `minizxuxport.zip` is available as a project attachment, but matching repository source and rebuilt emulator still need recreating for fresh local integration testing.
 - **Single next concrete action:** Check CI triggered by unit-test commit; fix any failure, then rebuild source tree and SDK, run/pin 73-case native ZX-UX/RVM/TZX and 43-case independent strict F77S differential suites serially. Preserve all unrelated shared repository work.
+
+### Rank-2 dynamic element unit and host-CI verification (2026-10-28)
+
+- GitHub Actions workflow **completed SUCCESS** for source commit `61fa5d9f0a392a4d3c862a19e1b6ed3eabfafec0`: https://github.com/tuklusan/ZX-UX-Tools-DEVELOPMENT/actions/runs/40759791626 . The frontend compileall, F77S unittest discovery (including new rank-2 variable element sequence test), frontend translation/rejection runner, and full strict-F77S host gfortran baseline steps all succeeded. CI source snapshot uploaded. This workflow does **not** build or execute ZX-UX binaries.
+- Prior native evidence remains 71/71 and strict actual ZX-UX differential 41/41 (pinned earlier). Latest 73/43 enlarged native runs still need serial execution and hash-pinned reports; do not claim as passed.
+- **Single next concrete action:** Recreate local checkout and matching ZX-UX SDK/RVM in an environment with GitHub access; execute 73-case and 43-case native suites, commit the full JSON reports and PROGRESS.MD. Then enlarge real F77S library runtime coverage.
