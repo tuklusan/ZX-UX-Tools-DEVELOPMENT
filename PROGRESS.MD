@@ -340,3 +340,9 @@
 
 - Strict `--std f77s` now rejects tab characters in source columns 1–72 rather than accepting an implementation-specific tab expansion. Two negative unit cases added (indentation tab and tab inside a keyword). Default ZX-UX extension mode remains unchanged.
 - This narrows the P1 lexical gap. GitHub Actions frontend+host on exact pushed source is needed before claiming test pass; full target native regression, P0/P1/P2, physical Spectrum and peak RAM still open.
+
+## Milestone — ANSI fixed-form label blanks (2026-10-29)
+
+- Corrected strict source-label handling: the fixed-form reader now accepts blanks interspersed among digits in columns 1–5, normalizes them to a numeric label, and the F77S gate handles them without raising Python `ValueError`. Invalid zero labels remain rejected. Example `1 2 3 CONTINUE` is label 123, not three statements.
+- Added positive strict parse+lowering test. The source gate tab check is independent of this fix. Exact pushed GitHub frontend/host Actions must be checked; no Z80 codegen changes expected for ordinary labels.
+- Still partial P1 lexical and P0/P1/P2 overall; no new complete native suite, measured peak RAM or physical Spectrum proof.

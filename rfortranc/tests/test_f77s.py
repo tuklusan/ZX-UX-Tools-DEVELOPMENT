@@ -24,6 +24,13 @@ class F77SChecks(unittest.TestCase):
                 validate_source(source, units)
                 convert(units)
 
+    def test_label_digits_with_internal_spaces(self):
+        source = '      PROGRAM FIXED\n1 2 3 CONTINUE\n      END\n'
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        self.assertEqual(units[0].statements[0].label, '123')
+        self.assertIn('int main', convert(units))
+
     def test_fixed_form_tab_is_not_ansi_source(self):
         source = ('      PROGRAM FIXED\n'
                   '      INTEGER N\n'

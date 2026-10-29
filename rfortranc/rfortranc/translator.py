@@ -92,11 +92,12 @@ def lines(source):
             (fixed_form or len(raw) == 1 or raw[1].isspace())):
             continue
         fixed = (bool(re.match(r'^ {5}[ \d]', raw))
-                 or bool(len(raw) >= 6 and raw[:5].strip().isdigit() and raw[5] == ' ')
+                 or bool(len(raw) >= 6 and re.fullmatch(r'[ 0-9]{5}', raw[:5])
+                         and raw[:5].strip() and raw[5] in ' 0')
                  or bool(fixed_form and len(raw) >= 6 and raw[:5].strip() == ''
                          and raw[5] not in ' 0'))
         if fixed:
-            lab = raw[:5].strip() or None
+            lab = raw[:5].replace(' ', '') or None
             continuation = raw[5] not in ' 0'
             body = strip_comment(raw[6:72]).strip()
             if continuation:
