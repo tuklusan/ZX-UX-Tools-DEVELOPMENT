@@ -381,3 +381,8 @@
 
 - GitHub Actions `40898107521` on `20bf5494fb57832003888a3597e6f13b8ca07783` passed frontend+host tests. Two previously measured native cases use the same translator code as prior `7f19352` (only fixture/harness/checkpoint changes since): `f77s_fmtchr.f` 1,755-byte SSX and `f77s_afread.f` 1,826-byte SSX both execute on actual matched ZX-UX Z80 emulator, exit 0, and print `   12   34` matching independent gfortran. Their SHA256, source SHA, frame and syscall counts are kept in `rfortranc/tests/results/f77s-format-read-identifiers-2026-10-29.json`.
 - This closes individual input proof cases only. F77S P0/P1/P2, full current-source native/bounds/release, peak RAM and physical Spectrum remain open.
+
+## Milestone — reject F77S underscores outside CHARACTER constants (2026-10-29)
+
+- Strict fixed-form source validation now rejects underscores outside quoted CHARACTER literals in all source statements, including procedure/function references that escaped prior declaration-name-only checks. Quoted CHARACTER values containing underscores stay legal.
+- Added a positive quoted-literal test and three negative source tests. CI on this exact source is pending. Other P1 lexical/ordering checks and all P0/P1/P2, full native suite, RAM high-water and actual Spectrum remain open.

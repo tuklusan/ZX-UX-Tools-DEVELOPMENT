@@ -24,6 +24,19 @@ class F77SChecks(unittest.TestCase):
                 validate_source(source, units)
                 convert(units)
 
+    def test_underscore_rejected_outside_character_literals(self):
+        valid = ('      PROGRAM ABC\n'
+                 '      CHARACTER*5 X\n'
+                 "      X='A_B'\n"
+                 '      END\n')
+        units=parse(valid,std='f77s')
+        validate_source(valid,units)
+        for bad in (valid.replace('PROGRAM ABC','PROGRAM A_B'),
+                    valid.replace('CHARACTER*5 X','CHARACTER*5 X_Y'),
+                    valid.replace("X='A_B'","X=A_B")):
+            with self.subTest(source=bad),self.assertRaisesRegex(FortranError,'underscore'):
+                validate_source(bad,units)
+
     def test_label_digits_with_internal_spaces(self):
         source = '      PROGRAM FIXED\n1 2 3 CONTINUE\n      END\n'
         units = parse(source, std='f77s')
