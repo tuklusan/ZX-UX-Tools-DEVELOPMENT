@@ -365,7 +365,7 @@ def parse(source, std='zxux'):
                     raise FortranError(st.line, 'EXTERNAL/INTRINSIC name conflicts with dummy/array')
                 if kind == 'INTRINSIC':
                     if name not in ('ABS','IABS','INT','IFIX','FLOAT','AINT','NINT',
-                                    'SQRT','SIN','COS','EXP','LOG','TAN','ASIN','ACOS','ATAN','ATAN2','ALOG10','AMOD','ISIGN','SIGN','IDIM','DIM','MAX0','MIN0','AMAX1','AMIN1','AMAX0','AMIN0','MAX1','MIN1','MOD'):
+                                    'SQRT','SIN','COS','EXP','LOG','ALOG','SINH','COSH','TANH','ANINT','REAL','TAN','ASIN','ACOS','ATAN','ATAN2','ALOG10','AMOD','ISIGN','SIGN','IDIM','DIM','MAX0','MIN0','AMAX1','AMIN1','AMAX0','AMIN0','MAX1','MIN1','MOD'):
                         raise FortranError(st.line, 'INTRINSIC specific not yet supported: ' + name)
                     u.intrinsics.add(name)
                 else:
@@ -612,19 +612,21 @@ class Expr:
                         result_type = 'REAL'
                     else:
                         raise FortranError(self.line, t + ' intrinsic argument type mismatch')
-                elif t in ('SQRT', 'SIN', 'COS', 'EXP', 'LOG', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'ALOG10') and len(params) == 1:
+                elif t in ('SQRT', 'SIN', 'COS', 'EXP', 'LOG', 'ALOG', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'ALOG10', 'SINH', 'COSH', 'TANH') and len(params) == 1:
                     if self.expr_types[params[0]] != 'REAL':
                         raise FortranError(self.line, t + ' needs REAL argument')
-                    lhs = 'f_' + ('sqrt' if t == 'SQRT' else t.lower()) + '_real(' + params[0] + ')'
+                    lhs = 'f_' + ('sqrt' if t == 'SQRT' else 'log' if t == 'ALOG' else t.lower()) + '_real(' + params[0] + ')'
                     result_type = 'REAL'
-                elif t in ('FLOAT', 'IFIX', 'AINT', 'NINT') and len(params) == 1:
+                elif t in ('FLOAT', 'REAL', 'IFIX', 'AINT', 'NINT', 'ANINT') and len(params) == 1:
                     arg_type = self.expr_types[params[0]]
                     if (t == 'FLOAT' and arg_type != 'INTEGER' or
-                        t != 'FLOAT' and arg_type != 'REAL'):
+                        t == 'REAL' and arg_type not in ('INTEGER', 'REAL') or
+                        t not in ('FLOAT', 'REAL') and arg_type != 'REAL'):
                         raise FortranError(self.line, t + ' intrinsic argument type mismatch')
-                    lhs = ('((float)(' + params[0] + '))' if t == 'FLOAT' else
+                    lhs = ('((float)(' + params[0] + '))' if t in ('FLOAT', 'REAL') else
                            'f_int_real(' + params[0] + ')' if t == 'IFIX' else
                            '((float)f_int_real(' + params[0] + '))' if t == 'AINT' else
+                           '((float)f_nint_real(' + params[0] + '))' if t == 'ANINT' else
                            'f_nint_real(' + params[0] + ')')
                     result_type = 'INTEGER' if t in ('IFIX', 'NINT') else 'REAL'
                 elif t in self.unit.statement_functions:
@@ -1420,6 +1422,35 @@ static float f_log_real(float x) { if (x <= 0.0) exit(2); return log(x); }
 """,
     'TAN': """
 static float f_tan_real(float x) { return tan(x); }
+""",
+    'SINH': """
+static float f_sinh_real(float x) {
+    float positive;
+    float negative;
+    if (x > 10.0 || x < -10.0) exit(2);
+    positive = f_exp_real(x);
+    negative = f_exp_real(-x);
+    return (positive - negative) / 2.0;
+}
+""",
+    'COSH': """
+static float f_cosh_real(float x) {
+    float positive;
+    float negative;
+    if (x > 10.0 || x < -10.0) exit(2);
+    positive = f_exp_real(x);
+    negative = f_exp_real(-x);
+    return (positive + negative) / 2.0;
+}
+""",
+    'TANH': """
+static float f_tanh_real(float x) {
+    float e;
+    if (x > 8.0) return 1.0;
+    if (x < -8.0) return -1.0;
+    e = f_exp_real(x);
+    return (e * e - 1.0) / (e * e + 1.0);
+}
 """,
     'ASIN': """
 static float f_asin_real(float x) { if (x < -1.0 || x > 1.0) exit(2); return asin(x); }
@@ -2473,12 +2504,14 @@ def convert(units, emit_units=None):
         chunks.append(bind('\n'.join(output), aliases))
     # Supply only the REAL math code called by this translation unit.
     emitted = '\n'.join(chunks)
-    needed = {name for name in ('SIN', 'COS', 'EXP', 'LOG', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'ATAN2', 'ALOG10', 'AMOD', 'RIPOW', 'RPOW')
+    needed = {name for name in ('SIN', 'COS', 'EXP', 'LOG', 'TAN', 'SINH', 'COSH', 'TANH', 'ASIN', 'ACOS', 'ATAN', 'ATAN2', 'ALOG10', 'AMOD', 'RIPOW', 'RPOW')
               if 'f_' + name.lower() + '_real(' in emitted}
     if 'RPOW' in needed:
         needed.update(('EXP', 'LOG'))
+    if needed.intersection(('SINH', 'COSH', 'TANH')):
+        needed.add('EXP')
     chunks[1:1] = [REAL_MATH_RUNTIME[name] for name in
-                    ('SIN', 'COS', 'EXP', 'LOG', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'ATAN2', 'ALOG10', 'AMOD', 'RIPOW', 'RPOW') if name in needed]
+                    ('SIN', 'COS', 'EXP', 'LOG', 'TAN', 'SINH', 'COSH', 'TANH', 'ASIN', 'ACOS', 'ATAN', 'ATAN2', 'ALOG10', 'AMOD', 'RIPOW', 'RPOW') if name in needed]
     if emit_units is not None:
         chunks[0] = sparse_runtime(RUNTIME, '\n'.join(chunks[1:]))
     return '\n\n'.join(chunks) + '\n'

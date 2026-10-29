@@ -1066,6 +1066,22 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(bad_call=bad_call),self.assertRaises(FortranError):
                 convert(parse(bad,std='f77s'))
 
+    def test_f77s_specific_hyperbolic_and_rounding_intrinsics(self):
+        source=(ROOT/'tests/fortran/f77s_hyper.f').read_text()
+        units=parse(source,std='f77s')
+        validate_source(source,units)
+        generated=convert(units)
+        for helper in ('f_sinh_real(', 'f_cosh_real(', 'f_tanh_real(',
+                       'f_nint_real(', 'f_log_real('):
+            self.assertIn(helper,generated)
+        self.assertIn('positive = f_exp_real(x);',generated)
+        self.assertIn('negative = f_exp_real(-x);',generated)
+        for expr in ('SINH(1)', 'COSH(1)', 'TANH(1)', 'ANINT(1)',
+                     'ALOG(1)', 'REAL(.TRUE.)', 'COSH(1.0,2.0)'):
+            with self.subTest(expr=expr),self.assertRaises(FortranError):
+                convert(parse('      PROGRAM BAD\n      REAL R\n'
+                              '      R='+expr+'\n      END\n',std='f77s'))
+
     def test_two_argument_real_specific_intrinsics(self):
         src=(ROOT/'tests/fortran/f77s_rmath.f').read_text()
         units=parse(src,std='f77s')
