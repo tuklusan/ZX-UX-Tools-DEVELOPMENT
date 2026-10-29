@@ -55,6 +55,7 @@ CASES['f77s_f6'] = ['    1.234567   -0.000125    9.999999', '    1.234567   -0.0
 CASES['f77s_exintr'] = ['     1.48']
 CASES['f77s_frevert'] = ['   1   2', '   3   4', '   5']
 CASES['f77s_unitvar'] = ['   42']
+CASES['f77s_directio'] = ['  -42','    9']
 CASES['f77s_fmtchr'] = ['   12   34']
 CASES['f77s_afread'] = ['   12   34']
 CASES['f77s_vuniio'] = ['   1   2','   3   4','   5','   5   4','   3   2','   1','   6']

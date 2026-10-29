@@ -828,6 +828,51 @@ static int f_ipow(int base, int e) {
     for (n = 0; n < e; n++) result = result * base;
     return result;
 }
+/* F77S unnamed direct-access scratch units; one file per unit 1..9.
+   A direct unformatted INTEGER record is stored as a sign-extended
+   four-byte little-endian value, compatible with a 32-bit host reference.
+   C48 INTEGER remains 16-bit and record indices must fit 16-bit seek. */
+static int f_dh[10];
+static int f_dl[10];
+static void f_dopen(int unit, int recl) {
+    char path[9];
+    int fd;
+    if (unit < 1 || unit > 9 || recl != 4) exit(2);
+    strcpy(path, "/tmp/fu0");
+    path[7] = '0' + unit;
+    fd = creat(path, 438);
+    if (fd < 0) exit(2);
+    if (close(fd) < 0) exit(2);
+    fd = open(path, 2);
+    if (fd < 0) exit(2);
+    f_dh[unit] = fd;
+    f_dl[unit] = recl;
+}
+static void f_dseek(int unit, int rec) {
+    int offset;
+    if (unit < 1 || unit > 9 || f_dl[unit] != 4) exit(2);
+    if (rec < 1 || rec > 8192) exit(2);
+    offset = (rec - 1) * 4;
+    if (seek(f_dh[unit], offset) < 0) exit(2);
+}
+static void f_dwritei(int unit, int rec, int value) {
+    int high;
+    f_dseek(unit, rec);
+    high = 0;
+    if (value < 0) high = -1;
+    if (write(f_dh[unit], &value, 2) != 2) exit(2);
+    if (write(f_dh[unit], &high, 2) != 2) exit(2);
+}
+static int f_dreadi(int unit, int rec) {
+    int value;
+    int high;
+    f_dseek(unit, rec);
+    if (read(f_dh[unit], &value, 2) != 2) exit(2);
+    if (read(f_dh[unit], &high, 2) != 2) exit(2);
+    if (value < 0) { if (high != -1) exit(2); }
+    else if (high != 0) exit(2);
+    return value;
+}
 static void f_outstr(char *s) {
     while (*s) { putchar(*s); s++; }
 }
@@ -1556,6 +1601,8 @@ def sparse_runtime(runtime, used_in):
     for name in ('f_fmt_eor', 'f_fmt_bzero'):
         if re.search(r'\b' + name + r'\b', used_in + functions_src):
             globals_src += 'static int ' + name + ';\n'
+    if re.search(r'\bf_d(?:open|seek|writei|readi)\s*\(', used_in + functions_src):
+        globals_src += 'static int f_dh[10];\nstatic int f_dl[10];\n'
     return '#include <c48.h>\n' + globals_src + functions_src + '\n'
 
 
@@ -1977,6 +2024,36 @@ def convert(units, emit_units=None):
                 n = add([E(var, line) + ' = ' + label + ';'])
                 gotos.append((None, label, line))  # validate target exists, including FORMAT
                 return
+            # F77S narrow unnamed direct-access unformatted scratch files.
+            # Each unit 1..9 owns /tmp/fuN; no named FILE= specifier.
+            direct_open = re.fullmatch(
+                r"OPEN\s*\(\s*([1-9])\s*,\s*ACCESS\s*=\s*'DIRECT'\s*,\s*RECL\s*=\s*(4)\s*\)",
+                s)
+            if direct_open:
+                unit_no, rec_len = direct_open.groups()
+                add(['f_dopen(' + unit_no + ', ' + rec_len + ');'])
+                return
+            if re.match(r'^OPEN\b', s):
+                raise FortranError(line, 'only unnamed direct INTEGER RECL=4 OPEN is currently implemented')
+            direct_io = re.fullmatch(
+                r'(READ|WRITE)\s*\(\s*([1-9])\s*,\s*REC\s*=\s*([0-9]+|[A-Z][A-Z0-9_]*)\s*\)\s*([A-Z][A-Z0-9_]*)',
+                s)
+            if direct_io:
+                kind, unit_no, rec, name = direct_io.groups()
+                if u.vars.get(name) != ('INTEGER', None):
+                    raise FortranError(line, 'direct unformatted I/O requires a single INTEGER scalar')
+                if NAME_RE.fullmatch(rec) and u.vars.get(rec) != ('INTEGER', None):
+                    raise FortranError(line, 'REC identifier must be INTEGER scalar')
+                if rec.isdecimal() and not (1 <= int(rec) <= 8192):
+                    raise FortranError(line, 'direct record number out of supported range')
+                rec_expr = ('F_' + rec) if NAME_RE.fullmatch(rec) else rec
+                if kind == 'WRITE':
+                    add(['f_dwritei(' + unit_no + ', ' + rec_expr + ', F_' + name + ');'])
+                else:
+                    add(['F_' + name + ' = f_dreadi(' + unit_no + ', ' + rec_expr + ');'])
+                return
+            if re.match(r'^(READ|WRITE)\s*\(\s*[0-9]+\s*,\s*REC\s*=', s):
+                raise FortranError(line, 'direct unformatted I/O supports one INTEGER scalar and REC')
             def console_unit_guard(identifier, required):
                 if identifier in (str(required), '*'):
                     return None

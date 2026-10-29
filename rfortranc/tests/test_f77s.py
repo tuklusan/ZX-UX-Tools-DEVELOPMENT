@@ -1311,6 +1311,26 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_iend_',lowered)
         self.assertIn('f_fmt_int(3);',lowered)
 
+    def test_narrow_direct_unformatted_integer_scratch(self):
+        src=(ROOT/'tests/fortran/f77s_directio.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        lowered=convert(units)
+        self.assertIn('f_dopen(7, 4);',lowered)
+        self.assertIn('f_dwritei(7, F_REC, F_A);',lowered)
+        self.assertIn('F_B = f_dreadi(7, 2);',lowered)
+        linked=convert(units,emit_units={'DREC'})
+        self.assertIn('static int f_dh[10];',linked)
+        self.assertIn('static int f_dl[10];',linked)
+        for old,new in (
+            ("OPEN(7,ACCESS='DIRECT',RECL=4)","OPEN(7,ACCESS='DIRECT',RECL=8)"),
+            ("OPEN(7,ACCESS='DIRECT',RECL=4)","OPEN(7,FILE='X',ACCESS='DIRECT',RECL=4)"),
+            ("WRITE(7,REC=REC) A","WRITE(7,REC=0) A"),
+            ("WRITE(7,REC=REC) A","WRITE(7,REC=REC) A,B"),
+        ):
+            with self.subTest(old=old,new=new), self.assertRaises(FortranError):
+                convert(parse(src.replace(old,new),std='f77s'))
+
     def test_character_and_assigned_format_read(self):
         for name in ('f77s_fmtchr', 'f77s_afread'):
             source=(ROOT/'tests/fortran'/(name+'.f')).read_text()
