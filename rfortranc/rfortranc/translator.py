@@ -365,7 +365,7 @@ def parse(source, std='zxux'):
                     raise FortranError(st.line, 'EXTERNAL/INTRINSIC name conflicts with dummy/array')
                 if kind == 'INTRINSIC':
                     if name not in ('ABS','IABS','INT','IFIX','FLOAT','AINT','NINT',
-                                    'SQRT','SIN','COS','EXP','LOG','TAN','ASIN','ACOS','ATAN','ATAN2','ALOG10','AMOD','MOD'):
+                                    'SQRT','SIN','COS','EXP','LOG','TAN','ASIN','ACOS','ATAN','ATAN2','ALOG10','AMOD','ISIGN','SIGN','IDIM','DIM','MOD'):
                         raise FortranError(st.line, 'INTRINSIC specific not yet supported: ' + name)
                     u.intrinsics.add(name)
                 else:
@@ -638,6 +638,12 @@ class Expr:
                     lhs = '(' + Expr(body, self.unit, self.known, self.line,
                                      local, self.active_functions | {t}).read() + ')'
                     result_type = self.unit.vars[t][0]
+                elif t in ('ISIGN', 'SIGN', 'IDIM', 'DIM') and len(params) == 2:
+                    expected = 'INTEGER' if t in ('ISIGN', 'IDIM') else 'REAL'
+                    if any(self.expr_types[p] != expected for p in params):
+                        raise FortranError(self.line, t + ' needs two ' + expected + ' arguments')
+                    lhs = 'f_' + t.lower() + '(' + ', '.join(params) + ')'
+                    result_type = expected
                 elif t in ('ATAN2', 'AMOD') and len(params) == 2:
                     if any(self.expr_types[p] != 'REAL' for p in params):
                         raise FortranError(self.line, t + ' intrinsic needs two REAL arguments')
@@ -734,6 +740,30 @@ static int f_abs_int(int x) {
     if (x == -32768) exit(2);
     if (x < 0) return -x;
     return x;
+}
+/* Specific integer and real SIGN/DIM: avoid undefined 16-bit overflow. */
+static int f_isign(int x, int y) {
+    if (x == -32768) {
+        if (y < 0) return -32768;
+        exit(2);
+    }
+    if (x < 0) x = -x;
+    if (y < 0) return -x;
+    return x;
+}
+static float f_sign(float x, float y) {
+    if (x < 0.0) x = -x;
+    if (y < 0.0) return -x;
+    return x;
+}
+static int f_idim(int x, int y) {
+    if (x <= y) return 0;
+    if (y < 0 && x > 32767 + y) exit(2);
+    return x - y;
+}
+static float f_dim(float x, float y) {
+    if (x <= y) return 0.0;
+    return x - y;
 }
 static int f_nint_real(float x) {
     if (x < 0.0) return f_int_real(x - 0.5);

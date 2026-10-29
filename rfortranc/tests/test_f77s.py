@@ -1039,6 +1039,19 @@ class F77SChecks(unittest.TestCase):
         for name in ('sin', 'cos', 'exp', 'log'):
             self.assertNotIn('static float f_' + name + '_real(', integer_c)
 
+    def test_sign_and_dim_specific_typing(self):
+        src=(ROOT/'tests/fortran/f77s_sigdim.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        for name in ('f_isign','f_sign','f_idim','f_dim'):
+            self.assertIn(name+'(',c)
+        for bad_call in ('ISIGN(2.0,1)', 'SIGN(2,1.0)',
+                         'IDIM(1,2.0)', 'DIM(1.0,1)', 'ISIGN(1)'):
+            bad='      PROGRAM BAD\n      REAL X\n      X='+bad_call+'\n      END\n'
+            with self.subTest(bad_call=bad_call),self.assertRaises(FortranError):
+                convert(parse(bad,std='f77s'))
+
     def test_two_argument_real_specific_intrinsics(self):
         src=(ROOT/'tests/fortran/f77s_rmath.f').read_text()
         units=parse(src,std='f77s')

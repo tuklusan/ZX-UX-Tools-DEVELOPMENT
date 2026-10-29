@@ -265,3 +265,9 @@
 
 - Supports rank-2/3 numeric dummy array leading INTEGER bounds supplied by named COMMON. `f77s_cbound.f` has `B(N,3)` where N is in `/SIZE/` instead of a dummy. Matched ZX-UX Z80 emulator output `    6   42`, gfortran agrees; monolithic SSX 1919 bytes, separately linked two-object SSX 2094 bytes. Changing M=2 to M=4 against six elements traps Z80 exit code 2.
 - Local 136/136 frontend, selected Z80 2/2, host differential 1/1. Complete regression, P0/P1/P2, peak runtime RAM and physical Spectrum validation remain OPEN. Next: CI and further language coverage. No production-readiness claim.
+
+## Milestone — typed numeric SIGN and DIM specific intrinsics (2026-10-29)
+
+- Implemented F77S specific numeric ISIGN/SIGN and IDIM/DIM with INTEGER/REAL two-argument type checks. Integer -32768 sign-transfer and positive-difference overflow trap with code 2 instead of wrapping. Invalid arities and mixed types are diagnosed.
+- The actual matched ZX-UX Z80 binary of `f77s_sigdim.f` was 3,674 bytes. RVM exited 0 after 203 frames/29 system calls; stdout lines were `     7    -7     7     0` and `     2.50    -2.50     5.00     0.00`, identical to independent gfortran. Two separate negative overflow binaries exit 2. Local frontend 137/137, host gfortran reference 98/98, selected native 1/1 and selected differential 1/1.
+- Tests, strict source, harness mappings and hash-linked report are committed. The complete current-SHA native/bounds/release suites, remaining F77S P0/P1/P2, live RAM peak and physical Spectrum/cassette validation remain OPEN. Do not claim production readiness.
