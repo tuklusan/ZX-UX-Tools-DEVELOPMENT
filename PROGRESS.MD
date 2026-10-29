@@ -92,3 +92,9 @@
 - New strict `f77s_eread.f` accepts built-in test input `   0.123400E+003   0.500000E+001`. Independently tested gfortran and matched Z80 SDK/RVM: both wrote `   123.40     5.00`, native exited 0 after 385 frames, 65 system calls; strict frontend 106/106 unit tests passed on local candidate.
 - Input fixture keys registered in native emulator and differential harness; pushed with source and root checkpoint. Full four-suite native regression results for this changed compiler are pending; no physical Spectrum proof or peak RAM measurement yet.
 - NEXT: run complete native/differential/bounds/release on exact current source SHA; implement required BN/BZ, F/E wider support, I/O implied-DO and all remaining P0/P1/P2.
+
+## Milestone — F77S FORMAT BN/BZ blank controls (2026-10-29)
+
+- Added `BN`/`BZ` edit descriptors, reset-to-BN per formatted READ, and zero-vs-ignore blank conversion for integer, F decimal and E exponential numeric input. WRITE treats BN/BZ as no-op descriptors. C48 helper name `f_fmt_bzero` respects 15-character identifier limit.
+- Strict source `f77s_bnbz.f` and negative/positive test: supplied input `  42  12  ` (two fixed I5 fields); both independent gfortran and actual ZX-UX SSX/RVM output `  420   12`. SSX 1,769 bytes, ZX-UX exited 0 after 226 frames/42 system calls; 107/107 frontend unit tests passed locally. Added to native/differential cases and keyboard input map.
+- Still partial FORMAT coverage: exponent ranges, P scale, reversion/record handling, internal I/O, assigned/character format IDs. Complete native regressions required for this new source; no physical Spectrum validation.

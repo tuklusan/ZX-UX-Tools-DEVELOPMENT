@@ -771,6 +771,7 @@ static void f_outexp(float value, int width, int places) {
 /* ANSI F77S formatted INTEGER input (limited Iw/X/slash subset).
    Fields are blank-padded to the end of each input record. */
 static int f_fmt_eor;
+static int f_fmt_bzero;
 static int f_fmt_get(void) {
     int ch;
     if (f_fmt_eor) return ' ';
@@ -799,7 +800,10 @@ static int f_fmt_int(int width) {
     value = 0;
     for (i = 0; i < width; i++) {
         ch = f_fmt_get();
-        if (ch == ' ') continue;
+        if (ch == ' ') {
+            if (!f_fmt_bzero) continue;
+            ch = '0';
+        }
         if ((ch == '-' || ch == '+') && !digits && !signed_seen) {
             if (ch == '-') sign = -1;
             else sign = 1;
@@ -851,7 +855,10 @@ static float f_fmt_real(int width, int places) {
     started = 0;
     for (i = 0; i < width; i++) {
         ch = f_fmt_get();
-        if (ch == ' ') continue;
+        if (ch == ' ') {
+            if (!f_fmt_bzero) continue;
+            ch = '0';
+        }
         if ((ch == '-' || ch == '+') && !started) {
             if (ch == '-') sign = -1;
             started = 1;
@@ -886,7 +893,10 @@ static float f_fmt_ereal(int width, int places) {
     exp_sign_seen = 0;
     for (i = 0; i < width; i++) {
         ch = f_fmt_get();
-        if (ch == ' ') continue;
+        if (ch == ' ') {
+            if (!f_fmt_bzero) continue;
+            ch = '0';
+        }
         if (!in_exp && (ch == '+' || ch == '-') && !digits && !point) {
             if (ch == '-') sign = -1;
             continue;
@@ -1066,6 +1076,9 @@ def subset_format(source, line):
                 if len(operations) + (repeat - 1) * len(pattern) > 255:
                     raise FortranError(line, 'FORMAT expands beyond 255 operations')
                 operations.extend(pattern * (repeat - 1))
+                continue
+            if token in ('BN', 'BZ'):
+                append(('blank', 0 if token == 'BN' else 1))
                 continue
             if re.fullmatch(r"'(?:[^']|'')*'", token):
                 append(('literal', token))
@@ -1382,6 +1395,8 @@ def convert(units):
                 operations = []
                 pos = 0
                 for mode, item in formats[format_label]:
+                    if mode == 'blank':
+                        continue  # BN/BZ affect numeric input conversion, not output
                     if mode == 'literal':
                         operations.append('f_outstr(' + c_string(item) + ');')
                     elif mode == 'space':
@@ -1441,10 +1456,12 @@ def convert(units):
                 if format_label not in formats:
                     raise FortranError(line, 'undefined FORMAT label: ' + format_label)
                 values = split_items(arguments) if arguments.strip() else []
-                operations = []
+                operations = ['f_fmt_bzero = 0;']
                 pos = 0
                 for mode, item in formats[format_label]:
-                    if mode == 'space':
+                    if mode == 'blank':
+                        operations.append('f_fmt_bzero = ' + str(item) + ';')
+                    elif mode == 'space':
                         operations.append('f_fmt_skip(' + str(item) + ');')
                     elif mode == 'newline':
                         operations.append('f_fmt_end();')

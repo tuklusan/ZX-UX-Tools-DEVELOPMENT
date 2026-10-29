@@ -817,6 +817,15 @@ class F77SChecks(unittest.TestCase):
             self.assertIn('f_seqcheck(', generated)
             self.assertIn('f_extent(', generated)
 
+    def test_blank_control_bn_bz(self):
+        src = (ROOT/'tests/fortran/f77s_bnbz.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        generated = convert(units)
+        self.assertIn('f_fmt_bzero = 1;', generated)
+        self.assertIn('f_fmt_bzero = 0;', generated)
+        self.assertIn('static int f_fmt_bzero;', generated)
+
     def test_exponential_formatted_input(self):
         src = (ROOT/'tests/fortran/f77s_eread.f').read_text()
         units = parse(src, std='f77s')
