@@ -904,6 +904,26 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_exp_real(', output)
         self.assertIn('f_log_real(', output)
 
+    def test_assigned_goto_and_assign_label_validation(self):
+        src = (ROOT/'tests/fortran/f77s_assgn.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        output = convert(units)
+        self.assertIn('F_K = 30;', output)
+        self.assertIn('F_K == 20', output)
+        self.assertIn('F_K == 30', output)
+        for body in [
+            ['INTEGER K', 'ASSIGN 100 TO K'],
+            ['REAL K', 'ASSIGN 10 TO K', '10 CONTINUE'],
+            ['REAL K', 'GO TO K, (10)', '10 CONTINUE'],
+            ['INTEGER K', 'GO TO K'],
+            ['INTEGER K', 'ASSIGN 10 TO K', 'GO TO K, (20)', '10 CONTINUE'],
+        ]:
+            with self.subTest(body=body):
+                source = '      PROGRAM BAD\n' + ''.join('      '+line+'\n' for line in body) + '      END\n'
+                with self.assertRaises(FortranError):
+                    convert(parse(source, std='f77s'))
+
     def test_real_to_int_truncation_and_machine_guard(self):
         src=(ROOT/'tests/fortran/f77s_int.f').read_text()
         units=parse(src,std='f77s')

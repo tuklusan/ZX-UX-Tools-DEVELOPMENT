@@ -105,6 +105,7 @@ PROGRAMS = {
     'f77s_trig': '     0.48     0.88     1.65     0.50    -0.48',
     'f77s_stfn': '    12.00    99.00',
     'f77s_rpow': '     8.00     3.00     4.00     0.25    -8.00   512.00',
+    'f77s_assgn': '  42',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',

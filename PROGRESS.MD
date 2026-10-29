@@ -71,3 +71,10 @@
 - Strict fixture `f77s_rpow.f` tested **on actual ZX-UX Z80 executable** using matched SDK and shipped kernel RVM. Binary `/tmp/f77s_rpow.ssx` 4,042 bytes. Native screen `     8.00     3.00     4.00     0.25    -8.00   512.00`, exited 0 after 218 frames; independent gfortran output matched exactly; 103 focused frontend tests passed in local testing snapshot. Gfortran warned about unary operator following power (compiler accepted the expression); expand strictly portable edge corpus before final closure.
 - The full native suite against prior `fe2ee3b` revision completed **97/97** on matched SDK/RVM; remaining differential/bounds/release suites were in progress at this checkpoint and **must not** be attributed to this revision. Physical Spectrum validation remains OPEN.
 - NEXT: rerun all suites against this commit, inspect native/gfortran precision and exponent edge cases; close remaining P0, P1 and P2, including actual target-memory accounting and real hardware proof.
+
+## Milestone — ASSIGN / assigned GO TO (2026-10-29)
+
+- Added INTEGER-scalar `ASSIGN label TO variable` and assigned `GO TO variable, (labels)` or `GO TO variable`, with target validation, format/nonformat distinction and unmatched-value trap. Expanded implicit keyword whitelist. Partial P1; PAUSE and assigned FORMAT use still missing.
+- Independent gfortran and matched SDK RVM ran strict source `f77s_assgn.f`: output `  42`, ZX-UX exit 0 at frame 172; 104/104 frontend unit tests passed locally. `rfortranc/tests/fortran/f77s_assgn.f` added to native and differential maps.
+- The previous source revision `fe2ee3b` ran **97/97 native** regression checks, but does not prove this revision. That revision's numerical differential, bounds and release runs remain tracked in the prior local evidence until finished. Physical Spectrum validation remains untested.
+- NEXT: run all suites on current commit, implement further P0 permitted I/O and FORMAT forms, P1 procedure/storage/arrays/file positioning, P2 linker; never mark production ready without target proof.

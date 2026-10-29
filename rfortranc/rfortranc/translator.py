@@ -1248,6 +1248,14 @@ def convert(units):
         else:
             for target, value in data_entries:
                 decl(data_init_statement(target, value))
+        # Each ASSIGN is a label-valued INTEGER definition, distinct from
+        # assignment of an arithmetic expression to that integer.
+        assigned_by_var = {}
+        for st in u.statements:
+            assigned = re.fullmatch(r'ASSIGN\s+(\d{1,5})\s+TO\s+(' + NAME + r')', st.text)
+            if assigned:
+                label, var = assigned.groups()
+                assigned_by_var.setdefault(var, set()).add(str(int(label)))
         code = []
         labels = {}
         gotos = []
@@ -1285,6 +1293,15 @@ def convert(units):
                 return  # initialized once for subprogram DATA
             if re.match(r'^SAVE\b', s):
                 return  # checked by common.layout; storage is already global/static
+            assigned = re.fullmatch(r'ASSIGN\s+(\d{1,5})\s+TO\s+(' + NAME + r')', s)
+            if assigned:
+                label, var = assigned.groups()
+                if u.vars.get(var) != ('INTEGER', None):
+                    raise FortranError(line, 'ASSIGN needs INTEGER scalar variable')
+                label = str(int(label))
+                n = add([E(var, line) + ' = ' + label + ';'])
+                gotos.append((None, label, line))  # validate target exists, including FORMAT
+                return
             fm = re.fullmatch(r'WRITE\s*\(\s*(6|\*)\s*,\s*(\d{1,5})\s*\)\s*(.*)', s)
             if fm:
                 _, format_label, arguments = fm.groups()
@@ -1440,6 +1457,25 @@ def convert(units):
                     pc = add([])
                     conditional_gotos.append((pc, key + ' == ' + str(index),
                                               str(int(label)), pc + 1, line))
+                return
+            # Assigned GO TO: allowed label lists are checked against active
+            # executable labels; missing labels are trapped, not ignored.
+            ag = re.fullmatch(r'GO\s*TO\s+(' + NAME + r')(?:\s*,?\s*\(([^()]*)\))?', s)
+            if ag:
+                var, listed = ag.groups()
+                if u.vars.get(var) != ('INTEGER', None):
+                    raise FortranError(line, 'assigned GO TO needs INTEGER scalar variable')
+                if listed is None:
+                    targets = sorted(assigned_by_var.get(var, ()), key=int)
+                else:
+                    targets = [item.strip() for item in split_items(listed)]
+                if not targets or any(not re.fullmatch(r'\d{1,5}', x) for x in targets):
+                    raise FortranError(line, 'assigned GO TO needs valid label list or ASSIGN values')
+                for lab in targets:
+                    pc = add([])
+                    conditional_gotos.append((pc, E(var, line) + ' == ' + str(int(lab)),
+                                              str(int(lab)), pc + 1, line))
+                add(['exit(2);'], 'return')  # undefined transfer is never a silent fallthrough
                 return
             if s.startswith('CALL '):
                 m = re.fullmatch(r'CALL\s+(' + NAME + r')\s*\((.*)\)', s)
@@ -1708,6 +1744,8 @@ def convert(units):
         for n, lab, ln in gotos:
             if lab not in labels:
                 raise FortranError(ln, 'undefined statement label: ' + lab)
+            if n is None:
+                continue  # ASSIGN only defines a label; FORMAT targets are legal
             if lab in formats:
                 raise FortranError(ln, 'control transfer to FORMAT label: ' + lab)
             update(n, ('jump', labels[lab]))
