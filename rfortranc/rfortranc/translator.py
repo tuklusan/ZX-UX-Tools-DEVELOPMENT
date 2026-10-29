@@ -396,6 +396,7 @@ class Expr:
         self.unit, self.known, self.line = unit, known_units, line
         self.substitutions = substitutions or {}
         self.active_functions = active_functions
+        self.expr_types = {}
         self.toks = []
         pos = 0
         while pos < len(text):
@@ -428,15 +429,21 @@ class Expr:
         t = self.pop()
         if t in ('+', '-', '.NOT.'):
             op = '!' if t == '.NOT.' else t
-            lhs = '(' + op + self.pratt(6) + ')'
+            operand = self.pratt(6)
+            lhs = '(' + op + operand + ')'
+            result_type = 'LOGICAL' if t == '.NOT.' else self.expr_types[operand]
         elif t == '(':
-            lhs = '(' + self.pratt(0) + ')'
+            operand = self.pratt(0)
+            lhs = '(' + operand + ')'
+            result_type = self.expr_types[operand]
             if self.pop() != ')':
                 raise FortranError(self.line, 'missing closing parenthesis')
         elif t in ('.TRUE.', '.FALSE.'):
             lhs = '1' if t == '.TRUE.' else '0'
+            result_type = 'LOGICAL'
         elif re.fullmatch(r'\d+(?:\.\d*)?(?:[ED][+-]?\d+)?|\.\d+(?:[ED][+-]?\d+)?', t):
             lhs = t.replace('D', 'E')
+            result_type = 'REAL' if '.' in t or 'E' in t or 'D' in t else 'INTEGER'
         elif NAME_RE.fullmatch(t):
             if self.peek() == '(':
                 self.pop()
@@ -453,16 +460,21 @@ class Expr:
                     if self.unit.vars[t][0].startswith('CHARACTER*'):
                         raise FortranError(self.line, 'CHARACTER array element requires character assignment/comparison or A FORMAT')
                     lhs = 'F_' + t + '[' + array_subscript(params, t, self.unit, self.line) + ']'
+                    result_type = self.unit.vars[t][0]
                 elif t == 'INT' and len(params) == 1:
                     # ANSI subset numeric INT: discard the fractional part
                     # (truncation toward zero, not floor or rounding).
                     lhs = 'f_int_real(' + params[0] + ')'
+                    result_type = 'INTEGER'
                 elif t == 'ABS' and len(params) == 1:
                     lhs = 'f_abs_real(' + params[0] + ')'
+                    result_type = 'REAL'
                 elif t == 'SQRT' and len(params) == 1:
                     lhs = 'f_sqrt_real(' + params[0] + ')'
+                    result_type = 'REAL'
                 elif t in ('SIN', 'COS', 'EXP', 'LOG') and len(params) == 1:
                     lhs = 'f_' + t.lower() + '_real(' + params[0] + ')'
+                    result_type = 'REAL'
                 elif t in self.unit.statement_functions:
                     if t in self.active_functions:
                         raise FortranError(self.line, 'recursive statement function: ' + t)
@@ -473,8 +485,10 @@ class Expr:
                     local.update(zip(formals, params))
                     lhs = '(' + Expr(body, self.unit, self.known, self.line,
                                      local, self.active_functions | {t}).read() + ')'
+                    result_type = self.unit.vars[t][0]
                 elif t == 'MOD' and len(params) == 2:
                     lhs = '((' + params[0] + ') % (' + params[1] + '))'
+                    result_type = 'INTEGER'
                 elif t in self.known and self.known[t].kind == 'function':
                     if len(params) != len(self.known[t].args):
                         raise FortranError(self.line, 'wrong number of function arguments: ' + t)
@@ -482,18 +496,22 @@ class Expr:
                     refs = [reference_actual(arg, self.unit, target.vars[dummy][0])
                             for arg, dummy in zip(params, target.args)]
                     lhs = 'f_' + t + '(' + ', '.join(refs) + ')'
+                    result_type = target.type
                 else:
                     raise FortranError(self.line, 'unknown function: ' + t)
             elif t in self.substitutions:
                 lhs = '(' + self.substitutions[t] + ')'
+                result_type = self.unit.vars.get(t, ('REAL', None))[0]
             elif t in self.unit.vars and self.unit.vars[t][1] is None:
                 if self.unit.vars[t][0].startswith('CHARACTER*'):
                     raise FortranError(self.line, 'CHARACTER must use character assignment/comparison or A FORMAT')
                 lhs = '(*F_' + t + ')' if t in self.unit.args else 'F_' + t
+                result_type = self.unit.vars[t][0]
             else:
                 raise FortranError(self.line, 'undeclared variable: ' + t)
         else:
             raise FortranError(self.line, 'invalid expression token: ' + t)
+        self.expr_types[lhs] = result_type
         while True:
             op = self.peek()
             prec = PRECEDENCE.get(op, -1)
@@ -501,10 +519,22 @@ class Expr:
                 break
             self.pop()
             rhs = self.pratt(prec if op == '**' else prec + 1)
+            lt, rt = self.expr_types[lhs], self.expr_types[rhs]
             if op == '**':
-                lhs = 'f_ipow(' + lhs + ', ' + rhs + ')'
+                if lt == 'INTEGER' and rt == 'INTEGER':
+                    lhs = 'f_ipow(' + lhs + ', ' + rhs + ')'
+                    result_type = 'INTEGER'
+                elif rt == 'INTEGER':
+                    lhs = 'f_ripow_real(' + lhs + ', ' + rhs + ')'
+                    result_type = 'REAL'
+                else:
+                    lhs = 'f_rpow_real(' + lhs + ', ' + rhs + ')'
+                    result_type = 'REAL'
             else:
                 lhs = '((' + lhs + ') ' + BIN.get(op, op) + ' (' + rhs + '))'
+                result_type = ('LOGICAL' if op.startswith('.') else
+                               'REAL' if lt == 'REAL' or rt == 'REAL' else 'INTEGER')
+            self.expr_types[lhs] = result_type
         return lhs
 
 
@@ -1076,6 +1106,30 @@ static float f_exp_real(float x) {
     while (k > 0) { y = y * y; k--; }
     if (inv) return 1.0 / y;
     return y;
+}
+""",
+    'RIPOW': """
+static float f_ripow_real(float base, int power) {
+    float result;
+    int inverse;
+    inverse = 0;
+    if (power == -32768) exit(2);
+    if (power < 0) { if (base == 0.0) exit(2); power = -power; inverse = 1; }
+    result = 1.0;
+    while (power > 0) {
+        if (power % 2 != 0) result = result * base;
+        power = power / 2;
+        if (power > 0) base = base * base;
+    }
+    if (inverse) return 1.0 / result;
+    return result;
+}
+""",
+    'RPOW': """
+static float f_rpow_real(float base, float power) {
+    if (base == 0.0 && power > 0.0) return 0.0;
+    if (base <= 0.0) exit(2);
+    return f_exp_real(power * f_log_real(base));
 }
 """,
     'LOG': """
@@ -1698,9 +1752,12 @@ def convert(units):
         chunks.append(bind('\n'.join(output), aliases))
     # Supply only the REAL math code called by this translation unit.
     emitted = '\n'.join(chunks)
-    wanted = [name for name in ('SIN', 'COS', 'EXP', 'LOG')
-              if 'f_' + name.lower() + '_real(' in emitted]
-    if 'COS' in wanted and 'SIN' not in wanted:
-        wanted.insert(0, 'SIN')
-    chunks[1:1] = [REAL_MATH_RUNTIME[name] for name in wanted]
+    needed = {name for name in ('SIN', 'COS', 'EXP', 'LOG', 'RIPOW', 'RPOW')
+              if 'f_' + name.lower() + '_real(' in emitted}
+    if 'COS' in needed:
+        needed.add('SIN')
+    if 'RPOW' in needed:
+        needed.update(('EXP', 'LOG'))
+    chunks[1:1] = [REAL_MATH_RUNTIME[name] for name in
+                    ('SIN', 'COS', 'EXP', 'LOG', 'RIPOW', 'RPOW') if name in needed]
     return '\n\n'.join(chunks) + '\n'

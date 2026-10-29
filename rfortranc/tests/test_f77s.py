@@ -893,6 +893,17 @@ class F77SChecks(unittest.TestCase):
                 with self.assertRaises(FortranError):
                     convert(parse(src, std='f77s'))
 
+    def test_real_power_typed_and_right_associative(self):
+        src = (ROOT/'tests/fortran/f77s_rpow.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        output = convert(units)
+        self.assertIn('f_ripow_real(', output)
+        self.assertIn('f_rpow_real(', output)
+        self.assertIn('f_ipow(3, 2)', output)
+        self.assertIn('f_exp_real(', output)
+        self.assertIn('f_log_real(', output)
+
     def test_real_to_int_truncation_and_machine_guard(self):
         src=(ROOT/'tests/fortran/f77s_int.f').read_text()
         units=parse(src,std='f77s')

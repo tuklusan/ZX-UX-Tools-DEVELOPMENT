@@ -22,6 +22,7 @@ CASES['f77s_int'] = ['     3    -3     0     0    -2']
 CASES['f77s_datcom'] = ['  42  41']
 CASES['f77s_trig'] = ['     0.48     0.88     1.65     0.50    -0.48']
 CASES['f77s_stfn'] = ['    12.00    99.00']
+CASES['f77s_rpow'] = ['     8.00     3.00     4.00     0.25    -8.00   512.00']
 
 
 INPUTS = {'f77s_read': '0042 007\n', 'f77s_repeat': '003 005 010\n', 'f77s_charread': 'XYZ\n', 'f77s_arrread': 'XYZ\n', 'f77s_realio': '   -3.25\n  001234\n', 'f77s_logio': '   F   T\n'}
