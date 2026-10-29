@@ -324,3 +324,8 @@
 - Tightened the strict F77S source gate: a continuation card with nonblank statement-label columns 1–5 now fails explicitly rather than being treated as a legal continuation. The rule applies only in `--std f77s`; existing ZX-UX extension mode is unchanged.
 - Added positive/negative fixed-form continuation tests to `tests/test_f77s.py`. This is a frontend syntax safeguard, not new target runtime functionality; CI results need checking on the exact pushed commit.
 - NEXT: continue remaining P0/P1/P2, fully rerun actual matched ZX-UX Z80/native, differential, bounds, release and physical Spectrum/peak RAM tests. This is not a production-readiness claim.
+
+## Milestone — F77S zero statement label rejection (2026-10-29)
+
+- Strict fixed-form source validator now rejects a statement labeled `00000`, which is not a valid ANSI FORTRAN statement label (1..99999). Positive and negative frontend tests added; default ZX-UX extension mode unchanged. This is part of the still-partial P1 lexical gate, not compiler readiness.
+- CI proof to be checked against this exact revision after push. Keep broader P0/P1/P2, native Z80 complete suite, RAM peak and physical Spectrum open.

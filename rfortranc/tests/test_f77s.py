@@ -24,6 +24,15 @@ class F77SChecks(unittest.TestCase):
                 validate_source(source, units)
                 convert(units)
 
+    def test_fixed_form_statement_label_cannot_be_zero(self):
+        valid = ('      PROGRAM FIXED\n'
+                 '   10 CONTINUE\n'
+                 '      END\n')
+        units = parse(valid, std='f77s')
+        invalid = valid.replace('   10 CONTINUE', '00000 CONTINUE')
+        with self.assertRaisesRegex(FortranError, 'statement label must be'):
+            validate_source(invalid, units)
+
     def test_continuation_line_cannot_have_label(self):
         valid = ('      PROGRAM FIXED\n'
                  '      INTEGER N\n'
