@@ -1505,6 +1505,7 @@ def convert(units, emit_units=None):
         conditional_gotos = []  # (pc, condition, true_label, false_pc, source_line)
         blocks = []
         formats = {}
+        format_sources = {}
         for st in u.statements:
             fm = re.fullmatch(r'FORMAT\s*\((.*)\)', st.text)
             if fm:
@@ -1513,6 +1514,7 @@ def convert(units, emit_units=None):
                 if st.label in formats:
                     raise FortranError(st.line, 'duplicate FORMAT label: ' + st.label)
                 formats[st.label] = subset_format(fm.group(1), st.line)
+                format_sources[st.label] = fm.group(1)
         def add(lines, tail=None):
             code.append((list(lines), tail))
             return len(code) - 1
@@ -1535,6 +1537,29 @@ def convert(units, emit_units=None):
             if len(body) < 2 or not (body[0] == '(' and body[-1] == ')'):
                 raise FortranError(line, 'CHARACTER FORMAT needs parenthesized format')
             return subset_format(body[1:-1], line)
+        def revert_simple_format(items, count, identifier, line):
+            descriptors = sum(kind in ('integer','real','realexp','realexpdigits','logical','character')
+                              for kind, _ in items)
+            if count <= descriptors:
+                return items
+            if descriptors == 0:
+                raise FortranError(line, 'FORMAT reversion needs at least one data descriptor')
+            if identifier.isdecimal():
+                source = format_sources[str(int(identifier))]
+            else:
+                q = identifier[0]
+                source = identifier[2:-2].replace(q+q,q)
+            if '(' in source or ')' in source:
+                raise FortranError(line, 'nested FORMAT reversion not yet implemented')
+            repeats = (count + descriptors - 1) // descriptors
+            if repeats * len(items) + repeats - 1 > 255:
+                raise FortranError(line, 'FORMAT reversion exceeds 255 operations')
+            result = []
+            for i in range(repeats):
+                if i:
+                    result.append(('newrecord', None))
+                result.extend(items)
+            return result
         def assigned_format(kind, channel, selector, arguments, line):
             if u.vars.get(selector) != ('INTEGER', None):
                 raise FortranError(line, 'assigned FORMAT selector must be INTEGER scalar')
@@ -1595,10 +1620,14 @@ def convert(units, emit_units=None):
                     values, index_updates = expand_static_io_items(values, u, line)
                 else:
                     index_updates = []
+                format_ops = revert_simple_format(format_ops, len(values), format_label, line)
                 operations = []
                 pos = 0
                 scale_factor = 0
                 for mode, item in format_ops:
+                    if mode == 'newrecord':
+                        operations.append('putchar(10);')
+                        continue
                     if mode == 'scale':
                         scale_factor = item
                         continue
@@ -1612,7 +1641,7 @@ def convert(units, emit_units=None):
                         operations.append('putchar(10);')
                     elif mode == 'character':
                         if pos == len(values):
-                            raise FortranError(line, 'WRITE has fewer items than FORMAT')
+                            break
                         name = values[pos].strip()
                         char_value = character_item(name, u, known, line)
                         if not char_value:
@@ -1622,7 +1651,7 @@ def convert(units, emit_units=None):
                         pos += 1
                     elif mode == 'logical':
                         if pos == len(values):
-                            raise FortranError(line, 'WRITE has fewer items than FORMAT')
+                            break
                         name = values[pos].strip()
                         m = re.fullmatch(r'(' + NAME + r')(?:\s*\(([^()]*)\))?', name)
                         info = u.vars.get(m.group(1)) if m else None
@@ -1632,7 +1661,7 @@ def convert(units, emit_units=None):
                         pos += 1
                     elif mode in ('real', 'realexp', 'realexpdigits'):
                         if pos == len(values):
-                            raise FortranError(line, 'WRITE has fewer items than FORMAT')
+                            break
                         name = values[pos].strip()
                         m = re.fullmatch(r'(' + NAME + r')(?:\s*\(([^()]*)\))?', name)
                         info = u.vars.get(m.group(1)) if m else None
@@ -1650,7 +1679,7 @@ def convert(units, emit_units=None):
                         pos += 1
                     elif mode == 'integer':
                         if pos == len(values):
-                            raise FortranError(line, 'WRITE has fewer items than FORMAT')
+                            break
                         arg = values[pos]
                         if re.search(r'\d+\.\d*', arg) or any(re.search(r'\b' + re.escape(k) + r'\b', arg) for k, v in u.vars.items() if v[0] == 'REAL'):
                             raise FortranError(line, 'FORMAT I requires INTEGER item')
@@ -1674,10 +1703,14 @@ def convert(units, emit_units=None):
                     values, index_updates = expand_static_io_items(values, u, line)
                 else:
                     index_updates = []
+                format_ops = revert_simple_format(format_ops, len(values), format_label, line)
                 operations = ['f_fmt_bzero = 0;']
                 pos = 0
                 scale_factor = 0
                 for mode, item in format_ops:
+                    if mode == 'newrecord':
+                        operations.append('f_fmt_end();')
+                        continue
                     if mode == 'scale':
                         scale_factor = item
                         continue
@@ -1689,7 +1722,7 @@ def convert(units, emit_units=None):
                         operations.append('f_fmt_end();')
                     elif mode == 'character':
                         if pos == len(values):
-                            raise FortranError(line, 'READ has fewer items than FORMAT')
+                            break
                         name = values[pos].strip()
                         char_value = character_item(name, u, known, line)
                         if not char_value:
@@ -1699,7 +1732,7 @@ def convert(units, emit_units=None):
                         pos += 1
                     elif mode == 'logical':
                         if pos == len(values):
-                            raise FortranError(line, 'READ has fewer items than FORMAT')
+                            break
                         name = values[pos].strip()
                         m = re.fullmatch(r'(' + NAME + r')(?:\s*\(([^()]*)\))?', name)
                         info = u.vars.get(m.group(1)) if m else None
@@ -1709,7 +1742,7 @@ def convert(units, emit_units=None):
                         pos += 1
                     elif mode in ('real', 'realexp', 'realexpdigits'):
                         if pos == len(values):
-                            raise FortranError(line, 'READ has fewer items than FORMAT')
+                            break
                         name = values[pos].strip()
                         m = re.fullmatch(r'(' + NAME + r')(?:\s*\(([^()]*)\))?', name)
                         info = u.vars.get(m.group(1)) if m else None
@@ -1725,7 +1758,7 @@ def convert(units, emit_units=None):
                         pos += 1
                     elif mode == 'integer':
                         if pos == len(values):
-                            raise FortranError(line, 'READ has fewer items than FORMAT')
+                            break
                         arg = values[pos]
                         target = re.fullmatch(r'(' + NAME + r')(?:\s*\(([^()]*)\))?', arg)
                         if not target:

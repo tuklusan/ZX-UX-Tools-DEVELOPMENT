@@ -1054,6 +1054,17 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(item=item), self.assertRaises(FortranError):
                 convert(parse(src, std='f77s'))
 
+    def test_simple_format_record_reversion(self):
+        src=(ROOT/'tests/fortran/f77s_frevert.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('F_A[(f_index(5, 5))] = f_fmt_int(3);', c)
+        self.assertIn('f_outintw(F_A[(f_index(5, 5))], 4);', c)
+        grouped=src.replace('2I3','2(I3)')
+        with self.assertRaisesRegex(FortranError,'nested FORMAT reversion'):
+            convert(parse(grouped,std='f77s'))
+
     def test_cross_unit_common_external_linkage(self):
         folder=ROOT/'tests/fortran/separate'
         src=(folder/'common_main.f').read_text()+(folder/'common_sub.f').read_text()

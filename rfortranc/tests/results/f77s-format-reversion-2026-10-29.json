@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "scope": "simple bounded F77S FORMAT reversion over records",
+  "fixture": "f77s_frevert.f",
+  "stdin": "001002\n003004\n005\n",
+  "observed": [
+    "   1   2",
+    "   3   4",
+    "   5"
+  ],
+  "independent_gfortran_match": true,
+  "ssx_bytes": 2123,
+  "rvm_exit": 0,
+  "rvm_frames": 277,
+  "rvm_syscalls": 50,
+  "focused_frontend": {
+    "passed": 124,
+    "total": 124
+  },
+  "nested_rightmost_group_reversion": false,
+  "full_p0_complete": false,
+  "physical_spectrum_tested": false
+}
