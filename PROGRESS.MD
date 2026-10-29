@@ -50,3 +50,10 @@
 ### Follow-up correction (same local DATA/COMMON milestone)
 
 - Corrected the newly introduced Python regex escapes and the new test's source newline escapes; registered `f77s_datcom` in the 96th frontend/native fixture list. The first proof run on `0400b6c` must be treated as superseded. This follow-up commit is the tested candidate; see Actions status. Prior native proof is still from earlier source, not this candidate.
+
+## Milestone — REAL SIN/COS/EXP/LOG specific intrinsic lowering (2026-10-29)
+
+- Added REAL SIN, COS, EXP and LOG specific intrinsic calls and compact optional C48 math helpers, included **only when used**. SIN uses argument reduction + polynomial; COS uses SIN phase shift; EXP uses scaling/Taylor/squaring; LOG uses ratio series and base-two normalization. LOG nonpositive domain traps; EXP high positive argument traps instead of overflow. Numerical validation remains limited to test fixtures and needs broad domain/precision work; this does **not** close all P0 intrinsics or typed expression gaps.
+- Added strict F77S `f77s_trig.f` reference fixture (five measured values), positive helper/size-gating tests and invalid-arity tests. Registered in native and independent host comparison maps. The preceding local DATA/COMMON fixture is also registered in differential checks.
+- Expected host reference output for trig: `     0.48     0.88     1.65     0.50    -0.48` (gfortran local check). Candidate code needs GitHub Actions checks, then actual SDK/RVM execution and byte counts. **No ZX-UX numerical result claimed on this revision yet.**
+- NEXT: inspect this SHA's GitHub Actions failure/success and remedy, then independently test native Z80 math/range/runtime. Continue other P0 intrinsics, typed arithmetic, statement functions, IO/FORMAT, P1 storage/association and P2 linkage. Physical Spectrum remains untested.

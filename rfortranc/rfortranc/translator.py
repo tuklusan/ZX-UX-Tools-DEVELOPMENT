@@ -417,6 +417,8 @@ class Expr:
                     lhs = 'f_abs_real(' + params[0] + ')'
                 elif t == 'SQRT' and len(params) == 1:
                     lhs = 'f_sqrt_real(' + params[0] + ')'
+                elif t in ('SIN', 'COS', 'EXP', 'LOG') and len(params) == 1:
+                    lhs = 'f_' + t.lower() + '_real(' + params[0] + ')'
                 elif t == 'MOD' and len(params) == 2:
                     lhs = '((' + params[0] + ') % (' + params[1] + '))'
                 elif t in self.known and self.known[t].kind == 'function':
@@ -970,6 +972,75 @@ def subset_format(source, line):
 
     descend(source, 1)
     return operations
+
+
+# Optional REAL specific-intrinsic helpers. Only referenced helpers are
+# included in generated C48, so integer-only programs do not pay for them.
+REAL_MATH_RUNTIME = {
+    'SIN': """
+static float f_sin_real(float x) {
+    float p, square;
+    int negative;
+    negative = 0;
+    if (x < 0.0) { x = -x; negative = 1; }
+    p = 6.2831853;
+    while (p <= x / 2.0) p = p * 2.0;
+    while (p >= 6.2831853) {
+        if (x >= p) x = x - p;
+        p = p / 2.0;
+    }
+    if (x > 3.14159265) { x = 6.2831853 - x; negative = 1 - negative; }
+    if (x > 1.57079633) x = 3.14159265 - x;
+    square = x * x;
+    x = x * (1.0 - square * (0.1666666667 -
+         square * (0.00833333333 - square * (0.000198412698 -
+         square * 0.00000275573192))));
+    if (negative) return -x;
+    return x;
+}
+""",
+    'COS': """
+static float f_cos_real(float x) { return f_sin_real(x + 1.57079633); }
+""",
+    'EXP': """
+static float f_exp_real(float x) {
+    float y, term;
+    int inv, k, n;
+    inv = 0;
+    if (x < 0.0) { x = -x; inv = 1; }
+    if (x > 80.0) { if (inv) return 0.0; exit(2); }
+    k = 0;
+    while (x > 0.5) { x = x * 0.5; k++; }
+    y = 1.0;
+    term = 1.0;
+    for (n = 1; n <= 10; n++) {
+        term = term * x / (float)n;
+        y = y + term;
+    }
+    while (k > 0) { y = y * y; k--; }
+    if (inv) return 1.0 / y;
+    return y;
+}
+""",
+    'LOG': """
+static float f_log_real(float x) {
+    float z, term, sum;
+    int scale, n;
+    if (x <= 0.0) exit(2);
+    scale = 0;
+    while (x >= 2.0) { x = x * 0.5; scale++; }
+    while (x < 1.0) { x = x * 2.0; scale--; }
+    z = (x - 1.0) / (x + 1.0);
+    term = z;
+    sum = z;
+    for (n = 3; n <= 15; n = n + 2) {
+        term = term * z * z;
+        sum = sum + term / (float)n;
+    }
+    return 2.0 * sum + (float)scale * 0.69314718056;
+}
+"""
+}
 
 
 def convert(units):
@@ -1566,4 +1637,11 @@ def convert(units):
         output[local_decl_index:local_decl_index] = ['    ' + d for d in extra_decls]
         output.append('}')
         chunks.append(bind('\n'.join(output), aliases))
+    # Supply only the REAL math code called by this translation unit.
+    emitted = '\n'.join(chunks)
+    wanted = [name for name in ('SIN', 'COS', 'EXP', 'LOG')
+              if 'f_' + name.lower() + '_real(' in emitted]
+    if 'COS' in wanted and 'SIN' not in wanted:
+        wanted.insert(0, 'SIN')
+    chunks[1:1] = [REAL_MATH_RUNTIME[name] for name in wanted]
     return '\n\n'.join(chunks) + '\n'

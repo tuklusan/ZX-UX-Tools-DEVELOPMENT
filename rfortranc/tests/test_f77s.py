@@ -845,6 +845,30 @@ class F77SChecks(unittest.TestCase):
             self.assertIn(declaration, generated)
             self.assertLess(generated.index(declaration), data_pos)
 
+    def test_real_specific_intrinsics_lowering_and_size_gating(self):
+        src = (ROOT/'tests/fortran/f77s_trig.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        generated = convert(units)
+        for name in ('sin', 'cos', 'exp', 'log'):
+            self.assertIn('static float f_' + name + '_real(', generated)
+        self.assertIn('if (x <= 0.0) exit(2);', generated)
+        integer_source = "      PROGRAM NOP\n      INTEGER N\n      N=2\n      END\n"
+        integer_c = convert(parse(integer_source, std='f77s'))
+        for name in ('sin', 'cos', 'exp', 'log'):
+            self.assertNotIn('static float f_' + name + '_real(', integer_c)
+
+    def test_real_specific_intrinsics_wrong_arity(self):
+        for func in ('SIN', 'COS', 'EXP', 'LOG'):
+            for arguments in ('', '1.0,2.0'):
+                source = ('      PROGRAM BAD\n'
+                          '      REAL X\n'
+                          '      X=' + func + '(' + arguments + ')\n'
+                          '      END\n')
+                with self.subTest(function=func, arguments=arguments):
+                    with self.assertRaises(FortranError):
+                        convert(parse(source, std='f77s'))
+
     def test_real_to_int_truncation_and_machine_guard(self):
         src=(ROOT/'tests/fortran/f77s_int.f').read_text()
         units=parse(src,std='f77s')

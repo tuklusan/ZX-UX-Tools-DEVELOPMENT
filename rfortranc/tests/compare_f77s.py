@@ -19,6 +19,8 @@ CASES = {'f77s_fmt': ['  42'], 'f77s_data': ['  9', '  2'], 'f77s_implicit': [' 
 CASES['f77s_expout'] = ['  0.123400E+02 -0.125000E-01', '  0.000000E+00', '  0.100000E+01', '  0.100000E+03', ' -0.123000E-04']
 CASES['f77s_datado'] = ['  42']
 CASES['f77s_int'] = ['     3    -3     0     0    -2']
+CASES['f77s_datcom'] = ['  42  41']
+CASES['f77s_trig'] = ['     0.48     0.88     1.65     0.50    -0.48']
 
 
 INPUTS = {'f77s_read': '0042 007\n', 'f77s_repeat': '003 005 010\n', 'f77s_charread': 'XYZ\n', 'f77s_arrread': 'XYZ\n', 'f77s_realio': '   -3.25\n  001234\n', 'f77s_logio': '   F   T\n'}
