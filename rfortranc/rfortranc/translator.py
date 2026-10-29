@@ -37,6 +37,7 @@ class Unit:
     std: str = 'zxux'
     externals: set[str] = field(default_factory=set)
     intrinsics: set[str] = field(default_factory=set)
+    ordinal: int = 0
 
 
 NAME = r'[A-Z][A-Z0-9_]*'
@@ -362,7 +363,7 @@ def parse(source, std='zxux'):
                     raise FortranError(st.line, 'F77S procedure declaration name must be 1..6 chars')
                 if name in u.externals or name in u.intrinsics:
                     raise FortranError(st.line, 'duplicate EXTERNAL/INTRINSIC procedure name: ' + name)
-                if name in u.args or u.vars.get(name, (None, None))[1] is not None:
+                if (kind == 'INTRINSIC' and name in u.args) or u.vars.get(name, (None, None))[1] is not None:
                     raise FortranError(st.line, 'EXTERNAL/INTRINSIC name conflicts with dummy/array')
                 if kind == 'INTRINSIC':
                     if name not in ('ABS','IABS','INT','IFIX','FLOAT','AINT','NINT',
@@ -670,6 +671,12 @@ class Expr:
                 elif t == 'MOD' and len(params) == 2:
                     lhs = '((' + params[0] + ') % (' + params[1] + '))'
                     result_type = 'INTEGER'
+                elif t in self.unit.externals and t in self.unit.args:
+                    if len(params) != 1 or self.unit.vars[t][0] != 'REAL' or self.expr_types[params[0]] != 'REAL':
+                        raise FortranError(self.line, 'procedure dummy requires one REAL actual and REAL result')
+                    wrapper = 'f_pd' + str(self.unit.ordinal) + '_' + t
+                    lhs = wrapper + '(F_' + t + ', ' + reference_actual(params[0], self.unit, 'REAL') + ')'
+                    result_type = 'REAL'
                 elif t in self.known and self.known[t].kind == 'function':
                     target = self.known[t]
                     caller = self.unit.vars.get(t)
@@ -1946,6 +1953,9 @@ def convert(units, emit_units=None):
     into and out of nested FORTRAN constructs, including numbered DO loops.
     """
     known = {u.name: u for u in units}
+    for index, unit in enumerate(units):
+        unit.ordinal = index
+    proc_tags = {name: i for i, name in enumerate(sorted(known), 1)}
     from .common import layout, bind
     from .equivalence import layout as equivalence_layout
     common_decls, common_uses = layout(units)
@@ -1959,7 +1969,9 @@ def convert(units, emit_units=None):
     chunks = [RUNTIME] + common_decls
     ctype = lambda ty: 'float' if ty == 'REAL' else 'int'
     def signature(u):
-        args = [('char' if u.vars[a][0].startswith('CHARACTER*') else ctype(u.vars[a][0])) + ' *F_' + a for a in u.args]
+        args = [('int F_' + a if a in u.externals else
+                 ('char' if u.vars[a][0].startswith('CHARACTER*') else ctype(u.vars[a][0])) + ' *F_' + a)
+                for a in u.args]
         args.extend('int F__LEN_' + a for a in u.args if dynamic_extent(u.vars[a][1]))
         return ', '.join(args) or 'void'
     for u in units:
@@ -1967,6 +1979,28 @@ def convert(units, emit_units=None):
             ty = 'void' if u.kind == 'subroutine' else ctype(u.type)
             sig = signature(u)
             chunks.append(ty + ' f_' + u.name + '(' + sig + ');')
+    for i, u in enumerate(units):
+        if emit_units is not None and u.name not in emit_units:
+            continue
+        for dummy in u.args:
+            if dummy not in u.externals:
+                continue
+            if u.vars[dummy] != ('REAL',None):
+                raise FortranError(u.line,'procedure dummy ABI currently requires REAL result')
+            dispatch = 'f_pd' + str(i) + '_' + dummy
+            if len(dispatch) > 15:
+                raise FortranError(u.line,'procedure dummy dispatcher exceeds C48 name limit')
+            body = ['static float ' + dispatch + '(int tag, float *arg) {']
+            for proc in sorted(known):
+                target = known[proc]
+                if (target.kind == 'function' and target.type == 'REAL'
+                        and len(target.args) == 1
+                        and target.vars[target.args[0]] == ('REAL',None)):
+                    body.append('    if (tag == ' + str(proc_tags[proc]) + ') return f_' + proc + '(arg);')
+            body += ['    exit(2);', '    return 0.0;', '}']
+            if len(body) <= 4:
+                raise FortranError(u.line,'no compatible REAL external procedure candidates')
+            chunks.append('\n'.join(body))
     for unit_ordinal, u in enumerate(units):
         if emit_units is not None and u.name not in emit_units:
             continue
@@ -2824,6 +2858,14 @@ def convert(units, emit_units=None):
                 extra_capacity = []
                 for actual, dummy in zip(args, known[f].args):
                     ty, dims = known[f].vars[dummy]
+                    if dummy in known[f].externals:
+                        if (ty != 'REAL' or actual not in u.externals or actual not in known
+                                or known[actual].kind != 'function' or known[actual].type != 'REAL'
+                                or len(known[actual].args) != 1
+                                or known[actual].vars[known[actual].args[0]] != ('REAL',None)):
+                            raise FortranError(line,'procedure actual needs declared EXTERNAL REAL FUNCTION(REAL): '+actual)
+                        refs.append(str(proc_tags[actual]))
+                        continue
                     actual = actual.strip()
                     if dims is not None and ty.startswith('CHARACTER*'):
                         # A fixed-length CHARACTER dummy array aliases complete

@@ -139,6 +139,7 @@ PROGRAMS = {
     'f77s_f6': '    1.234567   -0.000125    9.999999',
     'f77s_pause': '  42',
     'f77s_exintr': '     1.48',
+    'f77s_procdum': '    9.00    6.00',
     'f77s_frevert': '   1   2',
     'f77s_unitvar': '   42',
     'f77s_seqend2': '  -42   17   -1',
