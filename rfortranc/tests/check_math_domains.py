@@ -42,7 +42,9 @@ def main():
         for i,(func,val) in enumerate(CASES):
             src=Path(d)/('math_%02d.f'%i)
             exe=src.with_suffix('.ssx')
-            src.write_text('      PROGRAM BAD\n      REAL X\n      X='+func+'('+val+')\n      END\n')
+            fixture = ROOT/'tests/negative/math_log_zero.f'
+            src.write_text(fixture.read_text() if (func, val) == ('LOG', '0.0') else
+                           '      PROGRAM BAD\n      REAL X\n      X='+func+'('+val+')\n      END\n')
             built=command([sys.executable,str(ROOT/'bin/rfortranc'),'--std','f77s',
                            '--sdk',a.sdk,'--native','-o',str(exe),str(src)])
             ran=command([sys.executable,a.rvm,'--headless','--text','--frames','1000',str(exe)]) if built['exit_code']==0 else None
