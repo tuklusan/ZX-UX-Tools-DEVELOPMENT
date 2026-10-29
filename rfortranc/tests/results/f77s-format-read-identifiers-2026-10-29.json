@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "source_commit": "20bf5494fb57832003888a3597e6f13b8ca07783",
+  "tested_translator_commit": "7f19352b5b438c77af8afc57c408ff9123c32ed7",
+  "scope": "F77S formatted READ using CHARACTER literal FORMAT and assigned INTEGER FORMAT identifier; independent native Z80 and gfortran",
+  "stdin": "  12  34\n",
+  "expected_stdout": "   12   34\n",
+  "cases": [
+    {
+      "name": "f77s_fmtchr",
+      "ssx_bytes": 1755,
+      "ssx_sha256": "d19dcb9dcdc4ab38a51d26c8b8e22e83986ab9615dde4c574735f514df19cffe",
+      "source_sha256": "811a3cfec929a149445873140f35a8162c11dd45b77ec37eaa6eb5a979e1bc7f",
+      "rvm_exit": 0,
+      "rvm_frames": 195,
+      "rvm_syscalls": 37,
+      "gfortran_match": true
+    },
+    {
+      "name": "f77s_afread",
+      "ssx_bytes": 1826,
+      "ssx_sha256": "b124ce29e4883d5f0ced2b420b302edb1b1722501f234e704ca782a065824a06",
+      "source_sha256": "146943058da03000a335c4aaea489f38899aca7c99646e51b17fa592d74aeef8",
+      "rvm_exit": 0,
+      "rvm_frames": 196,
+      "rvm_syscalls": 37,
+      "gfortran_match": true
+    }
+  ],
+  "github_actions": {
+    "id": 40898107521,
+    "conclusion": "success"
+  },
+  "not_proven": [
+    "full F77S P0/P1/P2",
+    "non-console I/O",
+    "complete native regression",
+    "physical Spectrum",
+    "runtime peak RAM"
+  ]
+}
