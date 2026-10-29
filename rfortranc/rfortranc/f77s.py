@@ -20,6 +20,8 @@ def validate_source(source, units):
     continuation = 0
     previous_comment = False
     for number, raw in enumerate(source.splitlines(), 1):
+        if '\t' in raw[:72]:
+            raise FortranError(number, 'tab is not a fixed-form F77S source character')
         raw = raw.expandtabs(8)
         if not raw.strip():
             previous_comment = False

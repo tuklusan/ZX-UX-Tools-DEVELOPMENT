@@ -24,6 +24,17 @@ class F77SChecks(unittest.TestCase):
                 validate_source(source, units)
                 convert(units)
 
+    def test_fixed_form_tab_is_not_ansi_source(self):
+        source = ('      PROGRAM FIXED\n'
+                  '      INTEGER N\n'
+                  '      N=4\n'
+                  '      END\n')
+        units = parse(source, std='f77s')
+        for bad in (source.replace('      N=4', '\tN=4'),
+                    source.replace('      INTEGER N', '      INTE\tGER N')):
+            with self.subTest(bad=bad),self.assertRaisesRegex(FortranError, 'tab is not'):
+                validate_source(bad, units)
+
     def test_fixed_form_statement_label_cannot_be_zero(self):
         valid = ('      PROGRAM FIXED\n'
                  '   10 CONTINUE\n'

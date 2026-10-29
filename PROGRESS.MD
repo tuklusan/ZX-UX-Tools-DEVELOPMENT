@@ -335,3 +335,8 @@
 - GitHub Actions `40894478439` on `3f9996d2ddb2ac1263c3f553cb02b790e91b151d` completed **success**, including strict frontend and host reference steps. Independently unpacked its GitHub Actions source artifact and ran `python -m unittest discover -s tests -p test_f77s.py -q`: **146/146 pass**.
 - Target-side suite reattempted against this exact artifact and matched SDK/RVM. One 20-case and two shorter attempts exceeded local 180–300-second process time limits before finishing; the partial console PASS lines are **not counted as a completed full regression**, and no partial data is promoted to full proof.
 - Current P0/P1/P2 checklist still not closed. Runtime peak RAM (kernel included) and physical Spectrum/cassette testing not measured. Continue feature implementation and complete fully durable per-case Z80 reports.
+
+## Milestone — reject nonstandard tabs in fixed-form F77S source (2026-10-29)
+
+- Strict `--std f77s` now rejects tab characters in source columns 1–72 rather than accepting an implementation-specific tab expansion. Two negative unit cases added (indentation tab and tab inside a keyword). Default ZX-UX extension mode remains unchanged.
+- This narrows the P1 lexical gap. GitHub Actions frontend+host on exact pushed source is needed before claiming test pass; full target native regression, P0/P1/P2, physical Spectrum and peak RAM still open.
