@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "baseline_commit": "9d296c8018fdb7898485720a8fb06a0e2b273d9b",
+  "scope": "ANSI F77S variable leading dummy array dimensions, tested ZX-UX Z80 SSX",
+  "translator_sha256": "fcf15696fde41311a8c22ed2474b7c33623f4e98576e02d236bb531d99cad86c",
+  "cases": [
+    {
+      "name": "f77s_leaddim",
+      "ssx_bytes": 1862,
+      "output": "    6   42",
+      "native_exit": 0,
+      "independent_gfortran_match": true
+    },
+    {
+      "name": "f77s_ldstar",
+      "ssx_bytes": 1885,
+      "output": "    6   99",
+      "native_exit": 0,
+      "independent_gfortran_match": true
+    },
+    {
+      "name": "f77s_ld3star",
+      "ssx_bytes": 2071,
+      "output": "    8   77",
+      "native_exit": 0,
+      "independent_gfortran_match": true
+    }
+  ],
+  "negative_capacity": {
+    "source_edit": "N=2 changed to N=4 in f77s_leaddim.f",
+    "exit_code": 2
+  },
+  "local_frontend": {
+    "passed": 135,
+    "total": 135
+  },
+  "native_selected": {
+    "passed": 6,
+    "total": 6,
+    "report_sha256": "3592d76871752f63d34ae6a56a148a4eb4e444770a6f6428b0cd51b2b5c3d2fc"
+  },
+  "differential_selected": {
+    "passed": 1,
+    "total": 1,
+    "report_sha256": "98d0bb5816d3313a50fead0230f3439e454e8c8cf93e0252ab58aaf38fb7ba1f"
+  },
+  "not_proven": [
+    "physical Spectrum",
+    "peak RAM",
+    "full P0/P1/P2",
+    "full current-source native regression"
+  ]
+}

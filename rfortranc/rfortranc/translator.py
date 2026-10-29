@@ -420,9 +420,9 @@ def parse(source, std='zxux'):
                 if total_extent(dims) * (width + 1) > 32767:
                     raise FortranError(u.line, 'CHARACTER array byte extent exceeds ZX-UX 16-bit range')
             if dynamic_extent(dims):
-                bound = dims[-1]
-                if bound != '*' and u.vars.get(bound) != ('INTEGER', None):
-                    raise FortranError(u.line, 'adjustable array bound must be INTEGER scalar dummy: ' + bound)
+                for bound in dims:
+                    if isinstance(bound, str) and bound != '*' and u.vars.get(bound) != ('INTEGER', None):
+                        raise FortranError(u.line, 'adjustable array bound must be INTEGER scalar dummy: ' + bound)
                 if ty.startswith('CHARACTER*'):
                     raise FortranError(u.line, 'adjustable CHARACTER dummy arrays not yet implemented')
                 if u.kind == 'function':
@@ -433,11 +433,11 @@ def parse(source, std='zxux'):
 
 
 def parse_dims(spec, name, unit, line):
-    """Constant extents or a restricted ANSI F77S numeric dummy extent.
+    """Fixed bounds or INTEGER dummy-controlled rank-1..3 numeric arrays.
 
-    The checked subset accepts A(N), A(*), A(2,N), A(2,*), and
-    A(2,3,N), with fixed leading extents and dynamic final bound only.
-    Unsupported dimension expressions fail rather than silently miscompile.
+    Each adjustable bound names an INTEGER scalar dummy. An assumed-size '*'
+    is permitted only at the last dimension. The caller passes the remaining
+    actual sequence length for runtime capacity checks.
     """
     pieces = [p.strip() for p in spec.split(',')]
     if len(pieces) > 3 or not pieces or any(not p for p in pieces):
@@ -448,41 +448,55 @@ def parse_dims(spec, name, unit, line):
         if any(d < 1 or d > 32767 for d in dims) or total_extent(dims) > 32767:
             raise FortranError(line, 'array extent or total size out of bounds')
         return dims[0] if len(dims) == 1 else dims
-    if name not in unit.args or any(not re.fullmatch(r'\d+', v) for v in pieces[:-1]):
-        raise FortranError(line, 'adjustable/assumed size only supported for dummy arrays with fixed leading dimensions')
-    leading = tuple(int(v) for v in pieces[:-1])
+    if name not in unit.args:
+        raise FortranError(line, 'adjustable array must be a dummy argument')
+    dims = []
+    for i, token in enumerate(pieces):
+        if re.fullmatch(r'\d+', token):
+            value = int(token)
+            if value < 1 or value > 32767:
+                raise FortranError(line, 'array extent or total size out of bounds')
+            dims.append(value)
+        elif token == '*' and i == len(pieces)-1:
+            dims.append(token)
+        elif NAME_RE.fullmatch(token) and token in unit.args and token != name:
+            dims.append(token)
+        else:
+            raise FortranError(line, 'adjustable bound must be a scalar dummy argument: ' + token)
     from .arrays import size as total_extent
-    if any(v < 1 or v > 32767 for v in leading) or total_extent(leading) > 32767:
+    if total_extent(tuple(x for x in dims if isinstance(x, int))) > 32767:
         raise FortranError(line, 'array extent or total size out of bounds')
-    value = pieces[-1]
-    if value != '*' and (not NAME_RE.fullmatch(value) or value not in unit.args or value == name):
-        raise FortranError(line, 'adjustable bound must be a scalar dummy argument: ' + value)
-    return leading + (value,)
+    return tuple(dims)
 
 
 def dynamic_extent(dims):
-    return isinstance(dims, tuple) and len(dims) >= 1 and isinstance(dims[-1], str)
+    return isinstance(dims, tuple) and any(isinstance(x, str) for x in dims)
 
 
 def array_subscript(indices, name, unit, line):
-    """Checked column-major offset, honoring the actual caller's capacity."""
+    """Checked column-major offset, honoring the caller's actual capacity."""
     dims = unit.vars[name][1]
     if dynamic_extent(dims):
         if len(indices) != len(dims):
             raise FortranError(line, 'dummy array subscript count must match rank')
         capacity = 'F__LEN_' + name
-        stride, terms = 1, []
-        for sub, bound in zip(indices[:-1], dims[:-1]):
-            part = 'f_index(' + sub + ', ' + str(bound) + ')'
-            terms.append('(' + part + ' * ' + str(stride) + ')' if stride != 1 else part)
-            stride *= bound
-        dynamic_bound = dims[-1]
-        limit = capacity if dynamic_bound == '*' else 'f_extent((*F_' + dynamic_bound + '), (' + capacity + ' / ' + str(stride) + '))'
-        last = 'f_index(' + indices[-1] + ', ' + limit + ')'
-        terms.append('(' + last + ' * ' + str(stride) + ')' if stride != 1 else last)
+        stride = '1'
+        terms = []
+        for i, (sub, bound) in enumerate(zip(indices, dims)):
+            if bound == '*':
+                limit = '(' + capacity + ' / (' + stride + '))'
+            elif isinstance(bound, str):
+                limit = 'f_extent((*F_' + bound + '), (' + capacity + ' / (' + stride + ')))'
+            else:
+                limit = str(bound)
+            term = 'f_index(' + sub + ', ' + limit + ')'
+            terms.append(term if stride == '1' else '(' + term + ' * (' + stride + '))')
+            if i < len(dims)-1:
+                stride = '(' + stride + ' * (' + limit + '))'
         return 'f_seqcheck((' + ' + '.join(terms) + '), ' + capacity + ', 1)'
     from .arrays import offset
     return offset(indices, dims, line)
+
 
 TOKENS = re.compile(r"\s*(?:((?:\d+(?:\.\d*)?|\.\d+)(?:[ED][+-]?\d+)?)|(\.[A-Z]+\.)|([A-Z][A-Z0-9_]*)|(\*\*|[+\-*/(),]))", re.I)
 PRECEDENCE = {'.OR.': 1, '.AND.': 2, '.EQ.': 3, '.NE.': 3, '.LT.': 3,
@@ -1982,11 +1996,13 @@ def convert(units, emit_units=None):
                         actual_total = 'F__LEN_' + actual_name if variable_actual else str(total_extent(info[1]))
                         required = total_extent(dims) if not dynamic_extent(dims) else None
                         last_bound = dims[-1] if dynamic_extent(dims) else None
-                        last_value = None
-                        if last_bound is not None and last_bound != '*':
-                            bound_pos = known[f].args.index(last_bound)
-                            last_value = E(args[bound_pos], line)
-                        prefix = total_extent(dims[:-1]) if dynamic_extent(dims) else 1
+                        def caller_bound(bound):
+                            if isinstance(bound, int):
+                                return str(bound)
+                            if bound == '*':
+                                return '*'
+                            bound_pos = known[f].args.index(bound)
+                            return E(args[bound_pos], line)
                         required = str(required) if required is not None else None
                         ptr_offset = '0'
                         if element:
@@ -2009,9 +2025,17 @@ def convert(units, emit_units=None):
                             key = 'f_cap_' + str(len(code)) + '_' + str(len(refs))
                             extra_decls.append('int ' + key + ';')
                             def guard_against(cap):
+                                prefix = '1'
+                                for bound in dims[:-1]:
+                                    value = caller_bound(bound)
+                                    # Validate each factor before multiplying: avoids
+                                    # 16-bit overflow of malformed adjustable bounds.
+                                    checked = 'f_extent(' + value + ', (' + cap + ' / (' + prefix + ')))'
+                                    prefix = '(' + prefix + ' * ' + checked + ')'
                                 if last_bound == '*':
-                                    return 'f_seqcheck(0, ' + cap + ', ' + str(prefix) + ');'
-                                return 'f_extent(' + last_value + ', (' + cap + ' / ' + str(prefix) + '));'
+                                    return 'f_seqcheck(0, ' + cap + ', ' + prefix + ');'
+                                limit = 'f_extent(' + caller_bound(last_bound) + ', (' + cap + ' / (' + prefix + ')))'
+                                return 'f_seqcheck(0, ' + cap + ', (' + prefix + ' * ' + limit + '));'
                             if element:
                                 # Compute index once; the caller's passed pointer and
                                 # hidden capacity must start at the same element.

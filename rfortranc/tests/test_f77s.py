@@ -556,8 +556,8 @@ class F77SChecks(unittest.TestCase):
 
     def test_adjustable_and_assumed_size_dummies(self):
         cases = (
-            ('f77s_dmadj', 'f_ADJUST(int *F_N, int *F_B, int F__LEN_B)', 'f_extent((*F_N), (F__LEN_B / 1))'),
-            ('f77s_dmstar', 'f_MODIFY(int *F_B, int F__LEN_B)', 'f_index(2, F__LEN_B)'),
+            ('f77s_dmadj', 'f_ADJUST(int *F_N, int *F_B, int F__LEN_B)', 'f_extent((*F_N), (F__LEN_B / (1)))'),
+            ('f77s_dmstar', 'f_MODIFY(int *F_B, int F__LEN_B)', 'f_index(2, (F__LEN_B / (1)))'),
             ('f77s_dmalt', 'f_SCLARR(int *F_N, int *F_B, int F__LEN_B)', 'f_extent((*F_N), (F__LEN_B / 1))'),
             ('f77s_burkadj', 'f_REVRSE(int *F_N, int *F_A, int F__LEN_A)', 'f_SUMVEC'),
         )
@@ -573,8 +573,8 @@ class F77SChecks(unittest.TestCase):
 
     def test_ranked_adjustable_dummies(self):
         for name, signature, limit in (
-            ('f77s_dm2ad', 'f_CHANG2(int *F_N, int *F_B, int F__LEN_B)', '(F__LEN_B / 2)'),
-            ('f77s_dm3ad', 'f_CHANG3(int *F_N, int *F_B, int F__LEN_B)', '(F__LEN_B / 4)'),
+            ('f77s_dm2ad', 'f_CHANG2(int *F_N, int *F_B, int F__LEN_B)', 'F__LEN_B / ((1 * (2)))'),
+            ('f77s_dm3ad', 'f_CHANG3(int *F_N, int *F_B, int F__LEN_B)', 'F__LEN_B / (((1 * (2)) * (2)))'),
             ('f77s_dm2st', 'f_CHAST2(int *F_B, int F__LEN_B)', 'f_seqcheck('),
             ('f77s_dm3st', 'f_CHAST3(int *F_B, int F__LEN_B)', 'f_seqcheck('),
         ):
@@ -632,8 +632,28 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_FLROWS(int *F_N, int *F_A, int F__LEN_A)', generated)
         self.assertIn('f_FLCOLS(int *F_N, int *F_A, int F__LEN_A)', generated)
 
+    def test_adjustable_leading_dimensions_and_assumed_size(self):
+        for fixture, dims in (('f77s_leaddim',( 'N', 3)),
+                              ('f77s_ldstar', ('N', '*')),
+                              ('f77s_ld3star', ('N', 2, '*'))):
+            with self.subTest(fixture=fixture):
+                src=(ROOT/'tests/fortran'/(fixture+'.f')).read_text()
+                units=parse(src,std='f77s')
+                validate_source(src,units)
+                self.assertEqual(units[1].vars['B'][1], dims)
+                lowered=convert(units)
+                self.assertIn('f_extent((*F_N)', lowered)
+                self.assertIn('F__LEN_B', lowered)
+                self.assertIn('f_seqcheck(', lowered)
+
+    def test_adjustable_leading_bound_wrong_type_rejected(self):
+        src=(ROOT/'tests/fortran/f77s_leaddim.f').read_text()
+        src=src.replace('INTEGER N,B(N,3),X','REAL N\n      INTEGER B(N,3),X')
+        with self.assertRaisesRegex(FortranError,'INTEGER scalar dummy'):
+            convert(parse(src,std='f77s'))
+
     def test_ranked_adjustable_bounds_invalid(self):
-        cases = ('INTEGER N,A(N,2)', 'INTEGER N,A(2,0,N)', 'INTEGER N,A(2,3,4,N)')
+        cases = ('INTEGER N,A(N+1,2)', 'INTEGER N,A(2,0,N)', 'INTEGER N,A(2,3,4,N)')
         for decl in cases:
             source=('      PROGRAM MAIN\n      INTEGER A(4)\n'
                     '      CALL ALTER(2,A)\n      END\n'
@@ -644,8 +664,8 @@ class F77SChecks(unittest.TestCase):
 
     def test_adjustable_bound_rejections(self):
         for declaration, args, declared, expected in (
-            ('INTEGER N,A(N,2)', 'N,A', 'INTEGER A(5)', 'fixed leading dimensions'),
-            ('INTEGER A(N)', 'A', 'INTEGER A(5)', 'bound must be a scalar dummy'),
+            ('INTEGER N,A(N+1,2)', 'N,A', 'INTEGER A(5)', 'adjustable bound must be'),
+            ('INTEGER A(N)', 'A', 'INTEGER A(5)', 'adjustable bound must be a scalar dummy'),
             ('INTEGER A(N)', 'N,A', 'INTEGER A(5)', 'INTEGER scalar dummy'),
             ('INTEGER A(0)', 'A', 'INTEGER A(5)', 'out of bounds'),
         ):
