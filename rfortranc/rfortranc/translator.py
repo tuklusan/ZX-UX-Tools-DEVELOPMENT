@@ -966,11 +966,14 @@ static void f_swrite2(int unit, int first, int second) {
     length = 0;
     if (write(f_sh[unit], &length, 2) != 2) exit(2);
 }
-static void f_sread2(int unit, int *first, int *second) {
-    int length, upper, high, tail;
+static int f_sread2stat(int unit, int *first, int *second) {
+    int length, upper, high, tail, got;
     f_sopen(unit, 1);
-    if (read(f_sh[unit], &length, 2) != 2) exit(2);
+    got = read(f_sh[unit], &length, 2);
+    if (got == 0) return 0;
+    if (got != 2) exit(2);
     if (read(f_sh[unit], &upper, 2) != 2) exit(2);
+    if (length == 0 && upper == 0) return 0;
     if (length != 8 || upper != 0) exit(2);
     if (read(f_sh[unit], first, 2) != 2) exit(2);
     if (read(f_sh[unit], &high, 2) != 2) exit(2);
@@ -983,6 +986,10 @@ static void f_sread2(int unit, int *first, int *second) {
     if (read(f_sh[unit], &tail, 2) != 2) exit(2);
     if (read(f_sh[unit], &upper, 2) != 2) exit(2);
     if (tail != 8 || upper != 0) exit(2);
+    return 1;
+}
+static void f_sread2(int unit, int *first, int *second) {
+    if (!f_sread2stat(unit, first, second)) exit(2);
 }
 static int f_sreadstat(int unit, int *dest) {
     int length, upper, value, high, tail, upper2, got;
@@ -1765,7 +1772,7 @@ def sparse_runtime(runtime, used_in):
             globals_src += 'static int ' + name + ';\n'
     if re.search(r'\bf_d(?:open|seek|writei|readi|write2|read2)\s*\(', used_in + functions_src):
         globals_src += 'static int f_dh[10];\nstatic int f_dl[10];\n'
-    if re.search(r'\bf_s(?:open|write|write2|read|read2|readstat|rewind|back|end)\s*\(', used_in + functions_src):
+    if re.search(r'\bf_s(?:open|write|write2|read|read2|read2stat|readstat|rewind|back|end)\s*\(', used_in + functions_src):
         globals_src += 'static int f_sh[10];\nstatic int f_sused[10];\n'
     return '#include <c48.h>\n' + globals_src + functions_src + '\n'
 
@@ -2196,6 +2203,26 @@ def convert(units, emit_units=None):
                 return
             # IOSTAT on a limited sequential INTEGER scratch READ, with
             # optional END= in either order. Negative one means EOF.
+            seqpair_stat = re.fullmatch(
+                r'READ\s*\(\s*([1-9])\s*,\s*(END\s*=\s*[0-9]{1,5}(?:\s*,\s*IOSTAT\s*=\s*[A-Z][A-Z0-9_]*)?|IOSTAT\s*=\s*[A-Z][A-Z0-9_]*(?:\s*,\s*END\s*=\s*[0-9]{1,5})?)\s*\)\s*([A-Z][A-Z0-9_]*)\s*,\s*([A-Z][A-Z0-9_]*)',s)
+            if seqpair_stat:
+                unit_no,controls,first,second = seqpair_stat.groups()
+                if u.vars.get(first) != ('INTEGER',None) or u.vars.get(second) != ('INTEGER',None):
+                    raise FortranError(line,'unformatted pair END/IOSTAT needs two INTEGER scalars')
+                status = re.search(r'IOSTAT\s*=\s*([A-Z][A-Z0-9_]*)', controls)
+                ending = re.search(r'END\s*=\s*([0-9]{1,5})', controls)
+                if status and u.vars.get(status.group(1)) != ('INTEGER',None):
+                    raise FortranError(line,'IOSTAT must name INTEGER scalar')
+                flag = 'f_sok_' + str(len(code))
+                extra_decls.append('int '+flag+';')
+                ops=[flag+' = f_sread2stat('+unit_no+', &F_'+first+', &F_'+second+');']
+                if status:
+                    variable='F_'+status.group(1)
+                    ops.extend([variable+' = 0;', 'if (!'+flag+') '+variable+' = -1;'])
+                pc=add(ops)
+                if ending:
+                    conditional_gotos.append((pc,'!'+flag,str(int(ending.group(1))),pc+1,line))
+                return
             seqstat = re.fullmatch(
                 r'READ\s*\(\s*([1-9])\s*,\s*(IOSTAT\s*=\s*[A-Z][A-Z0-9_]*(?:\s*,\s*END\s*=\s*[0-9]{1,5})?|END\s*=\s*[0-9]{1,5}\s*,\s*IOSTAT\s*=\s*[A-Z][A-Z0-9_]*)\s*\)\s*([A-Z][A-Z0-9_]*)',
                 s)

@@ -141,6 +141,7 @@ PROGRAMS = {
     'f77s_exintr': '     1.48',
     'f77s_frevert': '   1   2',
     'f77s_unitvar': '   42',
+    'f77s_seqend2': '  -42   17   -1',
     'f77s_seqpair': '  -42   17',
     'f77s_iostat': '   23   -1',
     'f77s_endgoto': '    7    7',
