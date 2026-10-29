@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "source_revision_before_push": "93812dbb5d0a56c59a6e339e9738cb7fc7064360",
+  "translator_sha256": "aecf64b3309e6c79eb9f5ebc04af5d85b698180ba9d5fce75944b2c8dbc496cc",
+  "driver_sha256": "1b45174256e37ae4aebbe381653244d097bd8aa8cb545599e561af08ddde1ee1",
+  "compiler_units": [
+    "main.f",
+    "step.f"
+  ],
+  "objects": [
+    {
+      "name": "00_SEPM.sso",
+      "bytes": 1018,
+      "sha256": "446117423cb1a01ed6147c83bf8f78e15c658af88b67fae18936dae38cd0155a"
+    },
+    {
+      "name": "01_STEPER.sso",
+      "bytes": 12584,
+      "sha256": "94d57d649c2895b6a7b7dcd3722235b99ca6474600d058d6e662f3291debbf21"
+    }
+  ],
+  "linked_ssx_bytes": 7981,
+  "linked_ssx_sha256": "882da608ce9dc32e2337a296ade2ad3acc18efd79da12c714fc59fce31719aa2",
+  "tzx_sha256": "c261db0aedf44dc3aac666f7fee31ead1a4bce002d00a7b739221b573e41178c",
+  "observed": [
+    "  42"
+  ],
+  "host_reference": [
+    "  42"
+  ],
+  "rvm_exit": 0,
+  "rvm_frames": 218,
+  "rvm_syscalls": 23,
+  "low_max_rejected": true,
+  "low_max_leaves_no_binary": true,
+  "source_sha256_matches_at_local_test": true,
+  "frontend_unit_tests": 114,
+  "physical_spectrum_test": false,
+  "full_cross_object_common": false
+}

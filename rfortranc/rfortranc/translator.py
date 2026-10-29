@@ -1251,7 +1251,7 @@ static float f_log_real(float x) {
 }
 
 
-def convert(units):
+def convert(units, emit_units=None):
     """Build explicit control-flow blocks, then lower them to portable C48.
 
     The PC dispatcher avoids non-C48 goto/switch and also handles branches
@@ -1273,6 +1273,8 @@ def convert(units):
             sig = signature(u)
             chunks.append(ty + ' f_' + u.name + '(' + sig + ');')
     for unit_ordinal, u in enumerate(units):
+        if emit_units is not None and u.name not in emit_units:
+            continue
         is_main = u.kind == 'program'
         ret = 'int' if is_main else 'void' if u.kind == 'subroutine' else ctype(u.type)
         sig = 'void' if is_main else signature(u)
@@ -1764,6 +1766,25 @@ def convert(units):
                                 raise FortranError(line, 'CHARACTER dummy requires same-length CHARACTER scalar actual: ' + actual)
                             refs.append(item[0])
                     else:
+                        # A by-reference scalar actual has to match its
+                        # dummy type. C48's pointer conversion is not a
+                        # valid FORTRAN storage association conversion.
+                        actual_ty = None
+                        scalar = re.fullmatch(r'(' + NAME + r')(?:\s*\((.*)\))?', actual)
+                        if scalar:
+                            declared = u.vars.get(scalar.group(1))
+                            if declared:
+                                actual_ty = declared[0]
+                            elif scalar.group(1) in known:
+                                actual_ty = known[scalar.group(1)].type
+                        elif re.fullmatch(r'[+-]?[0-9]+', actual):
+                            actual_ty = 'INTEGER'
+                        elif re.fullmatch(r'[+-]?(?:(?:[0-9]+\.[0-9]*|\.[0-9]+)(?:[ED][+-]?[0-9]+)?|[0-9]+[ED][+-]?[0-9]+)', actual):
+                            actual_ty = 'REAL'
+                        elif actual in ('.TRUE.', '.FALSE.'):
+                            actual_ty = 'LOGICAL'
+                        if actual_ty is not None and actual_ty != ty:
+                            raise FortranError(line, 'scalar argument type mismatch: ' + actual)
                         refs.append(reference_actual(E(actual, line), u, ty))
                 add(prelude + ['f_' + f + '(' + ', '.join(refs + extra_capacity) + ');'])
                 return

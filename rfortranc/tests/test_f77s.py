@@ -825,6 +825,27 @@ class F77SChecks(unittest.TestCase):
             self.assertIn('f_seqcheck(', generated)
             self.assertIn('f_extent(', generated)
 
+    def test_cross_unit_scalar_type_mismatch_rejected(self):
+        folder = ROOT/'tests/fortran/separate'
+        main = (folder/'main.f').read_text()
+        main = main.replace('INTEGER N', 'REAL N').replace('FORMAT(I4)', 'FORMAT(F7.2)')
+        src = main + (folder/'step.f').read_text()
+        with self.assertRaisesRegex(FortranError, 'scalar argument type mismatch'):
+            convert(parse(src, std='f77s'))
+
+    def test_separate_objects_preserve_external_abi(self):
+        folder = ROOT/'tests/fortran/separate'
+        src = (folder/'main.f').read_text()+(folder/'step.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        main_c = convert(units, emit_units={'SEPM'})
+        sub_c = convert(units, emit_units={'STEPER'})
+        self.assertIn('int main(void) {', main_c)
+        self.assertNotIn('void f_STEPER(int *F_N) {', main_c)
+        self.assertIn('void f_STEPER(int *F_N);', main_c)
+        self.assertNotIn('int main(void) {', sub_c)
+        self.assertIn('void f_STEPER(int *F_N) {', sub_c)
+
     def test_assigned_format_identifiers(self):
         src = (ROOT/'tests/fortran/f77s_afmt.f').read_text()
         units = parse(src, std='f77s')
