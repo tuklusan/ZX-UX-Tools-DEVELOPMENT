@@ -329,3 +329,9 @@
 
 - Strict fixed-form source validator now rejects a statement labeled `00000`, which is not a valid ANSI FORTRAN statement label (1..99999). Positive and negative frontend tests added; default ZX-UX extension mode unchanged. This is part of the still-partial P1 lexical gate, not compiler readiness.
 - CI proof to be checked against this exact revision after push. Keep broader P0/P1/P2, native Z80 complete suite, RAM peak and physical Spectrum open.
+
+## Verification checkpoint — exact strict fixed-form source revision (2026-10-29)
+
+- GitHub Actions `40894478439` on `3f9996d2ddb2ac1263c3f553cb02b790e91b151d` completed **success**, including strict frontend and host reference steps. Independently unpacked its GitHub Actions source artifact and ran `python -m unittest discover -s tests -p test_f77s.py -q`: **146/146 pass**.
+- Target-side suite reattempted against this exact artifact and matched SDK/RVM. One 20-case and two shorter attempts exceeded local 180–300-second process time limits before finishing; the partial console PASS lines are **not counted as a completed full regression**, and no partial data is promoted to full proof.
+- Current P0/P1/P2 checklist still not closed. Runtime peak RAM (kernel included) and physical Spectrum/cassette testing not measured. Continue feature implementation and complete fully durable per-case Z80 reports.
