@@ -61,6 +61,21 @@ def main():
         record['host_compile'] = run(['gfortran', '-std=legacy', '-ffixed-form', '-o', str(out/'ref')]+list(map(str, FILES)))
         if record['host_compile']['exit_code'] == 0:
             record['host_run'] = run([str(out/'ref')])
+        commons = [SRC/'common_main.f', SRC/'common_sub.f']
+        common_out = out/'common.ssx'
+        record['common_sources'] = {src.name: sha(src) for src in commons}
+        record['common_compile'] = run(command+['--object-dir', str(out/'common-objects'),
+                                                '-o', str(common_out)]+list(map(str, commons)))
+        if record['common_compile']['exit_code'] == 0 and common_out.exists():
+            record['common_ssx_sha256'] = sha(common_out)
+            record['common_ssx_bytes'] = common_out.stat().st_size
+            record['common_objects'] = {f.name: sha(f) for f in (out/'common-objects').glob('*.sso')}
+            record['common_target_run'] = run([sys.executable,a.rvm,'--headless',
+                                                '--text','--frames','1000',str(common_out)])
+        record['common_host_compile'] = run(['gfortran','-std=legacy','-ffixed-form',
+                                             '-o',str(out/'common.host')]+list(map(str, commons)))
+        if record['common_host_compile']['exit_code'] == 0:
+            record['common_host_run'] = run([str(out/'common.host')])
     def lines(output):
         return [s.rstrip() for s in output.splitlines() if s.strip()]
     native = record.get('target_run', {})
@@ -73,6 +88,14 @@ def main():
           native.get('exit_code') == 0 and '(exit)' in native.get('stderr', '') and
           host.get('exit_code') == 0 and
           lines(native.get('stdout', '')) == lines(host.get('stdout', '')) == EXPECT)
+    common_native = record.get('common_target_run', {})
+    common_host = record.get('common_host_run', {})
+    common_ok = (len(record.get('common_objects', {})) == 2 and
+                 common_native.get('exit_code') == 0 and '(exit)' in common_native.get('stderr','') and
+                 common_host.get('exit_code') == 0 and
+                 lines(common_native.get('stdout','')) == lines(common_host.get('stdout','')) == EXPECT)
+    record['common_result'] = {'passed': common_ok, 'expected_lines': EXPECT}
+    ok = ok and common_ok
     record['result'] = {'passed': bool(ok), 'expected_lines': EXPECT}
     a.report.parent.mkdir(parents=True, exist_ok=True)
     a.report.write_text(json.dumps(record, indent=2, sort_keys=True)+'\n')

@@ -1397,6 +1397,13 @@ def convert(units, emit_units=None):
     from .common import layout, bind
     from .equivalence import layout as equivalence_layout
     common_decls, common_uses = layout(units)
+    if emit_units is not None:
+        # Every independently translated unit sees the same COMMON ABI.
+        # The main translation owns one externally visible definition; the
+        # remaining objects import it through the target linker.
+        is_owner = any(u.kind == 'program' and u.name in emit_units for u in units)
+        common_decls = [(d[7:] if is_owner else 'extern ' + d[7:])
+                        if d.startswith('static ') else d for d in common_decls]
     chunks = [RUNTIME] + common_decls
     ctype = lambda ty: 'float' if ty == 'REAL' else 'int'
     def signature(u):

@@ -1054,6 +1054,18 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(item=item), self.assertRaises(FortranError):
                 convert(parse(src, std='f77s'))
 
+    def test_cross_unit_common_external_linkage(self):
+        folder=ROOT/'tests/fortran/separate'
+        src=(folder/'common_main.f').read_text()+(folder/'common_sub.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        main=convert(units,emit_units={'CMAIN'})
+        sub=convert(units,emit_units={'ADD2'})
+        self.assertIn('int f_com_BLK_0;',main)
+        self.assertNotIn('extern int f_com_BLK_0;',main)
+        self.assertIn('extern int f_com_BLK_0;',sub)
+        self.assertIn('f_com_BLK_0 = ',sub)
+
     def test_external_and_intrinsic_declarations(self):
         src=(ROOT/'tests/fortran/f77s_exintr.f').read_text()
         units=parse(src,std='f77s')

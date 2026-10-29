@@ -68,9 +68,6 @@ def main(argv=None):
         if args.std == 'f77s':
             from .f77s import validate_source
             validate_source(program, units)
-        if args.separate:
-            if any(re.match(r'^COMMON\b', st.text) for u in units for st in u.statements):
-                raise FortranError(1, 'separate compilation of COMMON storage not yet supported')
         c48 = convert(units) if not args.separate else None
         if args.emit_c:
             target.write_text(c48, encoding='utf-8')
