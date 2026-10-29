@@ -75,6 +75,25 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_sd1_A[3] = 4;', c)
         self.assertIn('if (!f_sdi1)', c)
 
+    def test_local_data_with_common_in_main_and_subprogram(self):
+        src = (ROOT/'tests/fortran/f77s_datcom.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        generated = convert(units)
+        self.assertIn('F_LOCAL = 42;', generated)
+        self.assertIn('static int f_sd1_TOTAL;', generated)
+        self.assertIn('f_sd1_TOTAL = 40;', generated)
+        self.assertIn('f_com_BLK_0', generated)
+
+    def test_data_common_member_rejected_without_block_data(self):
+        src = ("      PROGRAM BAD\\n"
+               "      INTEGER N,LOCAL\\n"
+               "      COMMON /BLK/ N\\n"
+               "      DATA N/42/\\n"
+               "      END\\n")
+        with self.assertRaisesRegex(FortranError, 'DATA cannot initialize COMMON member'):
+            convert(parse(src, std='f77s'))
+
     def test_data_integer_range(self):
         for value in ('32768', '-32769', '100000'):
             src=('      PROGRAM BAD\n      INTEGER N\n'

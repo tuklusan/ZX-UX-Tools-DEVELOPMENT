@@ -39,3 +39,10 @@
 - No bureaucracy or status chatter; proceed autonomously through the checklist without stopping for prompts. Be accurate about remaining gaps and physical hardware limitations.
 
 **SINGLE NEXT ACTION IN A FRESH CHAT:** Open `rfortranc/docs/F77S-REMAINING.md` and begin executing its P0 through P2 plus proof gate **to completion**, one verified milestone at a time. Do **not** switch the primary task to the 20 demos or stop at SIN.
+
+## Milestone — 2026-10-28/29: F77S local DATA alongside COMMON
+
+- Fixed `rfortranc/rfortranc/common.py` rejecting all DATA declarations whenever COMMON occurs; now reject DATA targets in COMMON while allowing distinct local targets (ANSI subset §9.2; no BLOCK DATA).
+- Added strict positive test for main and subprogram local DATA, including static subprogram lifetime, and negative test for DATA initialization of COMMON members: `rfortranc/tests/test_f77s.py` and `rfortranc/tests/fortran/f77s_datcom.f`.
+- Evidence state at push: source/test review only; GitHub frontend workflow will run on this push. SDK/RVM/native proof for this new revision is **not yet established**. Do not carry forward the 95/65/13/4 regression results from the earlier revision as current proof.
+- NEXT: check GitHub Actions frontend, run SDK/RVM tests with matched SDK, tackle P0 numeric SIN/COS/EXP/LOG and statement functions; continue through all remaining P0/P1/P2 requirements and proof gate. All other developers' work preserved by Git tree overlay + checked main-head update.
