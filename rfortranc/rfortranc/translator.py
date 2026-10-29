@@ -1705,6 +1705,13 @@ def convert(units, emit_units=None):
                 operations.extend('F_' + var + ' = ' + str(value) + ';' for var, value in index_updates)
                 add(operations)
                 return
+            pause = re.fullmatch(r'PAUSE(?:\s+([0-9]{1,5}|\'(?:[^\']|\'\')*\'|"(?:[^"]|"")*"))?', s)
+            if pause:
+                code_text = pause.group(1)
+                message = 'PAUSE' if code_text is None else 'PAUSE ' + (code_text[1:-1].replace(code_text[0]*2, code_text[0]) if code_text[0] in ("'", '"') else code_text)
+                add(['f_outstr(' + c_string("'" + message + "'") + ');',
+                     'putchar(10);', 'getchar();'])
+                return
             if s.startswith(UNSUPPORTED):
                 raise FortranError(line, 'unsupported FORTRAN statement: ' + s.split()[0])
             if (re.match(r'^(INTEGER|REAL|LOGICAL|IMPLICIT|DIMENSION)\s+', s)

@@ -165,3 +165,9 @@
 - Implemented `kP` FORMAT scale edit parsing (-4..4) and F-format scaling for both formatted READ and WRITE, including `0P` reset and chained edits. Explicit E-format with nonzero P is rejected, not miscompiled; its support remains OPEN, as do unrestricted standard scale factors and formats.
 - New strict `f77s_pscale.f`, keyboard input `   12.30    1.23\n`, independently compiled by gfortran and matched SDK to a 3,157-byte SSX. Both native RVM (exit 0, 288 frames/49 syscalls) and host output `   12.30    1.23` followed by `    1.23    1.23`. 120/120 strict frontend tests passed locally, including negative scale limit.
 - Still P0 partial, full variable-bound implied DO, E-scale, reversion, non-5/6 units, direct/unformatted/internal file I/O, and complete P1/P2 remain; physical Spectrum and runtime peak memory untested.
+
+## Milestone — F77S PAUSE code and keyboard resume (2026-10-29)
+
+- Added `PAUSE` without code, with 1–5-digit stop code and CHARACTER message to the F77S control-flow lowering, displaying a message on ZX-UX and consuming one keyboard character before resuming. Reject malformed numeric or expression pause codes. Operator resume protocol still differs from gfortran (gfortran requires `go`, ZX-UX accepts one key), so P1 control-flow remains partial.
+- Native `f77s_pause.f` 1,310-byte SSX prints `PAUSE 99`, then after `go\n` keyboard input prints `  42`; RVM exit 0 at 169 frames/29 syscalls. Independent gfortran prints `  42` on stdout and `PAUSE 99` to stderr, with `go` required. 121/121 focused frontend tests passed locally. Repeatable `tests/check_pause.py` added for both toolchains, with JSON proof schema.
+- NEXT: run complete regressions; finish remaining P0/P1/P2 and hardware verification. No physical Spectrum validation or total RAM high-water yet.

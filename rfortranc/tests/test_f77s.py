@@ -1054,6 +1054,18 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(item=item), self.assertRaises(FortranError):
                 convert(parse(src, std='f77s'))
 
+    def test_pause_waits_for_key_and_rejects_expressions(self):
+        src=(ROOT/'tests/fortran/f77s_pause.f').read_text()
+        units=parse(src, std='f77s')
+        validate_source(src, units)
+        c=convert(units)
+        self.assertIn('f_outstr("PAUSE 99")', c)
+        self.assertIn('getchar();', c)
+        for code in ('PAUSE X', 'PAUSE 100000', 'PAUSE 1+2'):
+            bad='      PROGRAM BAD\n      '+code+'\n      END\n'
+            with self.subTest(code=code), self.assertRaises(FortranError):
+                convert(parse(bad,std='f77s'))
+
     def test_f_format_p_scale_input_output(self):
         src = (ROOT/'tests/fortran/f77s_pscale.f').read_text()
         units = parse(src, std='f77s')
