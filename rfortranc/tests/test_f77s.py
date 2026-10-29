@@ -1331,6 +1331,16 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(old=old,new=new), self.assertRaises(FortranError):
                 convert(parse(src.replace(old,new),std='f77s'))
 
+    def test_sequential_unformatted_positioning(self):
+        source=(ROOT/'tests/fortran/f77s_sequnio.f').read_text()
+        units=parse(source,std='f77s')
+        validate_source(source,units)
+        c=convert(units)
+        for fragment in ('f_swrite(7, F_A);','F_B = f_sread(7);',
+                         'f_sback(7);','f_srewind(7);'):
+            self.assertIn(fragment,c)
+        self.assertIn('if (tail != 4 || upper2 != 0) exit(2);',c)
+
     def test_direct_unformatted_two_integer_record(self):
         source=(ROOT/'tests/fortran/f77s_direct2.f').read_text()
         units=parse(source,std='f77s')

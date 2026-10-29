@@ -904,6 +904,79 @@ static void f_dread2(int unit, int rec, int *a, int *b) {
     *a = f_dgeti(unit);
     *b = f_dgeti(unit);
 }
+/* Unnamed sequential unformatted INTEGER scratch I/O, one data item.
+   Records have 32-bit gfortran-compatible length markers and 32-bit sign-
+   extended integer data. ZX-UX seek/tell are 16-bit bounded. */
+static int f_sh[10];
+static int f_sused[10];
+static void f_sopen(int unit, int reading) {
+    char path[9];
+    int fd;
+    if (unit < 1 || unit > 9) exit(2);
+    if (f_sused[unit]) return;
+    strcpy(path, "/tmp/fs0");
+    path[7] = '0' + unit;
+    if (!reading) {
+        fd = creat(path, 438);
+        if (fd < 0) exit(2);
+        if (close(fd) < 0) exit(2);
+    }
+    fd = open(path, 2);
+    if (fd < 0) exit(2);
+    f_sh[unit] = fd;
+    f_sused[unit] = 1;
+}
+static void f_swrite(int unit, int value) {
+    int length;
+    int high;
+    f_sopen(unit, 0);
+    length = 4;
+    high = 0;
+    if (value < 0) high = -1;
+    if (tell(f_sh[unit]) > 32755) exit(2);
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+    length = 0;
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+    if (write(f_sh[unit], &value, 2) != 2) exit(2);
+    if (write(f_sh[unit], &high, 2) != 2) exit(2);
+    length = 4;
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+    length = 0;
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+}
+static int f_sread(int unit) {
+    int length, upper, value, high, tail, upper2;
+    f_sopen(unit, 1);
+    if (read(f_sh[unit], &length, 2) != 2) exit(2);
+    if (read(f_sh[unit], &upper, 2) != 2) exit(2);
+    if (length != 4 || upper != 0) exit(2);
+    if (read(f_sh[unit], &value, 2) != 2) exit(2);
+    if (read(f_sh[unit], &high, 2) != 2) exit(2);
+    if (read(f_sh[unit], &tail, 2) != 2) exit(2);
+    if (read(f_sh[unit], &upper2, 2) != 2) exit(2);
+    if (tail != 4 || upper2 != 0) exit(2);
+    if (value < 0) { if (high != -1) exit(2); }
+    else if (high != 0) exit(2);
+    return value;
+}
+static void f_srewind(int unit) {
+    f_sopen(unit, 1);
+    if (seek(f_sh[unit], 0) < 0) exit(2);
+}
+static void f_sback(int unit) {
+    int pos;
+    int tail, upper;
+    f_sopen(unit, 1);
+    pos = tell(f_sh[unit]);
+    if (pos < 0) exit(2);
+    if (pos == 0) return;
+    if (pos < 12) exit(2);
+    if (seek(f_sh[unit], pos - 4) < 0) exit(2);
+    if (read(f_sh[unit], &tail, 2) != 2) exit(2);
+    if (read(f_sh[unit], &upper, 2) != 2) exit(2);
+    if (tail != 4 || upper != 0) exit(2);
+    if (seek(f_sh[unit], pos - 12) < 0) exit(2);
+}
 static void f_outstr(char *s) {
     while (*s) { putchar(*s); s++; }
 }
@@ -2054,6 +2127,22 @@ def convert(units, emit_units=None):
                 label = str(int(label))
                 n = add([E(var, line) + ' = ' + label + ';'])
                 gotos.append((None, label, line))  # validate target exists, including FORMAT
+                return
+            # F77S unnamed sequential unformatted scratch unit 1..9.
+            seqpos = re.fullmatch(r'(REWIND|BACKSPACE)\s*(?:\(\s*([1-9])\s*\)|([1-9]))', s)
+            if seqpos:
+                op, paren, plain = seqpos.groups()
+                add([('f_srewind' if op == 'REWIND' else 'f_sback') + '(' + (paren or plain) + ');'])
+                return
+            seqio = re.fullmatch(r'(READ|WRITE)\s*\(\s*([1-9])\s*\)\s*([A-Z][A-Z0-9_]*)', s)
+            if seqio:
+                kind, unit_no, name = seqio.groups()
+                if u.vars.get(name) != ('INTEGER', None):
+                    raise FortranError(line, 'sequential unformatted scratch record needs one INTEGER scalar')
+                if kind == 'WRITE':
+                    add(['f_swrite(' + unit_no + ', F_' + name + ');'])
+                else:
+                    add(['F_' + name + ' = f_sread(' + unit_no + ');'])
                 return
             # F77S narrow unnamed direct-access unformatted scratch files.
             # Each unit 1..9 owns /tmp/fuN; no named FILE= specifier.

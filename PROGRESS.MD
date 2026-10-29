@@ -421,3 +421,9 @@
 ### Direct-I/O evidence checkpoint (2026-10-29)
 
 - Added `rfortranc/tests/results/f77s-direct2-2026-10-29.json` with exact source revision, selected native/differential JSON hashes and measured static memory: RECL=8 2,708 bytes, RECL=4 2,542 bytes, both below 12,288 bytes. Measurements are linked image+BSS+reserved stack/heap, **not** live peak or kernel overhead. The selected native and independent host comparisons both passed 2/2. Full current revision regression and physical hardware remain open.
+
+## Milestone — unnamed sequential unformatted records and positioning (2026-10-29)
+
+- Added ANSI F77S narrow unnamed sequential unformatted INTEGER scratch unit 1–9 using actual ZX-UX `creat/open/read/write/seek/tell`; one 16-bit INTEGER is stored sign-extended as a gfortran-compatible 32-bit record bracketed by two 32-bit record-length markers. Supports `WRITE(7) A`, `READ(7) B`, `BACKSPACE 7` and `REWIND 7`; record size/marker/sign and 16-bit file limits are checked, not silently ignored. Implicit keyword scan updated for REWIND/BACKSPACE/ENDFILE.
+- New strict `f77s_sequnio.f` writes two records, BACKSPACEs and READs the second, then REWINDs and READs first. Matched ZX-UX Z80 SSX exits 0 after **152 frames / 57 system calls**, prints `  -17` and `   41` exactly as independently compiled gfortran. Focused **155/155 frontend**, selected native **1/1**, differential **1/1** locally passed. Native/host harness cases and test are added; checked GitHub CI on this new SHA is pending.
+- **Partial P0/P1 only:** full sequential/unformatted records, other types, file associations, ENDFILE, IOSTAT/END/EOF, full current-native suites, physical Spectrum and peak RAM still OPEN. Next: check CI, extend positioning/ENDFILE and the rest of the standard.
