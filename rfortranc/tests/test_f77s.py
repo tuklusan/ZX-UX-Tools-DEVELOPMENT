@@ -1342,6 +1342,20 @@ class F77SChecks(unittest.TestCase):
                 for handle in handles:
                     self.assertIn('static int '+handle+';', c)
 
+    def test_sequential_triple_end_iostat(self):
+        src=(ROOT/'tests/fortran/f77s_seqtri.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('f_swrite3(7, F_A, F_B, F_C);',c)
+        self.assertIn('f_sread3stat(7, &F_X, &F_Y, &F_Z);',c)
+        self.assertIn('f_sread3stat(7, &F_X, &F_Y, &F_Z);',convert(parse(src.replace('END=100,IOSTAT=S','IOSTAT=S,END=100'),std='f77s')))
+        self.assertIn('F_S = -1;',c)
+        sparse=convert(units,emit_units={units[0].name})
+        self.assertIn('static int f_sused[10];',sparse)
+        bad=src.replace('READ(7,IOSTAT=S) X,Y,Z','READ(7,IOSTAT=S) X,Y,S')
+        self.assertIn('f_sread3stat', convert(parse(bad,std='f77s')))
+
     def test_sequential_pair_end_iostat(self):
         src=(ROOT/'tests/fortran/f77s_seqend2.f').read_text()
         units=parse(src,std='f77s')

@@ -966,6 +966,53 @@ static void f_swrite2(int unit, int first, int second) {
     length = 0;
     if (write(f_sh[unit], &length, 2) != 2) exit(2);
 }
+/* Three consecutive 32-bit INTEGER items in an unformatted record. */
+static void f_swrite3(int unit, int a, int b, int c) {
+    int vals[3];
+    int i, high, length;
+    vals[0] = a; vals[1] = b; vals[2] = c;
+    f_sopen(unit, 0);
+    if (tell(f_sh[unit]) > 32747) exit(2);
+    length = 12;
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+    length = 0;
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+    for (i = 0; i < 3; i++) {
+        high = 0;
+        if (vals[i] < 0) high = -1;
+        if (write(f_sh[unit], &vals[i], 2) != 2) exit(2);
+        if (write(f_sh[unit], &high, 2) != 2) exit(2);
+    }
+    length = 12;
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+    length = 0;
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+}
+static int f_sread3stat(int unit, int *a, int *b, int *c) {
+    int vals[3];
+    int i, length, upper, high, tail, got;
+    f_sopen(unit, 1);
+    got = read(f_sh[unit], &length, 2);
+    if (got == 0) return 0;
+    if (got != 2) exit(2);
+    if (read(f_sh[unit], &upper, 2) != 2) exit(2);
+    if (length == 0 && upper == 0) return 0;
+    if (length != 12 || upper != 0) exit(2);
+    for (i = 0; i < 3; i++) {
+        if (read(f_sh[unit], &vals[i], 2) != 2) exit(2);
+        if (read(f_sh[unit], &high, 2) != 2) exit(2);
+        if (vals[i] < 0) { if (high != -1) exit(2); }
+        else if (high != 0) exit(2);
+    }
+    if (read(f_sh[unit], &tail, 2) != 2) exit(2);
+    if (read(f_sh[unit], &upper, 2) != 2) exit(2);
+    if (tail != 12 || upper != 0) exit(2);
+    *a = vals[0]; *b = vals[1]; *c = vals[2];
+    return 1;
+}
+static void f_sread3(int unit, int *a, int *b, int *c) {
+    if (!f_sread3stat(unit, a, b, c)) exit(2);
+}
 static int f_sread2stat(int unit, int *first, int *second) {
     int length, upper, high, tail, got;
     f_sopen(unit, 1);
@@ -2203,6 +2250,26 @@ def convert(units, emit_units=None):
                 return
             # IOSTAT on a limited sequential INTEGER scratch READ, with
             # optional END= in either order. Negative one means EOF.
+            seqtriple_stat = re.fullmatch(
+                r'READ\s*\(\s*([1-9])\s*,\s*(END\s*=\s*[0-9]{1,5}(?:\s*,\s*IOSTAT\s*=\s*[A-Z][A-Z0-9_]*)?|IOSTAT\s*=\s*[A-Z][A-Z0-9_]*(?:\s*,\s*END\s*=\s*[0-9]{1,5})?)\s*\)\s*([A-Z][A-Z0-9_]*)\s*,\s*([A-Z][A-Z0-9_]*)\s*,\s*([A-Z][A-Z0-9_]*)',s)
+            if seqtriple_stat:
+                unit_no,controls,first,second,third = seqtriple_stat.groups()
+                if any(u.vars.get(name) != ('INTEGER',None) for name in (first,second,third)):
+                    raise FortranError(line,'sequential unformatted triple requires three INTEGER scalars')
+                status = re.search(r'IOSTAT\s*=\s*([A-Z][A-Z0-9_]*)', controls)
+                ending = re.search(r'END\s*=\s*([0-9]{1,5})', controls)
+                if status and u.vars.get(status.group(1)) != ('INTEGER',None):
+                    raise FortranError(line,'IOSTAT must name INTEGER scalar')
+                flag = 'f_sok_' + str(len(code))
+                extra_decls.append('int '+flag+';')
+                ops=[flag+' = f_sread3stat('+unit_no+', &F_'+first+', &F_'+second+', &F_'+third+');']
+                if status:
+                    variable='F_'+status.group(1)
+                    ops.extend([variable+' = 0;', 'if (!'+flag+') '+variable+' = -1;'])
+                pc=add(ops)
+                if ending:
+                    conditional_gotos.append((pc,'!'+flag,str(int(ending.group(1))),pc+1,line))
+                return
             seqpair_stat = re.fullmatch(
                 r'READ\s*\(\s*([1-9])\s*,\s*(END\s*=\s*[0-9]{1,5}(?:\s*,\s*IOSTAT\s*=\s*[A-Z][A-Z0-9_]*)?|IOSTAT\s*=\s*[A-Z][A-Z0-9_]*(?:\s*,\s*END\s*=\s*[0-9]{1,5})?)\s*\)\s*([A-Z][A-Z0-9_]*)\s*,\s*([A-Z][A-Z0-9_]*)',s)
             if seqpair_stat:
@@ -2252,6 +2319,17 @@ def convert(units, emit_units=None):
                 extra_decls.append('int ' + temp + ';')
                 pc = add([temp + ' = f_sreadstat(' + unit_no + ', &F_' + name + ');'])
                 conditional_gotos.append((pc, '!' + temp, str(int(target)), pc + 1, line))
+                return
+            seqtriple = re.fullmatch(
+                r'(READ|WRITE)\s*\(\s*([1-9])\s*\)\s*([A-Z][A-Z0-9_]*)\s*,\s*([A-Z][A-Z0-9_]*)\s*,\s*([A-Z][A-Z0-9_]*)',s)
+            if seqtriple:
+                kind,unit_no,first,second,third=seqtriple.groups()
+                if any(u.vars.get(name) != ('INTEGER',None) for name in (first,second,third)):
+                    raise FortranError(line,'sequential unformatted triple requires three INTEGER scalars')
+                if kind == 'WRITE':
+                    add(['f_swrite3('+unit_no+', F_'+first+', F_'+second+', F_'+third+');'])
+                else:
+                    add(['f_sread3('+unit_no+', &F_'+first+', &F_'+second+', &F_'+third+');'])
                 return
             seqpair = re.fullmatch(
                 r'(READ|WRITE)\s*\(\s*([1-9])\s*\)\s*([A-Z][A-Z0-9_]*)\s*,\s*([A-Z][A-Z0-9_]*)',s)
