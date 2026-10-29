@@ -409,6 +409,10 @@ class Expr:
                     if self.unit.vars[t][0].startswith('CHARACTER*'):
                         raise FortranError(self.line, 'CHARACTER array element requires character assignment/comparison or A FORMAT')
                     lhs = 'F_' + t + '[' + array_subscript(params, t, self.unit, self.line) + ']'
+                elif t == 'INT' and len(params) == 1:
+                    # ANSI subset numeric INT: discard the fractional part
+                    # (truncation toward zero, not floor or rounding).
+                    lhs = 'f_int_real(' + params[0] + ')'
                 elif t == 'ABS' and len(params) == 1:
                     lhs = 'f_abs_real(' + params[0] + ')'
                 elif t == 'SQRT' and len(params) == 1:
@@ -467,6 +471,12 @@ RUNTIME = '''#include <c48.h>
 /* FORTRAN words are 16-bit on this ZX Spectrum target. */
 static int *f_ref_int(int *p, int value) { *p = value; return p; }
 static float *f_ref_real(float *p, float value) { *p = value; return p; }
+/* F77S REAL -> 16-bit INTEGER INT, truncating toward zero.
+   Trap values outside the representable result range instead of wrapping. */
+static int f_int_real(float x) {
+    if (x >= 32768.0 || x <= -32769.0) exit(2);
+    return (int)x;
+}
 /* F77S real absolute value (numeric generic typing remains partial). */
 static float f_abs_real(float x) { if (x < 0.0) return -x; return x; }
 /* ANSI subset REAL SQRT, Newton iteration with domain check. */
