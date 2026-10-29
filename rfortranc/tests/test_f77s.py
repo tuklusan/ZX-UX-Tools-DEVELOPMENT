@@ -86,11 +86,11 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_com_BLK_0', generated)
 
     def test_data_common_member_rejected_without_block_data(self):
-        src = ("      PROGRAM BAD\\n"
-               "      INTEGER N,LOCAL\\n"
-               "      COMMON /BLK/ N\\n"
-               "      DATA N/42/\\n"
-               "      END\\n")
+        src = ("      PROGRAM BAD\n"
+               "      INTEGER N,LOCAL\n"
+               "      COMMON /BLK/ N\n"
+               "      DATA N/42/\n"
+               "      END\n")
         with self.assertRaisesRegex(FortranError, 'DATA cannot initialize COMMON member'):
             convert(parse(src, std='f77s'))
 

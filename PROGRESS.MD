@@ -46,3 +46,7 @@
 - Added strict positive test for main and subprogram local DATA, including static subprogram lifetime, and negative test for DATA initialization of COMMON members: `rfortranc/tests/test_f77s.py` and `rfortranc/tests/fortran/f77s_datcom.f`.
 - Evidence state at push: source/test review only; GitHub frontend workflow will run on this push. SDK/RVM/native proof for this new revision is **not yet established**. Do not carry forward the 95/65/13/4 regression results from the earlier revision as current proof.
 - NEXT: check GitHub Actions frontend, run SDK/RVM tests with matched SDK, tackle P0 numeric SIN/COS/EXP/LOG and statement functions; continue through all remaining P0/P1/P2 requirements and proof gate. All other developers' work preserved by Git tree overlay + checked main-head update.
+
+### Follow-up correction (same local DATA/COMMON milestone)
+
+- Corrected the newly introduced Python regex escapes and the new test's source newline escapes; registered `f77s_datcom` in the 96th frontend/native fixture list. The first proof run on `0400b6c` must be treated as superseded. This follow-up commit is the tested candidate; see Actions status. Prior native proof is still from earlier source, not this candidate.

@@ -93,10 +93,10 @@ def layout(units):
             # F77S permits DATA of unrelated local objects in a unit which
             # declares COMMON.  Only objects stored in COMMON are forbidden:
             # initializing named COMMON would require excluded BLOCK DATA.
-            if any(re.match(r'^DATA\\s+', st.text) for st in unit.statements):
+            if any(re.match(r'^DATA\s+', st.text) for st in unit.statements):
                 from .data_init import initializers
                 for target, _value in initializers(unit):
-                    object_name = re.match(r'^F_([A-Z][A-Z0-9_]*)(?:\\[|$)', target)
+                    object_name = re.match(r'^F_([A-Z][A-Z0-9_]*)(?:\[|$)', target)
                     if object_name and object_name.group(1) in per_name:
                         raise FortranError(unit.line, 'DATA cannot initialize COMMON member: ' + object_name.group(1))
             uses[unit.name] = {'F_' + key: value for key, value in per_name.items()}
