@@ -70,6 +70,8 @@ def main():
     p.add_argument('--out', type=Path, required=True)
     p.add_argument('--sdk-archive', type=Path)
     p.add_argument('--timeout', type=int, default=180, help='seconds per compiler/emulator process')
+    p.add_argument('--only', nargs='+', choices=sorted(CASES),
+                   help='run only listed strict F77S host-vs-Z80 programs')
     a = p.parse_args()
     if a.timeout < 1:
         p.error('--timeout must be positive')
@@ -86,6 +88,8 @@ def main():
               'cases': []}
     with tempfile.TemporaryDirectory() as d:
         for name, expectation in CASES.items():
+            if a.only and name not in a.only:
+                continue
             src = ROOT/'tests/fortran'/(name+'.f')
             target = Path(d)/(name+'.ssx')
             host = Path(d)/(name+'.host')

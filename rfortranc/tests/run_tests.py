@@ -168,6 +168,8 @@ def main(argv=None):
     p.add_argument('--frontend-only', action='store_true', help='parser/lowering only: no ZX-UX execution')
     p.add_argument('--rvm', help='path to the matching built ZX-UX rvm')
     p.add_argument('--rvm-frames', type=int, default=2000)
+    p.add_argument('--only', nargs='+', choices=sorted(PROGRAMS),
+                   help='run only listed positive programs, omitting negatives and TZX')
     p.add_argument('--timeout', type=int, default=90, help='seconds per tool invocation')
     p.add_argument('--report', type=Path, help='write detailed JSON to this path, pass or fail')
     p.add_argument('--sdk-archive', type=Path, help='optional original SDK zip for hash pinning')
@@ -207,6 +209,8 @@ def main(argv=None):
     with tempfile.TemporaryDirectory(prefix='rfortranc-tests-') as td:
         tmp = Path(td)
         for name, expected in PROGRAMS.items():
+            if args.only and name not in args.only:
+                continue
             src = ROOT / 'tests/fortran' / (name + '.f')
             ext = '.c' if args.frontend_only else '.ssx'
             binary = tmp / (name + ext)
@@ -246,7 +250,7 @@ def main(argv=None):
             if not valid:
                 failures.append(name)
             print('PASS' if valid else 'FAIL', name, flush=True)
-        for name, source in NEGATIVE.items():
+        for name, source in (NEGATIVE.items() if not args.only else []):
             src = tmp / (name + '.f')
             src.write_text(source, encoding='utf-8')
             out = tmp / (name + ('.c' if args.frontend_only else '.ssx'))
@@ -259,7 +263,7 @@ def main(argv=None):
             if not valid:
                 failures.append(name)
             print('PASS' if valid else 'FAIL', name, flush=True)
-        if not args.frontend_only:
+        if not args.frontend_only and not args.only:
             source = ROOT / 'tests/fortran/hello.f'
             tape = tmp / 'hello.tzx'
             cmd = [sys.executable, str(ROOT / 'bin/rfortranc'), '--sdk', args.sdk,
