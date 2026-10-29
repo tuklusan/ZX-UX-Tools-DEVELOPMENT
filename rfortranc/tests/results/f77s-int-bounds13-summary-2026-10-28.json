@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "scope": "Native ZX-UX matching-kernel RVM actual 13 bad dummy-array/storage extent traps",
+  "not_full_case_report": true,
+  "source_translator_sha256": "06c0b7a749012f55fe0fb56b628330414dd0e8a29b1f8e9e57ce4a56cee1be97",
+  "sdk_archive_sha256": "42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17",
+  "rvm_sha256": "e7cfb59b6c76e49faf4a0876520e44d3fcb34a5d9bce45831ae0d25242cc7830",
+  "local_full_json_sha256": "284644571f8199a86fedd81cb45353513776b0223d28f9befb6a58cec19831dd",
+  "local_full_json_bytes": 17524,
+  "command": "python tests/check_adjustable_bounds.py --sdk <source-sdk> --rvm <matching-rvm> --sdk-archive <minizxuxport.zip> --report tests/results/f77s-bounds-int-2026-10-28.json",
+  "expected_rvm_exit_code": 2,
+  "results": {
+    "passed": 13,
+    "total": 13,
+    "failed": 0
+  },
+  "first_case": {
+    "name": "declared_extent_exceeds_tail",
+    "source_sha256": "653e6a2c0a1134e96874c9231a444b48a42fbfe1c4826632905d3d681701ac0d",
+    "ssx_sha256": "b8557dcd028bff6ac4e8015cc611063a94273b02d8096a35a11daa9fb5c3438a",
+    "compile_exit": 0,
+    "rvm_exit": 2,
+    "emulator_stderr": "rvm: declared_e: exit 2 (exit) after 168 frames, 28 system calls, started from the cache\n"
+  }
+}
