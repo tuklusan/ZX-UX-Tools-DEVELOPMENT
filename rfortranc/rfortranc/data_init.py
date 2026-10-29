@@ -38,6 +38,11 @@ def initializers(unit):
         s = st.text.strip()
         m = re.fullmatch(r'DATA\s+(.+)', s)
         if not m:
+            sf = re.match(r'^([A-Z][A-Z0-9_]*)\s*\(', s)
+            if sf and sf.group(1) in unit.statement_functions:
+                if saw_exec or saw_data:
+                    raise FortranError(st.line, 'statement function after DATA/executable')
+                continue
             if re.match(r'^(INTEGER|REAL|LOGICAL|CHARACTER|DIMENSION|IMPLICIT|COMMON|SAVE|EQUIVALENCE|INTRINSIC|EXTERNAL)\b', s):
                 if saw_exec or saw_data:
                     raise FortranError(st.line, 'specification statement after DATA or executable statement')

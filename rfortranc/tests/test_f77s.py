@@ -869,6 +869,30 @@ class F77SChecks(unittest.TestCase):
                     with self.assertRaises(FortranError):
                         convert(parse(source, std='f77s'))
 
+    def test_statement_function_local_scope_and_nesting(self):
+        src = (ROOT/'tests/fortran/f77s_stfn.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        output = convert(units)
+        self.assertNotIn('F_F =', output)
+        self.assertNotIn('F_G =', output)
+        self.assertIn('F_B = ', output)
+        self.assertIn('F_A', output)
+
+    def test_statement_function_order_and_arity_diagnostics(self):
+        invalid = [
+            ['REAL F,X', 'F(T)=T+1.0', 'X=F(1.0,2.0)'],
+            ['REAL F,X', 'X=1.0', 'F(T)=T+1.0'],
+            ['REAL F,X', 'DATA X/1.0/', 'F(T)=T+1.0'],
+            ['REAL F,X', 'F(T)=T+1.0', 'REAL Y'],
+            ['REAL F,X', 'F(T)=F(T)+1.0', 'X=F(2.0)'],
+        ]
+        for body in invalid:
+            with self.subTest(body=body):
+                src = '      PROGRAM BAD\n' + ''.join('      '+line+'\n' for line in body) + '      END\n'
+                with self.assertRaises(FortranError):
+                    convert(parse(src, std='f77s'))
+
     def test_real_to_int_truncation_and_machine_guard(self):
         src=(ROOT/'tests/fortran/f77s_int.f').read_text()
         units=parse(src,std='f77s')

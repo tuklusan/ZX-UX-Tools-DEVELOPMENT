@@ -103,6 +103,7 @@ PROGRAMS = {
     'f77s_int': '     3    -3     0     0    -2',
     'f77s_datcom': '  42  41',
     'f77s_trig': '     0.48     0.88     1.65     0.50    -0.48',
+    'f77s_stfn': '    12.00    99.00',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',

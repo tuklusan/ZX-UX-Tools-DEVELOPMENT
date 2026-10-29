@@ -31,6 +31,7 @@ class Unit:
     statements: list[Statement] = field(default_factory=list)
     vars: dict[str, tuple[str, int | tuple[int | str, ...] | None]] = field(default_factory=dict)
     temps: list[tuple[str, str]] = field(default_factory=list)
+    statement_functions: dict[str, tuple[list[str], str]] = field(default_factory=dict)
 
 
 NAME = r'[A-Z][A-Z0-9_]*'
@@ -269,6 +270,46 @@ def parse(source, std='zxux'):
         known = set(names)
         for u in units:
             infer(u, known)
+    # Statement functions have specification scope, before DATA/executables.
+    # An explicit array declaration distinguishes F(I)=... array assignment
+    # from a statement-function definition F(X)=....
+    for u in units:
+        saw_sf = False
+        saw_exec = False
+        saw_data = False
+        for st in u.statements:
+            text = st.text.strip()
+            spec = (re.match(r'^(INTEGER|REAL|LOGICAL|DIMENSION|IMPLICIT|COMMON|SAVE|EQUIVALENCE|EXTERNAL|INTRINSIC)\b', text)
+                    or re.match(r'^CHARACTER(?:\*|\s)', text))
+            if spec:
+                if saw_sf or saw_data or saw_exec:
+                    raise FortranError(st.line, 'specification after statement function/DATA/executable')
+                continue
+            if re.match(r'^DATA\s+', text):
+                if saw_exec:
+                    raise FortranError(st.line, 'DATA after executable statement')
+                saw_data = True
+                continue
+            if re.match(r'^FORMAT\s*\(', text):
+                continue
+            sf = re.fullmatch(r'(' + NAME + r')\s*\(([^()]*)\)\s*=\s*(.+)', text)
+            if sf and u.vars.get(sf.group(1), ('', None))[1] is None:
+                name, names, expression_text = sf.groups()
+                args = [arg.strip() for arg in split_items(names)]
+                if (not args or any(not NAME_RE.fullmatch(arg) or len(arg) > 6 for arg in args)
+                        or len(args) != len(set(args)) or name in u.args
+                        or len(name) > 6 or name == u.name):
+                    raise FortranError(st.line, 'invalid statement function/dummy names')
+                if saw_data or saw_exec:
+                    raise FortranError(st.line, 'statement function after DATA/executable')
+                if name in u.statement_functions:
+                    raise FortranError(st.line, 'duplicate statement function: ' + name)
+                if u.vars.get(name, ('REAL', None))[0].startswith('CHARACTER*'):
+                    raise FortranError(st.line, 'CHARACTER statement functions excluded in F77S')
+                u.statement_functions[name] = (args, expression_text)
+                saw_sf = True
+            else:
+                saw_exec = True
     for u in units:
         for name, (ty, dims) in u.vars.items():
             if dims is not None and ty.startswith('CHARACTER*') and not dynamic_extent(dims):
@@ -350,8 +391,11 @@ BIN = {'.OR.': '||', '.AND.': '&&', '.EQ.': '==', '.NE.': '!=', '.LT.': '<',
 
 
 class Expr:
-    def __init__(self, text, unit, known_units, line):
+    def __init__(self, text, unit, known_units, line,
+                 substitutions=None, active_functions=frozenset()):
         self.unit, self.known, self.line = unit, known_units, line
+        self.substitutions = substitutions or {}
+        self.active_functions = active_functions
         self.toks = []
         pos = 0
         while pos < len(text):
@@ -419,6 +463,16 @@ class Expr:
                     lhs = 'f_sqrt_real(' + params[0] + ')'
                 elif t in ('SIN', 'COS', 'EXP', 'LOG') and len(params) == 1:
                     lhs = 'f_' + t.lower() + '_real(' + params[0] + ')'
+                elif t in self.unit.statement_functions:
+                    if t in self.active_functions:
+                        raise FortranError(self.line, 'recursive statement function: ' + t)
+                    formals, body = self.unit.statement_functions[t]
+                    if len(params) != len(formals):
+                        raise FortranError(self.line, 'statement function argument count mismatch: ' + t)
+                    local = dict(self.substitutions)
+                    local.update(zip(formals, params))
+                    lhs = '(' + Expr(body, self.unit, self.known, self.line,
+                                     local, self.active_functions | {t}).read() + ')'
                 elif t == 'MOD' and len(params) == 2:
                     lhs = '((' + params[0] + ') % (' + params[1] + '))'
                 elif t in self.known and self.known[t].kind == 'function':
@@ -430,6 +484,8 @@ class Expr:
                     lhs = 'f_' + t + '(' + ', '.join(refs) + ')'
                 else:
                     raise FortranError(self.line, 'unknown function: ' + t)
+            elif t in self.substitutions:
+                lhs = '(' + self.substitutions[t] + ')'
             elif t in self.unit.vars and self.unit.vars[t][1] is None:
                 if self.unit.vars[t][0].startswith('CHARACTER*'):
                     raise FortranError(self.line, 'CHARACTER must use character assignment/comparison or A FORMAT')
@@ -1109,7 +1165,7 @@ def convert(units):
         def decl(text):
             output.append('    ' + text)
         for var, (ty, n) in u.vars.items():
-            if var not in u.args and ('F_' + var) not in aliases:
+            if var not in u.args and var not in u.statement_functions and ('F_' + var) not in aliases:
                 from .arrays import size as total_extent
                 if ty.startswith('CHARACTER*'):
                     count = total_extent(n) if n is not None else 1
@@ -1162,6 +1218,9 @@ def convert(units):
         def ret_stmt():
             return 'return ' + ('0' if is_main else 'F_' + u.name if u.kind == 'function' else '') + ';'
         def stmt(s, line):
+            sf = re.match(r'^(' + NAME + r')\s*\(', s)
+            if sf and sf.group(1) in u.statement_functions:
+                return  # statement function is expanded on each reference
             if re.fullmatch(r'FORMAT\s*\((.*)\)', s):
                 return  # FORMAT is a non-executable specification statement
             if re.match(r'^COMMON\s+', s):

@@ -7,12 +7,12 @@ Source inspection date 2026-10-28; compiler source revision `e03c72542a504846911
 
 | Priority | Status | Required remaining work |
 |---|---|---|
-| P0 | Missing | Specific numerical intrinsics: SIN, COS, EXP, LOG and other permitted §15.10 functions; add argument/result typing, domain/accuracy tests. Only restricted INT, ABS, SQRT, MOD exist. |
+| P0 | Partial | Specific numerical intrinsics: SIN/COS/EXP/LOG plus restricted INT/ABS/SQRT/MOD now lower and have narrow host/native fixtures. Other §15.10 functions, full argument/result typing, exceptional domains, broad accuracy and code size are open. |
 | P0 | Partial | Numeric expression/type semantics: mixed INTEGER/REAL, typed power, negative or noninteger powers where standard permits, conversions, precedence, overflow and numeric edge cases. |
 | P0 | Partial | General formatted sequential READ/WRITE, internal CHARACTER file I/O, unformatted sequential/direct I/O, legal unit identifiers (including integer variables and non-5/6 units), EOF and permitted control specifiers. |
 | P0 | Partial | FORMAT: required Ew.dEe, Ew.d input, unrestricted permitted F/E cases, P scale, BN/BZ, reversion/record handling, and assigned-integer/CHARACTER-constant format identifiers. **Gw.dEe excluded, Ew.dEe required.** |
 | P0 | Missing | I/O implied-DO with integer-control restrictions; whole-array I/O lists and permitted repetition/reversion. Do not accept general expressions as strict F77S I/O items. |
-| P0 | Missing | Statement functions, including local dummy-name scope; original NEWTON sample blocked. |
+| P0 | Partial | Scalar numeric statement functions with local dummy substitution, nesting and source-order checks now run in one host/native fixture; full typing, argument evaluation semantics and the original NEWTON sample remain unproven. |
 | P1 | Missing | EXTERNAL/INTRINSIC declarations, procedure dummy/actual arguments, unprefixed FUNCTION, and complete specific external-function result typing and calls. |
 | P1 | Partial | COMMON storage association with mixed permitted numeric types, alternate matching storage views, different-sized blank COMMON and CHARACTER COMMON. |
 | P1 | Partial | EQUIVALENCE with permitted numeric-type storage association, named COMMON overlap and same-width CHARACTER total association. No forbidden partial CHARACTER association. |
