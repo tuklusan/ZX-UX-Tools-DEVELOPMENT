@@ -390,3 +390,7 @@
 ### Correction — underscore lexical check CI failure (2026-10-29)
 
 - First CI on `a720167` failed before tests because the uploaded strict gate contained a malformed punctuation-check line, truncated before its dollar/colon conditions. Restored the check using `chr(36)` for dollar-sign detection; no intended rule is dropped. Rerun exact-head CI before counting the new underscore test as passing.
+
+### Correction — strict gate duplicate tail (2026-10-29)
+
+- Second GitHub CI (`8d3818c`, run `40898795168`) exposed duplicate trailing source after the intended F77S validator's final comment, producing an unexpected unindented fragment at line 88. Removed the entire duplicated suffix. The repaired validator is 87 lines long and keeps the original punctuation check using ASCII dollar `chr(36)` plus the new underscore rejection. Verify exact revision through GitHub frontend+host CI before claiming success.

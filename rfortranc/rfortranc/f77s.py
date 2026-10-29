@@ -85,35 +85,3 @@ def validate_source(source, units):
             # F77S I/O data items are checked during compiler lowering.
             # The shared expander handles fixed whole arrays, implied DO,
             # restrictions on subscripts and named-variable items.
- in clean or ':' in clean:
-            raise FortranError(number, 'non-F77S source character in statement')
-    for unit in units:
-        if len(unit.name) > 6 or '_' in unit.name:
-            raise FortranError(unit.line, 'F77S names have at most six letters/digits')
-        for name in unit.vars:
-            if len(name) > 6 or '_' in name:
-                raise FortranError(unit.line, 'F77S names have at most six letters/digits: ' + name)
-        for name in unit.args:
-            if len(name) > 6 or '_' in name:
-                raise FortranError(unit.line, 'F77S dummy name exceeds six characters')
-        for st in unit.statements:
-            s = st.text.strip()
-            if re.match(r'^PRINT\b', s):
-                raise FortranError(st.line, 'PRINT is excluded from ANSI F77S (use formatted WRITE)')
-            if re.match(r'^READ\s*\*\s*,', s) or re.match(r'^WRITE\s*\(\s*[^,]+,\s*\*', s):
-                raise FortranError(st.line, 'list-directed I/O is excluded from ANSI F77S')
-            if s == 'IMPLICIT NONE':
-                raise FortranError(st.line, 'IMPLICIT NONE is not ANSI F77S')
-            if re.match(r'^(PARAMETER|BLOCK DATA|ENTRY|CLOSE|INQUIRE|DOUBLE PRECISION|COMPLEX)\b', s):
-                raise FortranError(st.line, 'statement excluded from ANSI F77S: ' + s.split()[0])
-            m = re.fullmatch(r'DO\s+(\d+)\s+(' + _WORD + r')\s*=\s*(.+)', s)
-            if m:
-                vals = split_items(m.group(3))
-                if len(vals) not in (2, 3) or any(not re.fullmatch(_INT, v.strip()) for v in vals):
-                    raise FortranError(st.line, 'F77S DO limits must be INTEGER constants or scalar variables')
-            m = re.fullmatch(r'GO\s*TO\s*\([^()]*\)\s*,?\s*(.*)', s)
-            if m and not re.fullmatch(_WORD, m.group(1)):
-                raise FortranError(st.line, 'F77S computed GO TO selector must be an INTEGER variable')
-            # F77S I/O data items are checked during compiler lowering.
-            # The shared expander handles fixed whole arrays, implied DO,
-            # restrictions on subscripts and named-variable items.
