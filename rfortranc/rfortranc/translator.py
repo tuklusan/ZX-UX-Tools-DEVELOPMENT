@@ -727,6 +727,9 @@ class Expr:
                 else:
                     lhs = 'f_rpow_real(' + lhs + ', ' + rhs + ')'
                     result_type = 'REAL'
+            elif op == '*' and lt == rt == 'INTEGER':
+                lhs = 'f_imul(' + lhs + ', ' + rhs + ')'
+                result_type = 'INTEGER'
             else:
                 lhs = '((' + lhs + ') ' + BIN.get(op, op) + ' (' + rhs + '))'
                 result_type = ('LOGICAL' if op.startswith('.') else

@@ -1114,6 +1114,14 @@ class F77SChecks(unittest.TestCase):
                 with self.subTest(expression=bad),self.assertRaises(FortranError):
                     convert(parse(s,std='f77s'))
 
+    def test_integer_multiplication_uses_16_bit_checked_helper(self):
+        src=(ROOT/'tests/fortran/f77s_imul.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('f_imul(F_A, F_B)',c)
+        self.assertIn('f_imul(F_C, F_B)',c)
+
     def test_integer_powers_use_checked_logarithmic_multiply(self):
         source=(ROOT/'tests/fortran/f77s_ipow.f').read_text()
         units=parse(source,std='f77s')

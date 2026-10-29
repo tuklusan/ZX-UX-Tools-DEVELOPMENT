@@ -522,3 +522,9 @@
 - Replaced linear-time unchecked 16-bit `f_ipow` multiplication with exponentiation by squaring and a signed 16-bit pre-multiply overflow guard. This avoids silent wrapping and thousands of needless multiplications on 3.5 MHz Z80, while retaining the prior rejection of negative INTEGER powers.
 - Strict `f77s_ipow.f` covers 2**14, (-2)**15, 1**32767, 0**0 and (-3)**3. Actual matched ZX-UX Z80 SSX **1,728 bytes**, SHA256 `a7d4be9444a0deda6de8022e47a1dee63a0f33c69891cb932e317a452431fd65`, exits 0 after 147 frames/23 calls and prints `   16384  -32768       1       1     -27`, matching independent gfortran. Separate overflow binaries for 2**15 and (-2)**16 both exit 2 on Z80. Local focused frontend 170/170 passes.
 - Added regression fixture and host/native case maps. Full latest-SHA native/differential/bounds/release tests, other F77S P0/P1/P2, physical Spectrum and peak live RAM proof remain OPEN. Not production-ready.
+
+## Milestone — checked INTEGER multiplication (2026-10-29)
+
+- Typed INTEGER*INTEGER expressions now use the 16-bit pre-multiply overflow guard already shared with INTEGER power. This preserves valid -32768 products, traps out-of-range values with ZX-UX exit 2, and avoids silently wrapped results.
+- Strict source `f77s_imul.f` compiled to a **1,534-byte** ZX-UX SSX (SHA256 `e51334395845a7cbfc89acf1015ec529fda70e8fcc39f6530084187d99fa5bca`), exited 0 after 138 frames/23 system calls and printed `  -32768    -240`, identical to independent gfortran. Replacing A=-16384 with 16384 triggers multiplication overflow and exits 2 after 162 frames. Local frontend **171/171** passed.
+- Strict fixture and native/host case mappings added. CI on previous INTEGER power commit `1b7e149` passed. Full changed-SHA native/differential/bounds/release, other P0/P1/P2 gaps, peak RAM and physical Spectrum remain OPEN; not production-ready.
