@@ -944,6 +944,46 @@ static void f_swrite(int unit, int value) {
     length = 0;
     if (write(f_sh[unit], &length, 2) != 2) exit(2);
 }
+/* One sequential unformatted record containing two INTEGERs. */
+static void f_swrite2(int unit, int first, int second) {
+    int length, high;
+    f_sopen(unit, 0);
+    if (tell(f_sh[unit]) > 32751) exit(2);
+    length = 8;
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+    length = 0;
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+    high = 0;
+    if (first < 0) high = -1;
+    if (write(f_sh[unit], &first, 2) != 2) exit(2);
+    if (write(f_sh[unit], &high, 2) != 2) exit(2);
+    high = 0;
+    if (second < 0) high = -1;
+    if (write(f_sh[unit], &second, 2) != 2) exit(2);
+    if (write(f_sh[unit], &high, 2) != 2) exit(2);
+    length = 8;
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+    length = 0;
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+}
+static void f_sread2(int unit, int *first, int *second) {
+    int length, upper, high, tail;
+    f_sopen(unit, 1);
+    if (read(f_sh[unit], &length, 2) != 2) exit(2);
+    if (read(f_sh[unit], &upper, 2) != 2) exit(2);
+    if (length != 8 || upper != 0) exit(2);
+    if (read(f_sh[unit], first, 2) != 2) exit(2);
+    if (read(f_sh[unit], &high, 2) != 2) exit(2);
+    if (*first < 0) { if (high != -1) exit(2); }
+    else if (high != 0) exit(2);
+    if (read(f_sh[unit], second, 2) != 2) exit(2);
+    if (read(f_sh[unit], &high, 2) != 2) exit(2);
+    if (*second < 0) { if (high != -1) exit(2); }
+    else if (high != 0) exit(2);
+    if (read(f_sh[unit], &tail, 2) != 2) exit(2);
+    if (read(f_sh[unit], &upper, 2) != 2) exit(2);
+    if (tail != 8 || upper != 0) exit(2);
+}
 static int f_sreadstat(int unit, int *dest) {
     int length, upper, value, high, tail, upper2, got;
     f_sopen(unit, 1);
@@ -987,12 +1027,13 @@ static void f_sback(int unit) {
     pos = tell(f_sh[unit]);
     if (pos < 0) exit(2);
     if (pos == 0) return;
-    if (pos < 12) exit(2);
+    if (pos < 4) exit(2);
     if (seek(f_sh[unit], pos - 4) < 0) exit(2);
     if (read(f_sh[unit], &tail, 2) != 2) exit(2);
     if (read(f_sh[unit], &upper, 2) != 2) exit(2);
-    if (tail != 4 || upper != 0) exit(2);
-    if (seek(f_sh[unit], pos - 12) < 0) exit(2);
+    if ((tail != 4 && tail != 8) || upper != 0) exit(2);
+    if (pos < tail + 8) exit(2);
+    if (seek(f_sh[unit], pos - tail - 8) < 0) exit(2);
 }
 static void f_outstr(char *s) {
     while (*s) { putchar(*s); s++; }
@@ -1724,7 +1765,7 @@ def sparse_runtime(runtime, used_in):
             globals_src += 'static int ' + name + ';\n'
     if re.search(r'\bf_d(?:open|seek|writei|readi|write2|read2)\s*\(', used_in + functions_src):
         globals_src += 'static int f_dh[10];\nstatic int f_dl[10];\n'
-    if re.search(r'\bf_s(?:open|write|read|readstat|rewind|back|end)\s*\(', used_in + functions_src):
+    if re.search(r'\bf_s(?:open|write|write2|read|read2|readstat|rewind|back|end)\s*\(', used_in + functions_src):
         globals_src += 'static int f_sh[10];\nstatic int f_sused[10];\n'
     return '#include <c48.h>\n' + globals_src + functions_src + '\n'
 
@@ -2184,6 +2225,17 @@ def convert(units, emit_units=None):
                 extra_decls.append('int ' + temp + ';')
                 pc = add([temp + ' = f_sreadstat(' + unit_no + ', &F_' + name + ');'])
                 conditional_gotos.append((pc, '!' + temp, str(int(target)), pc + 1, line))
+                return
+            seqpair = re.fullmatch(
+                r'(READ|WRITE)\s*\(\s*([1-9])\s*\)\s*([A-Z][A-Z0-9_]*)\s*,\s*([A-Z][A-Z0-9_]*)',s)
+            if seqpair:
+                kind,unit_no,first,second=seqpair.groups()
+                if u.vars.get(first) != ('INTEGER',None) or u.vars.get(second) != ('INTEGER',None):
+                    raise FortranError(line,'sequential unformatted pair requires INTEGER scalars')
+                if kind == 'WRITE':
+                    add(['f_swrite2('+unit_no+', F_'+first+', F_'+second+');'])
+                else:
+                    add(['f_sread2('+unit_no+', &F_'+first+', &F_'+second+');'])
                 return
             seqio = re.fullmatch(r'(READ|WRITE)\s*\(\s*([1-9])\s*\)\s*([A-Z][A-Z0-9_]*)', s)
             if seqio:

@@ -55,6 +55,7 @@ CASES['f77s_f6'] = ['    1.234567   -0.000125    9.999999', '    1.234567   -0.0
 CASES['f77s_exintr'] = ['     1.48']
 CASES['f77s_frevert'] = ['   1   2', '   3   4', '   5']
 CASES['f77s_unitvar'] = ['   42']
+CASES['f77s_seqpair'] = ['  -42   17', '    4    5']
 CASES['f77s_iostat'] = ['   23   -1']
 CASES['f77s_endgoto'] = ['    7    7']
 CASES['f77s_endfile'] = ['   23']

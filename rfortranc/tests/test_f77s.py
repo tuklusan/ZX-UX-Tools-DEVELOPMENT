@@ -1342,6 +1342,17 @@ class F77SChecks(unittest.TestCase):
                 for handle in handles:
                     self.assertIn('static int '+handle+';', c)
 
+    def test_sequential_unformatted_two_integer_records(self):
+        src=(ROOT/'tests/fortran/f77s_seqpair.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('f_swrite2(7, F_A, F_B);',c)
+        self.assertIn('f_sread2(7, &F_C, &F_D);',c)
+        self.assertIn('pos - tail - 8',c)
+        separate=convert(units,emit_units={units[0].name})
+        self.assertIn('static int f_sused[10];',separate)
+
     def test_unformatted_iostat_and_end_control(self):
         src=(ROOT/'tests/fortran/f77s_iostat.f').read_text()
         units=parse(src,std='f77s')
