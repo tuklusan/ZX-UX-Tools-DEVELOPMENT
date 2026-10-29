@@ -825,6 +825,24 @@ class F77SChecks(unittest.TestCase):
             self.assertIn('f_seqcheck(', generated)
             self.assertIn('f_extent(', generated)
 
+    def test_unprefixed_function_implicit_result_type(self):
+        src = (ROOT/'tests/fortran/f77s_barefn.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        self.assertEqual(units[1].type, 'REAL')
+        generated = convert(units)
+        self.assertIn('float f_SQUARE(float *F_X)', generated)
+        self.assertIn('F_Y = f_SQUARE(', generated)
+
+    def test_unprefixed_function_integer_result(self):
+        src = ('      PROGRAM GOOD\n      INTEGER K\n'
+               '      K=INCR(3)\n      END\n'
+               '      FUNCTION INCR(I)\n      INTEGER I\n'
+               '      INCR=I+1\n      END\n')
+        units = parse(src, std='f77s')
+        self.assertEqual(units[1].type, 'INTEGER')
+        self.assertIn('int f_INCR(int *F_I)', convert(units))
+
     def test_character_constant_format_identifier(self):
         src = (ROOT/'tests/fortran/f77s_fmtch.f').read_text()
         units = parse(src, std='f77s')

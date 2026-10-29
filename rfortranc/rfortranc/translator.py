@@ -32,6 +32,8 @@ class Unit:
     vars: dict[str, tuple[str, int | tuple[int | str, ...] | None]] = field(default_factory=dict)
     temps: list[tuple[str, str]] = field(default_factory=list)
     statement_functions: dict[str, tuple[list[str], str]] = field(default_factory=dict)
+    unprefixed: bool = False
+    result_explicit: bool = False
 
 
 NAME = r'[A-Z][A-Z0-9_]*'
@@ -175,13 +177,17 @@ def parse(source, std='zxux'):
     for st in lines(source):
         s = st.text.strip()
         fm = re.fullmatch(r'(INTEGER|REAL|LOGICAL)\s+FUNCTION\s+(' + NAME + r')\s*\(([^)]*)\)', s)
+        bare = re.fullmatch(r'FUNCTION\s+(' + NAME + r')\s*\(([^)]*)\)', s)
         sm = re.fullmatch(r'SUBROUTINE\s+(' + NAME + r')\s*\(([^)]*)\)', s)
         pm = re.fullmatch(r'PROGRAM\s+(' + NAME + r')', s)
-        if fm or sm or pm:
+        if fm or bare or sm or pm:
             if unit:
                 raise FortranError(st.line, 'missing END before next program unit')
             if fm:
                 ty, name, arg = fm.groups(); kind = 'function'
+            elif bare:
+                name, arg = bare.groups(); kind = 'function'
+                ty = 'INTEGER' if 'I' <= name[0] <= 'N' else 'REAL'
             elif sm:
                 name, arg = sm.groups(); ty, kind = 'INTEGER', 'subroutine'
             else:
@@ -189,7 +195,7 @@ def parse(source, std='zxux'):
             args = [] if not arg.strip() else [a.strip() for a in split_items(arg)]
             if any(not NAME_RE.fullmatch(a) for a in args) or len(args) != len(set(args)):
                 raise FortranError(st.line, 'invalid or duplicate dummy arguments')
-            unit = Unit(name, kind, st.line, args, ty)
+            unit = Unit(name, kind, st.line, args, ty, unprefixed=bool(bare))
             continue
         if s == 'END':
             if unit is None:
@@ -235,6 +241,8 @@ def parse(source, std='zxux'):
                 if name in u.vars and name not in u.args and name != u.name:
                     raise FortranError(st.line, 'duplicate declaration: ' + name)
                 u.vars[name] = (ty, size)
+                if name == u.name and u.kind == 'function':
+                    u.result_explicit = True
     # ANSI F77S DIMENSION may appear independently of INTEGER/REAL/LOGICAL.
     # Fixed-size arrays are implemented; adjustable/assumed-size dummy arrays
     # are deliberately diagnosed rather than silently miscompiled.
@@ -266,10 +274,17 @@ def parse(source, std='zxux'):
                     raise FortranError(st.line, 'DIMENSION needs an explicitly typed name: ' + name)
                 u.vars[name] = (ty, dims)
     if std == 'f77s':
-        from .implicit import infer
+        from .implicit import infer, mapping
         known = set(names)
         for u in units:
             infer(u, known)
+            if u.unprefixed:
+                resolved = (u.vars[u.name][0] if u.result_explicit
+                            else mapping(u.statements)[u.name[0]])
+                if resolved not in ('INTEGER', 'REAL', 'LOGICAL'):
+                    raise FortranError(u.line, 'non-numeric unprefixed FUNCTION return unsupported')
+                u.type = resolved
+                u.vars[u.name] = (resolved, None)
     # Statement functions have specification scope, before DATA/executables.
     # An explicit array declaration distinguishes F(I)=... array assignment
     # from a statement-function definition F(X)=....

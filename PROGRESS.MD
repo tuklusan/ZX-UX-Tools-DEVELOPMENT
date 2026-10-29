@@ -110,3 +110,9 @@
 - Added F77S `READ(5,'(...)')` and `WRITE(6,'(...)')` compile-time format selection, using the same checked subset descriptors as numbered FORMAT statements; rejects malformed/unparenthesized constant formats. No named FILE/CLOSE extension added.
 - Strict independent gfortran and matched ZX-UX Z80 test `f77s_fmtch.f`: source `WRITE(6,'(I5)') N`, output `   42`, native exit 0 at frame 166/29 syscalls; 109/109 focused frontend unit tests passed locally. Added native and host differential regression entry. READ with CHARACTER identifier needs an independent native runtime fixture.
 - Partial P0 FORMAT advancement; assigned FORMAT identifier, P scale, reversion and full record handling still missing. Physical Spectrum/cassette and peak memory unproven.
+
+## Milestone — unprefixed numeric FUNCTION units (2026-10-29)
+
+- Parser now accepts F77S unprefixed `FUNCTION name(args)` units with default implicit return type (I–N INTEGER, others REAL), explicit declaration and IMPLICIT overrides. CHARACTER result still excluded; existing typed FUNCTION unchanged. Cross-unit by-reference calls verified.
+- `f77s_barefn.f` strict gfortran reference and matched ZX-UX Z80 SSX/RVM both output `    9.00`; native exit 0 after 179 frames. 111/111 local frontend unit tests, including INTEGER implicit function type, passed. Added to native/differential runners.
+- P1 EXTERNAL/INTRINSIC procedure arguments and complete external ABI/type checking remain open. P2 separate linking and physical Spectrum proof remain open.
