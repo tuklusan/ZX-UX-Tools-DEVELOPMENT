@@ -417,3 +417,7 @@
 - Expanded the existing narrow F77S unnamed direct unformatted scratch-file implementation to permit one or two INTEGER scalars per record: RECL=4 or RECL=8. The latter writes and reads two sign-extended 32-bit little-endian INTEGERs through the actual ZX-UX filesystem. Bounds on record indices are checked against target 16-bit seeking; wrong record width or wrong types trap/reject. Named FILE= remains out of scope.
 - Strict `f77s_direct2.f` writes two different numbered records, then reads both out of order. Actual matched SDK Z80/RVM native **2/2** passed for the new and prior direct-I/O fixtures. Independent gfortran differential **2/2** passed. Frontend unit tests **154/154** passed locally. The exact compiler change, fixtures and tests are committed here; full native suites and physical Spectrum proof still outstanding.
 - NEXT: check GitHub Actions on this SHA; complete remaining required direct/sequential unformatted and positioning functionality, then P0/P1/P2 and production proof. No runtime peak RAM measurement or physical Spectrum test.
+
+### Direct-I/O evidence checkpoint (2026-10-29)
+
+- Added `rfortranc/tests/results/f77s-direct2-2026-10-29.json` with exact source revision, selected native/differential JSON hashes and measured static memory: RECL=8 2,708 bytes, RECL=4 2,542 bytes, both below 12,288 bytes. Measurements are linked image+BSS+reserved stack/heap, **not** live peak or kernel overhead. The selected native and independent host comparisons both passed 2/2. Full current revision regression and physical hardware remain open.
