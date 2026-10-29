@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "scope": "Four strict native SSX1+TZX release packages, actual RVM exit 0 and exact host expectation",
+  "not_full_case_report": true,
+  "not_physical_cassette_validation": true,
+  "translator_sha256": "06c0b7a749012f55fe0fb56b628330414dd0e8a29b1f8e9e57ce4a56cee1be97",
+  "sdk_archive_sha256": "42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17",
+  "local_full_json_sha256": "17201252839515cfe7fff3fbc0845d01aa42f809f0ccd2d237d1bbae33e30431",
+  "local_full_json_bytes": 7834,
+  "command": "python tests/check_release.py --sdk <source-sdk> --rvm <matched-rvm> --sdk-archive <minizxuxport.zip> --report tests/results/f77s-release-int-2026-10-28.json",
+  "result": {
+    "passed": 4,
+    "total": 4,
+    "failed": 0
+  },
+  "checks": "Each SSX1 magic and TZX structure, checksum manifest, unique collision-safe <=10-char tape label, matching ZX-UX kernel/RVM exit0, all expected output records",
+  "cases": [
+    {
+      "name": "f77s_burkl2",
+      "source_sha256": "f1a67de23a034ed88ee52da13be201f21bb8dfe7d7eb4362a3d81b7dbaa2d429",
+      "ssx_sha256": "298ef141c9598913a666b4b3a2613284ac1273f0ad6bdfce3b92e684ac58111a",
+      "tzx_sha256": "6f381b551bbaa0ab082f5a4df90df20f9e56805bd2d9eb24b6a9c0647cf53fe3",
+      "passed": true
+    },
+    {
+      "name": "f77s_burkcopy",
+      "source_sha256": "b6b35dedd8bf773501299ac62676c1902648aab9c1096f30f6e642d8da56f17c",
+      "ssx_sha256": "198ab3137af6c984e72b24f6c47fd6a00151af81ec7f71856522e5c9500b0bcb",
+      "tzx_sha256": "effc43e9c19db240a78e301eb3c8341a45fce61036a2cfc189d2e268a8183b42",
+      "passed": true
+    },
+    {
+      "name": "f77s_burkrsrt",
+      "source_sha256": "50dc1aaec9abcc6bdf131dc80f46b6933916b5e26b14341c6ac87ac53bc4d031",
+      "ssx_sha256": "a7dd2272cf826ccb123f0988d01ba97fe91d766a74ed2481c47b4f6a17d7ea22",
+      "tzx_sha256": "64c2775c0ee12ee2ab6fbfb3be963e9e476e8b29dbd067b3e00b406811ef60db",
+      "passed": true
+    },
+    {
+      "name": "f77s_burkreal",
+      "source_sha256": "cb56a64278b6ca9aa1ea7df76bc5948dcb2dbabba25d19ce7f0a43e8d476b8e1",
+      "ssx_sha256": "33014fca0880796321707a09b7766542f5e99fe0941a403b3d8a3805df2382cc",
+      "tzx_sha256": "f612cc0f62bdc000220343f692d7f4fd120bb6e4dc252c5e4a5612620cd10d52",
+      "passed": true
+    }
+  ]
+}
