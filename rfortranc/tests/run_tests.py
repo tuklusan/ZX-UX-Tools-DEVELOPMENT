@@ -128,6 +128,9 @@ PROGRAMS = {
     'f77s_barefn': '    9.00',
     'f77s_iodo': '   2   4   6',
     'f77s_vario': '   1   2',
+    'f77s_varreal': '     4.00    -3.75',
+    'f77s_varlc': '   T   F',
+    'f77s_varexp': '   0.123400E+003',
     'f77s_iord': '   1   2   3   4',
     'f77s_numcv': '   321    -3    -2',
     'f77s_idxexpr': '  20',
@@ -250,9 +253,9 @@ def main(argv=None):
             if valid and args.rvm and not args.frontend_only:
                 emu_argv = [sys.executable, args.rvm, '--headless', '--text',
                             '--frames', str(args.rvm_frames)]
-                if name in ('f77s_read', 'f77s_repeat', 'f77s_charread', 'f77s_arrread', 'f77s_realio', 'f77s_logio', 'f77s_eread', 'f77s_bnbz', 'f77s_iord', 'f77s_pscale', 'f77s_pause', 'f77s_frevert', 'f77s_f6', 'f77s_vario'):
+                if name in ('f77s_read', 'f77s_repeat', 'f77s_charread', 'f77s_arrread', 'f77s_realio', 'f77s_logio', 'f77s_eread', 'f77s_bnbz', 'f77s_iord', 'f77s_pscale', 'f77s_pause', 'f77s_frevert', 'f77s_f6', 'f77s_vario', 'f77s_varreal', 'f77s_varlc', 'f77s_varexp'):
                     keys = {'f77s_read': '0042 007\n', 'f77s_repeat': '003 005 010\n',
-                            'f77s_charread': 'XYZ\n', 'f77s_arrread': 'XYZ\n', 'f77s_realio': '   -3.25\n  001234\n', 'f77s_logio': '   F   T\n', 'f77s_eread': '   0.123400E+003   0.500000E+001\n', 'f77s_bnbz': '  42  12  \n', 'f77s_iord': '001002003\n', 'f77s_pscale': '   12.30    1.23\n', 'f77s_pause': 'go\n', 'f77s_frevert': '001002\n003004\n005\n', 'f77s_f6':'    1.234567   -0.000125    9.999999\n', 'f77s_vario':'001002\n003004\n005\n'}
+                            'f77s_charread': 'XYZ\n', 'f77s_arrread': 'XYZ\n', 'f77s_realio': '   -3.25\n  001234\n', 'f77s_logio': '   F   T\n', 'f77s_eread': '   0.123400E+003   0.500000E+001\n', 'f77s_bnbz': '  42  12  \n', 'f77s_iord': '001002003\n', 'f77s_pscale': '   12.30    1.23\n', 'f77s_pause': 'go\n', 'f77s_frevert': '001002\n003004\n005\n', 'f77s_f6':'    1.234567   -0.000125    9.999999\n', 'f77s_vario':'001002\n003004\n005\n', 'f77s_varreal':'   1.25   2.50\n  -3.75   4.00\n', 'f77s_varlc':'  T  F\n  T\nABCDEF\nGHI\n', 'f77s_varexp':'   0.123400E+003\n   0.500000E+001\n'}
                     emu_argv += ['--keys', keys[name]]
                 emu_argv += [str(binary)]
                 emu = command(emu_argv, args.timeout)

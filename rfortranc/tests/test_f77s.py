@@ -1181,6 +1181,25 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('F_A[(f_index(3, 3))] = f_fmt_int(3);', generated)
         self.assertIn('F_I = 4;', generated)
 
+    def test_runtime_implied_do_real_logical_character_e_formats(self):
+        cases = [('f77s_varreal', 'f_fmt_real(', 'f_outrealw('),
+                 ('f77s_varlc', 'f_fmt_logical(', 'f_outcharw('),
+                 ('f77s_varexp', 'f_fmt_ereal(', 'f_outexpw(')]
+        for filename, reader, writer in cases:
+            source=(ROOT/'tests/fortran'/(filename+'.f')).read_text()
+            with self.subTest(filename=filename):
+                units=parse(source,std='f77s')
+                validate_source(source,units)
+                c=convert(units)
+                self.assertIn(reader,c)
+                self.assertIn(writer,c)
+                self.assertIn('f_add_checked(',c)
+        bad=('      PROGRAM BAD\n      REAL A(3)\n      INTEGER I,N\n'
+             '      N=3\n      WRITE(6,10) (A(I),I=1,N)\n'
+             '   10 FORMAT(2I4)\n      END\n')
+        with self.assertRaisesRegex(FortranError,'FORMAT/array type mismatch'):
+            convert(parse(bad,std='f77s'))
+
     def test_runtime_bound_io_implied_do_read_write(self):
         source=(ROOT/'tests/fortran/f77s_vario.f').read_text()
         units=parse(source,std='f77s')

@@ -1777,8 +1777,8 @@ def convert(units, emit_units=None):
                 raise FortranError(line, 'runtime implied-DO needs INTEGER scalar control')
             array = target.group(1)
             ty, extent = u.vars.get(array, (None, None))
-            if ty != 'INTEGER' or extent is None or (isinstance(extent, tuple) and len(extent) != 1):
-                raise FortranError(line, 'runtime I/O implied-DO currently requires rank-1 INTEGER array')
+            if extent is None or (isinstance(extent, tuple) and len(extent) != 1):
+                raise FortranError(line, 'runtime I/O implied-DO needs a rank-1 array')
             values_expr = [first] + parts[2:]
             for token in values_expr:
                 if not re.fullmatch(r'[+-]?[0-9]+|' + NAME, token):
@@ -1790,10 +1790,16 @@ def convert(units, emit_units=None):
             step = values_expr[2] if len(values_expr) == 3 else '1'
             if step == '0':
                 raise FortranError(line, 'implied-DO step must be nonzero')
-            widths = [item for kind, item in format_ops if kind == 'integer']
-            if not widths or len(widths) != len(format_ops) or len(set(widths)) != 1:
-                raise FortranError(line, 'runtime implied-DO needs uniform FORMAT I descriptors')
-            n = len(widths)
+            if not format_ops or any(entry != format_ops[0] for entry in format_ops):
+                raise FortranError(line, 'runtime implied-DO needs identical data edit descriptors')
+            kind, edit = format_ops[0]
+            compatible = ((kind == 'integer' and ty == 'INTEGER') or
+                          (kind in ('real', 'realexp', 'realexpdigits') and ty == 'REAL') or
+                          (kind == 'logical' and ty == 'LOGICAL') or
+                          (kind == 'character' and ty.startswith('CHARACTER*')))
+            if not compatible:
+                raise FortranError(line, 'runtime implied-DO FORMAT/array type mismatch')
+            n = len(format_ops)
             if n > 255:
                 raise FortranError(line, 'FORMAT field count exceeds target 255 cap')
             unique = str(len(code))
@@ -1815,10 +1821,28 @@ def convert(units, emit_units=None):
                      '    if (' + count + ' >= 255) exit(2);']
             if mode == 'READ':
                 body.append('    if (' + count + ' && (' + count + ' % ' + str(n) + ') == 0) f_fmt_end();')
-                body.append('    ' + E(parts[0], line) + ' = f_fmt_int(' + str(widths[0]) + ');')
             else:
                 body.append('    if (' + count + ' && (' + count + ' % ' + str(n) + ') == 0) putchar(10);')
-                body.append('    f_outintw(' + E(parts[0], line) + ', ' + str(widths[0]) + ');')
+            if kind == 'character':
+                pointer, length = character_item(parts[0], u, known, line)
+                width = edit or length
+                operation = ('f_fmt_inchar(' if mode == 'READ' else 'f_outcharw(') + pointer + ', ' + str(length) + ', ' + str(width) + ');'
+            else:
+                value = E(parts[0], line)
+                if mode == 'READ':
+                    reader = {'integer':'f_fmt_int', 'logical':'f_fmt_logical',
+                              'real':'f_fmt_real', 'realexp':'f_fmt_ereal',
+                              'realexpdigits':'f_fmt_ereal'}[kind]
+                    params = str(edit) if kind in ('integer','logical') else str(edit[0]) + ', ' + str(edit[1])
+                    operation = value + ' = ' + reader + '(' + params + ');'
+                else:
+                    writer = {'integer':'f_outintw', 'logical':'f_outlogw',
+                              'real':'f_outrealw', 'realexp':'f_outexp',
+                              'realexpdigits':'f_outexpw'}[kind]
+                    params = (str(edit) if kind in ('integer','logical') else
+                              ', '.join(str(x) for x in edit))
+                    operation = writer + '(' + value + ', ' + params + ');'
+            body.append('    ' + operation)
             body += ['    ' + count + ' = ' + count + ' + 1;',
                      '    F_' + var + ' = f_add_checked(F_' + var + ', ' + inc + ');',
                      '}', 'f_fmt_end();' if mode == 'READ' else 'putchar(10);']
