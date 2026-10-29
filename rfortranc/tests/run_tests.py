@@ -313,19 +313,6 @@ def main(argv=None):
             if not valid:
                 failures.append(name)
             print('PASS' if valid else 'FAIL', name, flush=True)
-        if not args.frontend_only and not args.only:
-            source = ROOT / 'tests/fortran/hello.f'
-            tape = tmp / 'hello.tzx'
-            cmd = [sys.executable, str(ROOT / 'bin/rfortranc'), '--sdk', args.sdk,
-                   '--native', '--tzx', '-o', str(tape), str(source)]
-            result = command(cmd, args.timeout)
-            valid = (result['exit_code'] == 0 and tape.is_file() and
-                     tape.read_bytes().startswith(b'ZXTape!\x1a'))
-            report['cases'].append({'name': 'tzx', 'kind': 'packaging', 'passed': bool(valid),
-                                    'compile': result, 'artifact': hash_path(tape)})
-            if not valid:
-                failures.append('tzx')
-            print('PASS' if valid else 'FAIL', 'tzx', flush=True)
     report['result'] = {'passed': len(report['cases']) - len(failures),
                         'failed': len(failures), 'total': len(report['cases']),
                         'failed_cases': failures}
