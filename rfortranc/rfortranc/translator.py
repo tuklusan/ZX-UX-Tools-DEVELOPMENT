@@ -365,11 +365,11 @@ def parse(source, std='zxux'):
                     raise FortranError(st.line, 'EXTERNAL/INTRINSIC name conflicts with dummy/array')
                 if kind == 'INTRINSIC':
                     if name not in ('ABS','IABS','INT','IFIX','FLOAT','AINT','NINT',
-                                    'SQRT','SIN','COS','EXP','LOG','TAN','ASIN','ACOS','ATAN','ALOG10','MOD'):
+                                    'SQRT','SIN','COS','EXP','LOG','TAN','ASIN','ACOS','ATAN','ATAN2','ALOG10','AMOD','MOD'):
                         raise FortranError(st.line, 'INTRINSIC specific not yet supported: ' + name)
                     u.intrinsics.add(name)
                 else:
-                    if name in ('SIN','COS','EXP','LOG','TAN','ASIN','ACOS','ATAN','ALOG10','ABS','IABS','INT','MOD'):
+                    if name in ('SIN','COS','EXP','LOG','TAN','ASIN','ACOS','ATAN','ATAN2','ALOG10','AMOD','ABS','IABS','INT','MOD'):
                         raise FortranError(st.line, 'external intrinsic-name shadowing not yet supported')
                     u.externals.add(name)
     # Statement functions have specification scope, before DATA/executables.
@@ -610,6 +610,11 @@ class Expr:
                     lhs = '(' + Expr(body, self.unit, self.known, self.line,
                                      local, self.active_functions | {t}).read() + ')'
                     result_type = self.unit.vars[t][0]
+                elif t in ('ATAN2', 'AMOD') and len(params) == 2:
+                    if any(self.expr_types[p] != 'REAL' for p in params):
+                        raise FortranError(self.line, t + ' intrinsic needs two REAL arguments')
+                    lhs = 'f_' + t.lower() + '_real(' + ', '.join(params) + ')'
+                    result_type = 'REAL'
                 elif t == 'MOD' and len(params) == 2:
                     lhs = '((' + params[0] + ') % (' + params[1] + '))'
                     result_type = 'INTEGER'
@@ -1345,6 +1350,27 @@ static float f_atan_real(float x) { return atan(x); }
 """,
     'ALOG10': """
 static float f_alog10_real(float x) { if (x <= 0.0) exit(2); return log(x) * 0.4342944819; }
+""",
+    'ATAN2': """
+static float f_atan2_real(float y, float x) {
+    if (x == 0.0) {
+        if (y > 0.0) return 1.57079633;
+        if (y < 0.0) return -1.57079633;
+        exit(2);
+    }
+    if (x > 0.0) return atan(y / x);
+    if (y >= 0.0) return atan(y / x) + 3.14159265;
+    return atan(y / x) - 3.14159265;
+}
+""",
+    'AMOD': """
+static float f_amod_real(float x, float y) {
+    float quotient;
+    if (y == 0.0) exit(2);
+    quotient = x / y;
+    if (quotient >= 32768.0 || quotient <= -32769.0) exit(2);
+    return x - (float)((int)quotient) * y;
+}
 """,
     'RIPOW': """
 static float f_ripow_real(float base, int power) {
@@ -2220,12 +2246,12 @@ def convert(units, emit_units=None):
         chunks.append(bind('\n'.join(output), aliases))
     # Supply only the REAL math code called by this translation unit.
     emitted = '\n'.join(chunks)
-    needed = {name for name in ('SIN', 'COS', 'EXP', 'LOG', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'ALOG10', 'RIPOW', 'RPOW')
+    needed = {name for name in ('SIN', 'COS', 'EXP', 'LOG', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'ATAN2', 'ALOG10', 'AMOD', 'RIPOW', 'RPOW')
               if 'f_' + name.lower() + '_real(' in emitted}
     if 'RPOW' in needed:
         needed.update(('EXP', 'LOG'))
     chunks[1:1] = [REAL_MATH_RUNTIME[name] for name in
-                    ('SIN', 'COS', 'EXP', 'LOG', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'ALOG10', 'RIPOW', 'RPOW') if name in needed]
+                    ('SIN', 'COS', 'EXP', 'LOG', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'ATAN2', 'ALOG10', 'AMOD', 'RIPOW', 'RPOW') if name in needed]
     if emit_units is not None:
         chunks[0] = sparse_runtime(RUNTIME, '\n'.join(chunks[1:]))
     return '\n\n'.join(chunks) + '\n'

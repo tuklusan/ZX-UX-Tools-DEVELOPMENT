@@ -15,7 +15,8 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 CASES = [('ASIN', '1.25'), ('ACOS','-1.25'), ('LOG','0.0'),
-         ('ALOG10','-0.125'), ('EXP','90.0'), ('SQRT','-1.0')]
+         ('ALOG10','-0.125'), ('EXP','90.0'), ('SQRT','-1.0'),
+         ('ATAN2','0.0,0.0'), ('AMOD','1.0,0.0')]
 
 def command(args):
     try:

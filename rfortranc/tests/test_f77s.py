@@ -974,6 +974,19 @@ class F77SChecks(unittest.TestCase):
         for name in ('sin', 'cos', 'exp', 'log'):
             self.assertNotIn('static float f_' + name + '_real(', integer_c)
 
+    def test_two_argument_real_specific_intrinsics(self):
+        src=(ROOT/'tests/fortran/f77s_rmath.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('static float f_atan2_real(float y, float x)',c)
+        self.assertIn('static float f_amod_real(float x, float y)',c)
+        for expr in ('ATAN2(1,1.0)','ATAN2(1.0,2)','ATAN2(1.0)',
+                     'AMOD(1.0,2)','AMOD(1.0)','AMOD(1.0,2.0,3.0)'):
+            bad='      PROGRAM BAD\n      REAL X\n      X='+expr+'\n      END\n'
+            with self.subTest(expr=expr),self.assertRaises(FortranError):
+                convert(parse(bad,std='f77s'))
+
     def test_target_math_real_specific_and_domain_checks(self):
         src = (ROOT/'tests/fortran/f77s_invtrig.f').read_text()
         units = parse(src, std='f77s')
