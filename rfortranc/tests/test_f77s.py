@@ -825,6 +825,16 @@ class F77SChecks(unittest.TestCase):
             self.assertIn('f_seqcheck(', generated)
             self.assertIn('f_extent(', generated)
 
+    def test_character_constant_format_identifier(self):
+        src = (ROOT/'tests/fortran/f77s_fmtch.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        generated = convert(units)
+        self.assertIn('f_outintw(F_N, 5);', generated)
+        bad = "      PROGRAM BAD\n      INTEGER N\n      WRITE(6,'BAD') N\n      END\n"
+        with self.assertRaisesRegex(FortranError, 'parenthesized format'):
+            convert(parse(bad, std='f77s'))
+
     def test_blank_control_bn_bz(self):
         src = (ROOT/'tests/fortran/f77s_bnbz.f').read_text()
         units = parse(src, std='f77s')

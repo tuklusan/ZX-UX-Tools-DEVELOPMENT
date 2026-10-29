@@ -1362,6 +1362,19 @@ def convert(units):
             return expression(text, u, known, line)
         def ret_stmt():
             return 'return ' + ('0' if is_main else 'F_' + u.name if u.kind == 'function' else '') + ';'
+        def resolve_format(identifier, line):
+            if identifier.isdecimal():
+                label = str(int(identifier))
+                if label not in formats:
+                    raise FortranError(line, 'undefined FORMAT label: ' + label)
+                return formats[label]
+            quote = identifier[0]
+            if (quote not in ("'", '"') or identifier[-1] != quote):
+                raise FortranError(line, 'invalid CHARACTER FORMAT identifier')
+            body = identifier[1:-1].replace(quote + quote, quote)
+            if len(body) < 2 or not (body[0] == '(' and body[-1] == ')'):
+                raise FortranError(line, 'CHARACTER FORMAT needs parenthesized format')
+            return subset_format(body[1:-1], line)
         def stmt(s, line):
             sf = re.match(r'^(' + NAME + r')\s*\(', s)
             if sf and sf.group(1) in u.statement_functions:
@@ -1385,16 +1398,15 @@ def convert(units):
                 n = add([E(var, line) + ' = ' + label + ';'])
                 gotos.append((None, label, line))  # validate target exists, including FORMAT
                 return
-            fm = re.fullmatch(r'WRITE\s*\(\s*(6|\*)\s*,\s*(\d{1,5})\s*\)\s*(.*)', s)
+            fmt_ident = r'(\d{1,5}|\'(?:[^\']|\'\')*\'|"(?:[^"]|"")*")'
+            fm = re.fullmatch(r'WRITE\s*\(\s*(6|\*)\s*,\s*' + fmt_ident + r'\s*\)\s*(.*)', s)
             if fm:
                 _, format_label, arguments = fm.groups()
-                format_label = str(int(format_label))
-                if format_label not in formats:
-                    raise FortranError(line, 'undefined FORMAT label: ' + format_label)
+                format_ops = resolve_format(format_label, line)
                 values = split_items(arguments) if arguments.strip() else []
                 operations = []
                 pos = 0
-                for mode, item in formats[format_label]:
+                for mode, item in format_ops:
                     if mode == 'blank':
                         continue  # BN/BZ affect numeric input conversion, not output
                     if mode == 'literal':
@@ -1449,16 +1461,14 @@ def convert(units):
                 operations.append('putchar(10);')
                 add(operations)
                 return
-            fm = re.fullmatch(r'READ\s*\(\s*(5|\*)\s*,\s*(\d{1,5})\s*\)\s*(.*)', s)
+            fm = re.fullmatch(r'READ\s*\(\s*(5|\*)\s*,\s*' + fmt_ident + r'\s*\)\s*(.*)', s)
             if fm:
                 _, format_label, arguments = fm.groups()
-                format_label = str(int(format_label))
-                if format_label not in formats:
-                    raise FortranError(line, 'undefined FORMAT label: ' + format_label)
+                format_ops = resolve_format(format_label, line)
                 values = split_items(arguments) if arguments.strip() else []
                 operations = ['f_fmt_bzero = 0;']
                 pos = 0
-                for mode, item in formats[format_label]:
+                for mode, item in format_ops:
                     if mode == 'blank':
                         operations.append('f_fmt_bzero = ' + str(item) + ';')
                     elif mode == 'space':

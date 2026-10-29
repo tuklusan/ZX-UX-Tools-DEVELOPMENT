@@ -104,3 +104,9 @@
 - Added F77S same-width scalar CHARACTER constant actuals for read-only dummy arguments. Reject literals passed to directly writable, READ-modified, or forwarded dummy arguments rather than generating writes into literal storage. Preserves existing negative fixture that passes a literal to a writing subroutine.
 - `f77s_chlit.f` strict source passes `'HELLO'` to `SUBROUTINE SHOWN` with `CHARACTER*5 S`, outputs `HELLO` under independent gfortran and matching ZX-UX Z80 SSX/RVM. Native SSX 840 bytes, exits 0 after 162 frames/29 system calls; 108/108 frontend tests passed on local candidate. Registered in native and differential runners.
 - Still missing full CHARACTER argument total association (different widths, adjustable array dummy, COMMON/EQUIVALENCE, internal/unformatted I/O). Current source still has broad P0/P1/P2 gaps and no physical hardware proof.
+
+## Milestone — CHARACTER constant FORMAT identifiers (2026-10-29)
+
+- Added F77S `READ(5,'(...)')` and `WRITE(6,'(...)')` compile-time format selection, using the same checked subset descriptors as numbered FORMAT statements; rejects malformed/unparenthesized constant formats. No named FILE/CLOSE extension added.
+- Strict independent gfortran and matched ZX-UX Z80 test `f77s_fmtch.f`: source `WRITE(6,'(I5)') N`, output `   42`, native exit 0 at frame 166/29 syscalls; 109/109 focused frontend unit tests passed locally. Added native and host differential regression entry. READ with CHARACTER identifier needs an independent native runtime fixture.
+- Partial P0 FORMAT advancement; assigned FORMAT identifier, P scale, reversion and full record handling still missing. Physical Spectrum/cassette and peak memory unproven.
