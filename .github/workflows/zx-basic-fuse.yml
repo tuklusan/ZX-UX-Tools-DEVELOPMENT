@@ -1,0 +1,52 @@
+name: ZX Spectrum BASIC - Fuse 48K ROM
+on:
+  push:
+    branches: [zx-spectrum-basic-f77s-demos]
+    paths: ["zx-spectrum-basic/**", ".github/workflows/zx-basic-fuse.yml"]
+  workflow_dispatch:
+jobs:
+  fuse:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        program: [BISECT, BRENT_ROOT, CHOLESKY, EULER_ODE, GAUSS_1D, GEMM_8BIT, JACOBI_RELAX, LCG_RAND, LU_PIVOT, MACHAR, MINI_LINPACK, NEWTON, POLY_FIT, RK4_FIXED, ROMBERG, SIMPSON, S_SQUARE, THOMAS_TRI, TINY_FFT, WHETSTONE]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Fuse with ROM and BASIC tokenizer
+        run: |
+          sudo add-apt-repository -y universe
+          sudo add-apt-repository -y multiverse
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends fuse-emulator-sdl spectrum-roms zmakebas xvfb xauth
+          fuse --version
+      - name: Unpack ASCII and independently tokenize as TAP
+        env:
+          NAME: ${{ matrix.program }}
+        run: |
+          set -euo pipefail
+          mkdir -p zx-spectrum-basic/ci-tapes
+          tar -xJf zx-spectrum-basic/bas_only.tar.xz -C zx-spectrum-basic
+          test -s "zx-spectrum-basic/build/source/$NAME.bas"
+          zmakebas -a 1 -n "${NAME:0:10}" -o "zx-spectrum-basic/ci-tapes/$NAME.tap" "zx-spectrum-basic/build/source/$NAME.bas"
+          test -s "zx-spectrum-basic/ci-tapes/$NAME.tap"
+      - name: Find Sinclair 48K ROM
+        run: |
+          set -euo pipefail
+          ROM="$(find /usr/share -type f -name 48.rom -print -quit)"
+          test -n "$ROM"
+          test "$(stat -c %s "$ROM")" -eq 16384
+          echo "FUSE_ROM=$ROM" >> "$GITHUB_ENV"
+          sha256sum "$ROM"
+      - name: Execute via ROM LLIST and LPRINT, require runtime marker
+        env:
+          FUSE_TIMEOUT: "250"
+        run: python3 zx-spectrum-basic/ci_fuse.py "${{ matrix.program }}"
+      - name: Upload printout and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuse-${{ matrix.program }}
+          path: zx-spectrum-basic/fuse-artifacts/
+          retention-days: 14
