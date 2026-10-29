@@ -837,7 +837,7 @@ static int f_dl[10];
 static void f_dopen(int unit, int recl) {
     char path[9];
     int fd;
-    if (unit < 1 || unit > 9 || recl != 4) exit(2);
+    if (unit < 1 || unit > 9 || (recl != 4 && recl != 8)) exit(2);
     strcpy(path, "/tmp/fu0");
     path[7] = '0' + unit;
     fd = creat(path, 438);
@@ -850,13 +850,14 @@ static void f_dopen(int unit, int recl) {
 }
 static void f_dseek(int unit, int rec) {
     int offset;
-    if (unit < 1 || unit > 9 || f_dl[unit] != 4) exit(2);
-    if (rec < 1 || rec > 8192) exit(2);
-    offset = (rec - 1) * 4;
+    if (unit < 1 || unit > 9 || (f_dl[unit] != 4 && f_dl[unit] != 8)) exit(2);
+    if (rec < 1 || rec > (32768 / f_dl[unit])) exit(2);
+    offset = (rec - 1) * f_dl[unit];
     if (seek(f_dh[unit], offset) < 0) exit(2);
 }
 static void f_dwritei(int unit, int rec, int value) {
     int high;
+    if (f_dl[unit] != 4) exit(2);
     f_dseek(unit, rec);
     high = 0;
     if (value < 0) high = -1;
@@ -866,12 +867,42 @@ static void f_dwritei(int unit, int rec, int value) {
 static int f_dreadi(int unit, int rec) {
     int value;
     int high;
+    if (f_dl[unit] != 4) exit(2);
     f_dseek(unit, rec);
     if (read(f_dh[unit], &value, 2) != 2) exit(2);
     if (read(f_dh[unit], &high, 2) != 2) exit(2);
     if (value < 0) { if (high != -1) exit(2); }
     else if (high != 0) exit(2);
     return value;
+}
+/* Two INTEGER values in one direct unformatted RECL=8 scratch record. */
+static void f_dputi(int unit, int value) {
+    int high;
+    high = 0;
+    if (value < 0) high = -1;
+    if (write(f_dh[unit], &value, 2) != 2) exit(2);
+    if (write(f_dh[unit], &high, 2) != 2) exit(2);
+}
+static int f_dgeti(int unit) {
+    int value;
+    int high;
+    if (read(f_dh[unit], &value, 2) != 2) exit(2);
+    if (read(f_dh[unit], &high, 2) != 2) exit(2);
+    if (value < 0) { if (high != -1) exit(2); }
+    else if (high != 0) exit(2);
+    return value;
+}
+static void f_dwrite2(int unit, int rec, int a, int b) {
+    if (f_dl[unit] != 8) exit(2);
+    f_dseek(unit, rec);
+    f_dputi(unit, a);
+    f_dputi(unit, b);
+}
+static void f_dread2(int unit, int rec, int *a, int *b) {
+    if (f_dl[unit] != 8) exit(2);
+    f_dseek(unit, rec);
+    *a = f_dgeti(unit);
+    *b = f_dgeti(unit);
 }
 static void f_outstr(char *s) {
     while (*s) { putchar(*s); s++; }
@@ -2027,7 +2058,7 @@ def convert(units, emit_units=None):
             # F77S narrow unnamed direct-access unformatted scratch files.
             # Each unit 1..9 owns /tmp/fuN; no named FILE= specifier.
             direct_open = re.fullmatch(
-                r"OPEN\s*\(\s*([1-9])\s*,\s*ACCESS\s*=\s*'DIRECT'\s*,\s*RECL\s*=\s*(4)\s*\)",
+                r"OPEN\s*\(\s*([1-9])\s*,\s*ACCESS\s*=\s*'DIRECT'\s*,\s*RECL\s*=\s*(4|8)\s*\)",
                 s)
             if direct_open:
                 unit_no, rec_len = direct_open.groups()
@@ -2035,6 +2066,23 @@ def convert(units, emit_units=None):
                 return
             if re.match(r'^OPEN\b', s):
                 raise FortranError(line, 'only unnamed direct INTEGER RECL=4 OPEN is currently implemented')
+            direct_pair = re.fullmatch(
+                r'(READ|WRITE)\s*\(\s*([1-9])\s*,\s*REC\s*=\s*([0-9]+|[A-Z][A-Z0-9_]*)\s*\)\s*([A-Z][A-Z0-9_]*)\s*,\s*([A-Z][A-Z0-9_]*)',
+                s)
+            if direct_pair:
+                kind, unit_no, rec, first, second = direct_pair.groups()
+                if u.vars.get(first) != ('INTEGER', None) or u.vars.get(second) != ('INTEGER', None):
+                    raise FortranError(line, 'RECL=8 direct I/O needs two INTEGER scalars')
+                if NAME_RE.fullmatch(rec) and u.vars.get(rec) != ('INTEGER', None):
+                    raise FortranError(line, 'REC identifier must be INTEGER scalar')
+                if rec.isdecimal() and not (1 <= int(rec) <= 4096):
+                    raise FortranError(line, 'direct record number out of supported range')
+                rec_expr = ('F_' + rec) if NAME_RE.fullmatch(rec) else rec
+                if kind == 'WRITE':
+                    add(['f_dwrite2(' + unit_no + ', ' + rec_expr + ', F_' + first + ', F_' + second + ');'])
+                else:
+                    add(['f_dread2(' + unit_no + ', ' + rec_expr + ', &F_' + first + ', &F_' + second + ');'])
+                return
             direct_io = re.fullmatch(
                 r'(READ|WRITE)\s*\(\s*([1-9])\s*,\s*REC\s*=\s*([0-9]+|[A-Z][A-Z0-9_]*)\s*\)\s*([A-Z][A-Z0-9_]*)',
                 s)

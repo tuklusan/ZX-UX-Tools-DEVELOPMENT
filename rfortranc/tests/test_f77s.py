@@ -1323,13 +1323,23 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('static int f_dh[10];',linked)
         self.assertIn('static int f_dl[10];',linked)
         for old,new in (
-            ("OPEN(7,ACCESS='DIRECT',RECL=4)","OPEN(7,ACCESS='DIRECT',RECL=8)"),
+            ("OPEN(7,ACCESS='DIRECT',RECL=4)","OPEN(7,ACCESS='DIRECT',RECL=12)"),
             ("OPEN(7,ACCESS='DIRECT',RECL=4)","OPEN(7,FILE='X',ACCESS='DIRECT',RECL=4)"),
             ("WRITE(7,REC=REC) A","WRITE(7,REC=0) A"),
-            ("WRITE(7,REC=REC) A","WRITE(7,REC=REC) A,B"),
+            ("WRITE(7,REC=REC) A","WRITE(7,REC=REC) A,B,REC"),
         ):
             with self.subTest(old=old,new=new), self.assertRaises(FortranError):
                 convert(parse(src.replace(old,new),std='f77s'))
+
+    def test_direct_unformatted_two_integer_record(self):
+        source=(ROOT/'tests/fortran/f77s_direct2.f').read_text()
+        units=parse(source,std='f77s')
+        validate_source(source,units)
+        c=convert(units)
+        self.assertIn('f_dopen(7, 8);',c)
+        self.assertIn('f_dwrite2(7, 2, F_A, F_B);',c)
+        self.assertIn('f_dread2(7, 1, &F_A, &F_B);',c)
+        self.assertIn('if (f_dl[unit] != 8) exit(2);',c)
 
     def test_character_and_assigned_format_read(self):
         for name in ('f77s_fmtchr', 'f77s_afread'):
