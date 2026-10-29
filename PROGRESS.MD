@@ -116,3 +116,9 @@
 - Parser now accepts F77S unprefixed `FUNCTION name(args)` units with default implicit return type (I–N INTEGER, others REAL), explicit declaration and IMPLICIT overrides. CHARACTER result still excluded; existing typed FUNCTION unchanged. Cross-unit by-reference calls verified.
 - `f77s_barefn.f` strict gfortran reference and matched ZX-UX Z80 SSX/RVM both output `    9.00`; native exit 0 after 179 frames. 111/111 local frontend unit tests, including INTEGER implicit function type, passed. Added to native/differential runners.
 - P1 EXTERNAL/INTRINSIC procedure arguments and complete external ABI/type checking remain open. P2 separate linking and physical Spectrum proof remain open.
+
+## Milestone — assigned FORMAT selectors (2026-10-29)
+
+- Added F77S INTEGER assigned-FORMAT variable support for `READ(5,K)` and `WRITE(6,K)`. The compiler pre-expands only FORMAT labels assigned via `ASSIGN ... TO K` in the program unit into checked selection branches, traps unknown runtime label values, and rejects selectors lacking a FORMAT target. This uses no runtime format string parser.
+- New strict `f77s_afmt.f` assigns two labels to one INTEGER format selector; independent gfortran and actual matched ZX-UX Z80 binary both output two records `  42`, `    42` and exit 0 at frame 164; 112/112 local frontend unit tests passed. Negative case rejects ASSIGN of non-FORMAT label used for WRITE. READ assigned-FORMAT path still needs independent native fixture.
+- P1 PAUSE/label edge cases, P0 FORMAT reversion/scale/internal I/O and P2 separate linkage remain open; no physical Spectrum proof.

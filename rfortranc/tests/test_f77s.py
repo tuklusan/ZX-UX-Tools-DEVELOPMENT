@@ -825,6 +825,21 @@ class F77SChecks(unittest.TestCase):
             self.assertIn('f_seqcheck(', generated)
             self.assertIn('f_extent(', generated)
 
+    def test_assigned_format_identifiers(self):
+        src = (ROOT/'tests/fortran/f77s_afmt.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        c = convert(units)
+        self.assertIn('if (F_K == 10)', c)
+        self.assertIn('if (F_K == 20)', c)
+        self.assertIn('f_outintw(F_X, 4);', c)
+        self.assertIn('f_outintw(F_X, 6);', c)
+        bad = ('      PROGRAM BAD\n      INTEGER K,X\n'
+               '      ASSIGN 10 TO K\n      WRITE(6,K) X\n'
+               '   10 CONTINUE\n      END\n')
+        with self.assertRaisesRegex(FortranError, 'no assigned FORMAT label'):
+            convert(parse(bad, std='f77s'))
+
     def test_unprefixed_function_implicit_result_type(self):
         src = (ROOT/'tests/fortran/f77s_barefn.f').read_text()
         units = parse(src, std='f77s')

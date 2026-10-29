@@ -112,6 +112,7 @@ PROGRAMS = {
     'f77s_chlit': 'HELLO',
     'f77s_fmtch': '   42',
     'f77s_barefn': '    9.00',
+    'f77s_afmt': '    42',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',

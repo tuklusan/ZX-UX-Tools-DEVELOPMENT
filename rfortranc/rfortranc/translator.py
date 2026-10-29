@@ -1390,6 +1390,28 @@ def convert(units):
             if len(body) < 2 or not (body[0] == '(' and body[-1] == ')'):
                 raise FortranError(line, 'CHARACTER FORMAT needs parenthesized format')
             return subset_format(body[1:-1], line)
+        def assigned_format(kind, channel, selector, arguments, line):
+            if u.vars.get(selector) != ('INTEGER', None):
+                raise FortranError(line, 'assigned FORMAT selector must be INTEGER scalar')
+            candidates = [lab for lab in sorted(assigned_by_var.get(selector, ()), key=int)
+                          if lab in formats]
+            if not candidates:
+                raise FortranError(line, 'assigned FORMAT has no assigned FORMAT label')
+            flag = 'f_fmtok_' + str(len(code))
+            extra_decls.append('int ' + flag + ';')
+            result = [flag + ' = 0;']
+            for lab in candidates:
+                before = len(code)
+                stmt(kind + '(' + channel + ',' + lab + ') ' + arguments, line)
+                if len(code) != before + 1 or code[-1][1] is not None:
+                    raise FortranError(line, 'internal assigned FORMAT expansion')
+                lowered, _ = code.pop()
+                result.append('if (F_' + selector + ' == ' + lab + ') {')
+                result.append('    ' + flag + ' = 1;')
+                result.extend('    ' + op for op in lowered)
+                result.append('}')
+            result.append('if (!' + flag + ') exit(2);')
+            add(result)
         def stmt(s, line):
             sf = re.match(r'^(' + NAME + r')\s*\(', s)
             if sf and sf.group(1) in u.statement_functions:
@@ -1413,10 +1435,13 @@ def convert(units):
                 n = add([E(var, line) + ' = ' + label + ';'])
                 gotos.append((None, label, line))  # validate target exists, including FORMAT
                 return
-            fmt_ident = r'(\d{1,5}|\'(?:[^\']|\'\')*\'|"(?:[^"]|"")*")'
+            fmt_ident = r'(\d{1,5}|[A-Z][A-Z0-9_]*|\'(?:[^\']|\'\')*\'|"(?:[^"]|"")*")'
             fm = re.fullmatch(r'WRITE\s*\(\s*(6|\*)\s*,\s*' + fmt_ident + r'\s*\)\s*(.*)', s)
             if fm:
-                _, format_label, arguments = fm.groups()
+                channel, format_label, arguments = fm.groups()
+                if NAME_RE.fullmatch(format_label):
+                    assigned_format('WRITE', channel, format_label, arguments, line)
+                    return
                 format_ops = resolve_format(format_label, line)
                 values = split_items(arguments) if arguments.strip() else []
                 operations = []
@@ -1478,7 +1503,10 @@ def convert(units):
                 return
             fm = re.fullmatch(r'READ\s*\(\s*(5|\*)\s*,\s*' + fmt_ident + r'\s*\)\s*(.*)', s)
             if fm:
-                _, format_label, arguments = fm.groups()
+                channel, format_label, arguments = fm.groups()
+                if NAME_RE.fullmatch(format_label):
+                    assigned_format('READ', channel, format_label, arguments, line)
+                    return
                 format_ops = resolve_format(format_label, line)
                 values = split_items(arguments) if arguments.strip() else []
                 operations = ['f_fmt_bzero = 0;']
