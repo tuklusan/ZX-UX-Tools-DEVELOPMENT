@@ -93,6 +93,22 @@ def main():
                                             '-o',str(out/'blank.host'),str(blank)])
         if record['blank_host_compile']['exit_code'] == 0:
             record['blank_host_run'] = run([str(out/'blank.host')])
+        maths = [SRC/'math_main.f', SRC/'math_sub.f']
+        math_out = out/'math.ssx'
+        record['math_sources'] = {src.name:sha(src) for src in maths}
+        record['math_compile'] = run(command+['--max','12000','--object-dir',str(out/'math-objects'),
+                                               '-o',str(math_out)]+list(map(str,maths)))
+        if record['math_compile']['exit_code']==0 and math_out.is_file():
+            record['math_ssx_sha256'] = sha(math_out)
+            record['math_ssx_bytes'] = math_out.stat().st_size
+            record['math_objects'] = {f.name: {'sha256':sha(f),'bytes':f.stat().st_size}
+                                       for f in (out/'math-objects').glob('*.sso')}
+            record['math_target_run'] = run([sys.executable,a.rvm,'--headless','--text',
+                                                '--frames','500',str(math_out)])
+        record['math_host_compile'] = run(['gfortran','-std=legacy','-ffixed-form',
+                                           '-o',str(out/'math.host')]+list(map(str,maths)))
+        if record['math_host_compile']['exit_code']==0:
+            record['math_host_run'] = run([str(out/'math.host')])
     def lines(output):
         return [s.rstrip() for s in output.splitlines() if s.strip()]
     native = record.get('target_run', {})
@@ -121,7 +137,15 @@ def main():
               blank_host.get('exit_code')==0 and
               lines(blank_native.get('stdout',''))==lines(blank_host.get('stdout',''))==blank_expected)
     record['blank_result']={'passed':blank_ok,'expected_lines':blank_expected}
-    ok = ok and common_ok and blank_ok
+    math_native = record.get('math_target_run',{})
+    math_host = record.get('math_host_run',{})
+    math_ok=(len(record.get('math_objects',{}))==2 and
+             record.get('math_ssx_bytes',12001) <= 12000 and
+             math_native.get('exit_code')==0 and '(exit)' in math_native.get('stderr','') and
+             math_host.get('exit_code')==0 and
+             lines(math_native.get('stdout',''))==lines(math_host.get('stdout',''))==['    5.00'])
+    record['math_result']={'passed':math_ok,'expected_lines':['    5.00']}
+    ok = ok and common_ok and blank_ok and math_ok
     record['result'] = {'passed': bool(ok), 'expected_lines': EXPECT}
     a.report.parent.mkdir(parents=True, exist_ok=True)
     a.report.write_text(json.dumps(record, indent=2, sort_keys=True)+'\n')

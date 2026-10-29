@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "scope": "real ZX-UX SSO unit with imported REAL argument and active SQRT/FORMAT helper dependencies",
+  "compiler_commit": "cc6b7d9129b4170a03e1bd9b100e582a0e3c0b68",
+  "sources": [
+    "math_main.f",
+    "math_sub.f"
+  ],
+  "objects": [
+    {
+      "name": "00_MATSEP.sso",
+      "bytes": 214,
+      "sha256": "2a44db2c15ad508c2f96c3b2191ee450e8db8d983a03a1cba193a263ae9c00f3"
+    },
+    {
+      "name": "01_MSUB.sso",
+      "bytes": 2264,
+      "sha256": "81d384d2547abcc6eba65de2cebdba7e718d370ce5a312f1660063a2629eed26"
+    }
+  ],
+  "linked_ssx_bytes": 2231,
+  "within_budget_12000": true,
+  "expected_output": [
+    "    5.00"
+  ],
+  "actual_zxux_rvm_output": [
+    "    5.00"
+  ],
+  "independent_gfortran_output": [
+    "    5.00"
+  ],
+  "rvm_exit": 0,
+  "rvm_frames": 186,
+  "rvm_system_calls": 29,
+  "separate_harness_cases": {
+    "passed": 4,
+    "total": 4
+  },
+  "frontend_unittests": {
+    "passed": 127,
+    "total": 127
+  },
+  "not_physical_spectrum_test": true,
+  "not_runtime_peak_ram": true
+}

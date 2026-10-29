@@ -1083,6 +1083,18 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaisesRegex(FortranError,'nested FORMAT reversion'):
             convert(parse(grouped,std='f77s'))
 
+    def test_sparse_runtime_keeps_math_format_dependencies(self):
+        folder = ROOT/'tests/fortran/separate'
+        src = (folder/'math_main.f').read_text()+(folder/'math_sub.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src,units)
+        sub = convert(units,emit_units={'MSUB'})
+        self.assertIn('static float f_sqrt_real(float x)',sub)
+        self.assertIn('static void f_outrealw(float value',sub)
+        self.assertNotIn('static void f_outintw(',sub)
+        main = convert(units,emit_units={'MATSEP'})
+        self.assertNotIn('static float f_sqrt_real(',main)
+
     def test_blank_common_unequal_unit_views_and_sparse_runtime(self):
         src=(ROOT/'tests/fortran/f77s_blankvary.f').read_text()
         units=parse(src,std='f77s')
