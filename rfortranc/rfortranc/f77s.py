@@ -53,7 +53,7 @@ def validate_source(source, units):
         clean = re.sub(r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"", '', body)
         if '_' in clean:
             raise FortranError(number, 'underscore is not an ANSI F77S source name character')
-        if '!' in clean or '
+        if '!' in clean or chr(36) in clean or ':' in clean:
             raise FortranError(number, 'non-F77S source character in statement')
     for unit in units:
         if len(unit.name) > 6 or '_' in unit.name:

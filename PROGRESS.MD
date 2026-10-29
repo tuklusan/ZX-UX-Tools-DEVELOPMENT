@@ -386,3 +386,7 @@
 
 - Strict fixed-form source validation now rejects underscores outside quoted CHARACTER literals in all source statements, including procedure/function references that escaped prior declaration-name-only checks. Quoted CHARACTER values containing underscores stay legal.
 - Added a positive quoted-literal test and three negative source tests. CI on this exact source is pending. Other P1 lexical/ordering checks and all P0/P1/P2, full native suite, RAM high-water and actual Spectrum remain open.
+
+### Correction — underscore lexical check CI failure (2026-10-29)
+
+- First CI on `a720167` failed before tests because the uploaded strict gate contained a malformed punctuation-check line, truncated before its dollar/colon conditions. Restored the check using `chr(36)` for dollar-sign detection; no intended rule is dropped. Rerun exact-head CI before counting the new underscore test as passing.
