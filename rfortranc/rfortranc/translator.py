@@ -730,6 +730,9 @@ class Expr:
             elif op == '*' and lt == rt == 'INTEGER':
                 lhs = 'f_imul(' + lhs + ', ' + rhs + ')'
                 result_type = 'INTEGER'
+            elif op == '/' and lt == rt == 'INTEGER':
+                lhs = 'f_idiv(' + lhs + ', ' + rhs + ')'
+                result_type = 'INTEGER'
             else:
                 lhs = '((' + lhs + ') ' + BIN.get(op, op) + ' (' + rhs + '))'
                 result_type = ('LOGICAL' if op.startswith('.') else
@@ -840,6 +843,11 @@ static int f_mod_int(int a, int b) {
     return a % b;
 }
 /* Detect signed 16-bit multiplication overflow before executing it. */
+/* Signed INTEGER quotient truncates toward zero; avoid C48 faults. */
+static int f_idiv(int a, int b) {
+    if (b == 0 || (a == -32768 && b == -1)) exit(2);
+    return a / b;
+}
 static int f_imul(int a, int b) {
     if (a > 0) {
         if (b > 0 && a > 32767 / b) exit(2);

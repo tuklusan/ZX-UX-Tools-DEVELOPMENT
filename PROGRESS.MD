@@ -528,3 +528,9 @@
 - Typed INTEGER*INTEGER expressions now use the 16-bit pre-multiply overflow guard already shared with INTEGER power. This preserves valid -32768 products, traps out-of-range values with ZX-UX exit 2, and avoids silently wrapped results.
 - Strict source `f77s_imul.f` compiled to a **1,534-byte** ZX-UX SSX (SHA256 `e51334395845a7cbfc89acf1015ec529fda70e8fcc39f6530084187d99fa5bca`), exited 0 after 138 frames/23 system calls and printed `  -32768    -240`, identical to independent gfortran. Replacing A=-16384 with 16384 triggers multiplication overflow and exits 2 after 162 frames. Local frontend **171/171** passed.
 - Strict fixture and native/host case mappings added. CI on previous INTEGER power commit `1b7e149` passed. Full changed-SHA native/differential/bounds/release, other P0/P1/P2 gaps, peak RAM and physical Spectrum remain OPEN; not production-ready.
+
+## Milestone — checked INTEGER division (2026-10-29)
+
+- Typed INTEGER/INTEGER quotient lowering now calls checked `f_idiv`, trapping divisor zero and 16-bit MININT/-1 overflow with ZX-UX exit 2. Signed valid quotients still truncate toward zero.
+- Actual ZX-UX Z80 `f77s_idiv.f` compiled to 1,448-byte SSX, SHA-256 `49dbebe4532b6bc328a889da7f2245102d237afc1a61ae6e1e781b5ae5be5fa8`. RVM exit 0 at frame 138/23 system calls; stdout `  -16384      -3      -2` exactly matched independent gfortran. Negative target binaries for `1/0` and `(-32768)/(-1)` exit 2. Focused Python tests 172/172 passed.
+- Added strict source and native/differential cases, plus checkpoint evidence. Previous multiplication commit CI must be checked, followed by the new head's frontend and host CI. Complete current-source native/differential/bounds/release proof, P0/P1/P2, real Spectrum hardware and peak RAM remain open.

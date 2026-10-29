@@ -1114,6 +1114,15 @@ class F77SChecks(unittest.TestCase):
                 with self.subTest(expression=bad),self.assertRaises(FortranError):
                     convert(parse(s,std='f77s'))
 
+    def test_integer_division_zero_and_minint_overflow_guards(self):
+        src=(ROOT/'tests/fortran/f77s_idiv.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('f_idiv(F_A, F_B)',c)
+        self.assertIn('static int f_idiv(int a, int b)',c)
+        self.assertIn('b == 0 || (a == -32768 && b == -1)',c)
+
     def test_integer_multiplication_uses_16_bit_checked_helper(self):
         src=(ROOT/'tests/fortran/f77s_imul.f').read_text()
         units=parse(src,std='f77s')
