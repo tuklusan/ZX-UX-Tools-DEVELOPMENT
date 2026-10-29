@@ -944,11 +944,14 @@ static void f_swrite(int unit, int value) {
     length = 0;
     if (write(f_sh[unit], &length, 2) != 2) exit(2);
 }
-static int f_sread(int unit) {
-    int length, upper, value, high, tail, upper2;
+static int f_sreadstat(int unit, int *dest) {
+    int length, upper, value, high, tail, upper2, got;
     f_sopen(unit, 1);
-    if (read(f_sh[unit], &length, 2) != 2) exit(2);
+    got = read(f_sh[unit], &length, 2);
+    if (got == 0) return 0;
+    if (got != 2) exit(2);
     if (read(f_sh[unit], &upper, 2) != 2) exit(2);
+    if (length == 0 && upper == 0) return 0;
     if (length != 4 || upper != 0) exit(2);
     if (read(f_sh[unit], &value, 2) != 2) exit(2);
     if (read(f_sh[unit], &high, 2) != 2) exit(2);
@@ -957,6 +960,12 @@ static int f_sread(int unit) {
     if (tail != 4 || upper2 != 0) exit(2);
     if (value < 0) { if (high != -1) exit(2); }
     else if (high != 0) exit(2);
+    *dest = value;
+    return 1;
+}
+static int f_sread(int unit) {
+    int value;
+    if (!f_sreadstat(unit, &value)) exit(2);
     return value;
 }
 static void f_srewind(int unit) {
@@ -2141,6 +2150,17 @@ def convert(units, emit_units=None):
             if seqpos:
                 op, paren, plain = seqpos.groups()
                 add([('f_srewind' if op == 'REWIND' else 'f_send' if op == 'ENDFILE' else 'f_sback') + '(' + (paren or plain) + ');'])
+                return
+            seqend = re.fullmatch(
+                r'READ\s*\(\s*([1-9])\s*,\s*END\s*=\s*([0-9]{1,5})\s*\)\s*([A-Z][A-Z0-9_]*)', s)
+            if seqend:
+                unit_no, target, name = seqend.groups()
+                if u.vars.get(name) != ('INTEGER', None):
+                    raise FortranError(line, 'END= sequential READ needs one INTEGER scalar')
+                temp = 'f_sok_' + str(len(code))
+                extra_decls.append('int ' + temp + ';')
+                pc = add([temp + ' = f_sreadstat(' + unit_no + ', &F_' + name + ');'])
+                conditional_gotos.append((pc, '!' + temp, str(int(target)), pc + 1, line))
                 return
             seqio = re.fullmatch(r'(READ|WRITE)\s*\(\s*([1-9])\s*\)\s*([A-Z][A-Z0-9_]*)', s)
             if seqio:

@@ -437,3 +437,9 @@
 ### Static native scratch-I/O memory measurements (2026-10-29)
 
 - On compiler `a073a37`, matched SDK builds `f77s_endfile`, `f77s_sequnio`, `f77s_direct2` reserve **2696, 2924, 2708 bytes** respectively (SSX load image+BSS+declared stack+heap); all 3/3 below 12,288 bytes. Linked SSX file sizes 2541/2807/2556 bytes. Reproducible command: `python3 rfortranc/tests/measure_memory.py --sdk <sdk-source-root> --cases f77s_endfile f77s_sequnio f77s_direct2 --report report.json`. Summary saved at `rfortranc/tests/results/f77s-scratch-static-2026-10-29.json`. These **are not live peak RAM or physical hardware results**.
+
+## Milestone — sequential unformatted END= EOF transfer (2026-10-29)
+
+- Added `READ(7,END=100) A` for one INTEGER scalar on the limited unnamed sequential unformatted ZX-UX scratch units. `f_sreadstat` distinguishes an endfile marker / physical end-of-file from corrupt/short records, retains sign/record marker checks and transfers to validated executable statement labels through existing compiler flow. Ordinary `READ(7) A` still traps EOF without END=. The END target must exist and cannot be a FORMAT label.
+- `f77s_endgoto.f` writes a record, ENDFILEs, REWINDs, READs first record and branches on EOF to avoid `A=99`; actual matched Z80 RVM exits 0 after **168 frames/48 syscalls**, prints `    7    7` matching independent gfortran. **157/157** strict frontend, native **1/1**, host differential **1/1** passed locally. Negative undefined END-label test added.
+- Partial sequential I/O only; IOSTAT, generalized I/O lists and EOF semantics, truncation after endfile, full P0/P1/P2 and physical Spectrum remain open. Current-commit CI pending; do not claim production readiness.

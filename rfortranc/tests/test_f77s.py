@@ -1331,6 +1331,17 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(old=old,new=new), self.assertRaises(FortranError):
                 convert(parse(src.replace(old,new),std='f77s'))
 
+    def test_unformatted_end_branch_to_executable_label(self):
+        src=(ROOT/'tests/fortran/f77s_endgoto.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('f_sreadstat(7, &F_A);',c)
+        self.assertIn('if (!f_sok_',c)
+        bad=src.replace('END=100', 'END=999')
+        with self.assertRaisesRegex(FortranError,'undefined statement label'):
+            convert(parse(bad,std='f77s'))
+
     def test_endfile_unformatted_scratch(self):
         source=(ROOT/'tests/fortran/f77s_endfile.f').read_text()
         units=parse(source,std='f77s')
