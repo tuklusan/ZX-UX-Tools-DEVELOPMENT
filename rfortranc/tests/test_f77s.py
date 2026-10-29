@@ -1596,6 +1596,22 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('extern int f_com_BLK_0;',sub)
         self.assertIn('f_com_BLK_0 = ',sub)
 
+    def test_integer_external_procedure_as_actual_and_dummy(self):
+        source=(ROOT/'tests/fortran/f77s_iprocdum.f').read_text()
+        units=parse(source,std='f77s')
+        validate_source(source,units)
+        c=convert(units)
+        self.assertIn('static int f_pd1_F(int tag, int *arg)',c)
+        self.assertIn('void f_USEF(int F_F, int *F_X, int *F_Y)',c)
+        self.assertIn('f_USEF(3,',c)
+        self.assertIn('f_USEF(1,',c)
+        separate=convert(units,emit_units={'USEF'})
+        self.assertIn('return f_SQRI(arg)',separate)
+        self.assertIn('return f_DBLI(arg)',separate)
+        invalid=source.replace('INTEGER FUNCTION SQRI(T)','REAL FUNCTION SQRI(T)')
+        with self.assertRaisesRegex(FortranError,'procedure actual'):
+            convert(parse(invalid,std='f77s'))
+
     def test_real_external_procedure_as_actual_and_dummy(self):
         source=(ROOT/'tests/fortran/f77s_procdum.f').read_text()
         units=parse(source,std='f77s')
@@ -1616,7 +1632,7 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaisesRegex(FortranError,'procedure actual'):
             convert(parse(invalid,std='f77s'))
         invalid=source.replace('REAL F,X,Y','INTEGER F\n      REAL X,Y')
-        with self.assertRaisesRegex(FortranError,'procedure dummy ABI'):
+        with self.assertRaisesRegex(FortranError,'no compatible INTEGER/REAL external'):
             convert(parse(invalid,std='f77s'))
 
     def test_external_and_intrinsic_declarations(self):

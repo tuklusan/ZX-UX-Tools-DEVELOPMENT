@@ -672,11 +672,12 @@ class Expr:
                     lhs = '((' + params[0] + ') % (' + params[1] + '))'
                     result_type = 'INTEGER'
                 elif t in self.unit.externals and t in self.unit.args:
-                    if len(params) != 1 or self.unit.vars[t][0] != 'REAL' or self.expr_types[params[0]] != 'REAL':
-                        raise FortranError(self.line, 'procedure dummy requires one REAL actual and REAL result')
+                    if (len(params) != 1 or self.unit.vars[t][0] not in ('INTEGER','REAL')
+                            or self.expr_types[params[0]] != self.unit.vars[t][0]):
+                        raise FortranError(self.line, 'procedure dummy needs one matching INTEGER/REAL argument and result')
                     wrapper = 'f_pd' + str(self.unit.ordinal) + '_' + t
-                    lhs = wrapper + '(F_' + t + ', ' + reference_actual(params[0], self.unit, 'REAL') + ')'
-                    result_type = 'REAL'
+                    result_type = self.unit.vars[t][0]
+                    lhs = wrapper + '(F_' + t + ', ' + reference_actual(params[0], self.unit, result_type) + ')'
                 elif t in self.known and self.known[t].kind == 'function':
                     target = self.known[t]
                     caller = self.unit.vars.get(t)
@@ -1985,21 +1986,23 @@ def convert(units, emit_units=None):
         for dummy in u.args:
             if dummy not in u.externals:
                 continue
-            if u.vars[dummy] != ('REAL',None):
-                raise FortranError(u.line,'procedure dummy ABI currently requires REAL result')
+            if u.vars[dummy][0] not in ('INTEGER','REAL') or u.vars[dummy][1] is not None:
+                raise FortranError(u.line,'procedure dummy ABI requires scalar INTEGER/REAL result')
+            result_ty = u.vars[dummy][0]
+            ctype_name = ctype(result_ty)
             dispatch = 'f_pd' + str(i) + '_' + dummy
             if len(dispatch) > 15:
                 raise FortranError(u.line,'procedure dummy dispatcher exceeds C48 name limit')
-            body = ['static float ' + dispatch + '(int tag, float *arg) {']
+            body = ['static ' + ctype_name + ' ' + dispatch + '(int tag, ' + ctype_name + ' *arg) {']
             for proc in sorted(known):
                 target = known[proc]
-                if (target.kind == 'function' and target.type == 'REAL'
+                if (target.kind == 'function' and target.type == result_ty
                         and len(target.args) == 1
-                        and target.vars[target.args[0]] == ('REAL',None)):
+                        and target.vars[target.args[0]] == (result_ty,None)):
                     body.append('    if (tag == ' + str(proc_tags[proc]) + ') return f_' + proc + '(arg);')
             body += ['    exit(2);', '    return 0.0;', '}']
             if len(body) <= 4:
-                raise FortranError(u.line,'no compatible REAL external procedure candidates')
+                raise FortranError(u.line,'no compatible INTEGER/REAL external procedure candidates')
             chunks.append('\n'.join(body))
     for unit_ordinal, u in enumerate(units):
         if emit_units is not None and u.name not in emit_units:
@@ -2859,11 +2862,11 @@ def convert(units, emit_units=None):
                 for actual, dummy in zip(args, known[f].args):
                     ty, dims = known[f].vars[dummy]
                     if dummy in known[f].externals:
-                        if (ty != 'REAL' or actual not in u.externals or actual not in known
-                                or known[actual].kind != 'function' or known[actual].type != 'REAL'
+                        if (ty not in ('INTEGER','REAL') or actual not in u.externals or actual not in known
+                                or known[actual].kind != 'function' or known[actual].type != ty
                                 or len(known[actual].args) != 1
-                                or known[actual].vars[known[actual].args[0]] != ('REAL',None)):
-                            raise FortranError(line,'procedure actual needs declared EXTERNAL REAL FUNCTION(REAL): '+actual)
+                                or known[actual].vars[known[actual].args[0]] != (ty,None)):
+                            raise FortranError(line,'procedure actual needs declared EXTERNAL INTEGER/REAL FUNCTION with matching argument: '+actual)
                         refs.append(str(proc_tags[actual]))
                         continue
                     actual = actual.strip()
