@@ -31,3 +31,7 @@ User archive `F77S_Z80_20_DEMOS.zip` has original Fortran source. The source lis
 - GitHub Actions run 40803484516: 20 independent zmakebas/ROM-install jobs passed setup, but Fuse printer text stayed empty. CLI --tape only mounted tape; runner failed to type LOAD. Treat those emulator checks as FAILED, not passed.
 - CI runner now uses xvfb-run + xdotool to type J, Ctrl+P, Ctrl+P, Return into 48K ROM prompt, loading the tape using ROM LOAD.
 - Run a 2-program canary matrix (BISECT, EULER_ODE) before restoring 20. Verify printer log and numerical output. Current status: not yet proven.
+
+## Fuse canary GUI fix milestone
+- Canary 40804148573 failed in window discovery (`xdotool search --name Fuse` found no window). This is a harness failure; model and original-source translations unchanged.
+- The revised runner installs Openbox, prints the X11 visible window IDs and early Fuse startup log, then sends the 48K LOAD keyboard sequence. Canary still only BISECT + EULER_ODE. No emulator numerical pass claim yet.

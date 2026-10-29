@@ -21,8 +21,11 @@ with log.open('wb') as fp:
     proc=subprocess.Popen(cmd,stdout=fp,stderr=subprocess.STDOUT,env={**os.environ,'SDL_AUDIODRIVER':'dummy'})
     try:
         time.sleep(3)
-        windows=subprocess.run(['xdotool','search','--name','Fuse'],capture_output=True,text=True).stdout.split()
-        assert windows, 'Fuse SDL window not found'
+        windows=subprocess.run(['xdotool','search','--onlyvisible','--name','.'],capture_output=True,text=True).stdout.split()
+        print('DISPLAY=',os.environ.get('DISPLAY'),'Visible windows=',windows, 'Fuse running=',proc.poll(),flush=True)
+        if not windows:
+            print('Fuse startup log:',log.read_text(encoding='utf-8',errors='replace')[-2000:],flush=True)
+            sys.exit('FAIL Fuse X11 window not found')
         subprocess.run(['xdotool','windowfocus','--sync',windows[-1]],check=True)
         for keys in (['j'],['ctrl+p'],['ctrl+p'],['Return']):
             subprocess.run(['xdotool','key','--clearmodifiers',*keys],check=True)
