@@ -173,6 +173,7 @@ PROGRAMS = {
     'f77s_vuniio': '   1   2',
     'f77s_nestrevert': '  1   2    3   4    5',
     'f77s_afmt': '    42',
+    'f77s_amodlarge': '    1.00   -1.00    1.00',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',
