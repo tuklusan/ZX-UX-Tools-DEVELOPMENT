@@ -1342,6 +1342,20 @@ class F77SChecks(unittest.TestCase):
                 for handle in handles:
                     self.assertIn('static int '+handle+';', c)
 
+    def test_sequential_vector_records_and_variable_backspace(self):
+        source=(ROOT/'tests/fortran/f77s_seqquad.f').read_text()
+        units=parse(source,std='f77s')
+        validate_source(source,units)
+        c=convert(units)
+        self.assertIn('f_swritev(7, 4,',c)
+        self.assertIn('f_sreadv(7, 4,',c)
+        self.assertIn('tail > 32',c)
+        self.assertIn('F_S = -1;',c)
+        for bad in ('READ(7) W,X,Y,1','WRITE(7) A,B,C,2.5'):
+            src=source.replace('READ(7) W,X,Y,Z' if bad.startswith('READ') else 'WRITE(7) A,B,C,D',bad)
+            with self.subTest(bad=bad),self.assertRaises(FortranError):
+                convert(parse(src,std='f77s'))
+
     def test_sequential_triple_end_iostat(self):
         src=(ROOT/'tests/fortran/f77s_seqtri.f').read_text()
         units=parse(src,std='f77s')

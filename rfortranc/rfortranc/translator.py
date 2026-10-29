@@ -988,6 +988,46 @@ static void f_swrite3(int unit, int a, int b, int c) {
     length = 0;
     if (write(f_sh[unit], &length, 2) != 2) exit(2);
 }
+/* Bounded multi-INTEGER unformatted record (4..8 scalars). */
+static void f_swritev(int unit, int count, int *values) {
+    int i, length, zero, high;
+    if (count < 4 || count > 8) exit(2);
+    f_sopen(unit, 0);
+    if (tell(f_sh[unit]) > 32767 - 8 - count * 4) exit(2);
+    length = count * 4; zero = 0;
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+    if (write(f_sh[unit], &zero, 2) != 2) exit(2);
+    for (i = 0; i < count; i++) {
+        high = 0;
+        if (values[i] < 0) high = -1;
+        if (write(f_sh[unit], &values[i], 2) != 2) exit(2);
+        if (write(f_sh[unit], &high, 2) != 2) exit(2);
+    }
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+    if (write(f_sh[unit], &zero, 2) != 2) exit(2);
+}
+static int f_sreadv(int unit, int count, int *values) {
+    int i, length, upper, high, tail, got, vals[8];
+    if (count < 4 || count > 8) exit(2);
+    f_sopen(unit, 1);
+    got = read(f_sh[unit], &length, 2);
+    if (got == 0) return 0;
+    if (got != 2) exit(2);
+    if (read(f_sh[unit], &upper, 2) != 2) exit(2);
+    if (length == 0 && upper == 0) return 0;
+    if (upper != 0 || length != count * 4) exit(2);
+    for (i = 0; i < count; i++) {
+        if (read(f_sh[unit], &vals[i], 2) != 2) exit(2);
+        if (read(f_sh[unit], &high, 2) != 2) exit(2);
+        if (vals[i] < 0) { if (high != -1) exit(2); }
+        else if (high != 0) exit(2);
+    }
+    if (read(f_sh[unit], &tail, 2) != 2) exit(2);
+    if (read(f_sh[unit], &upper, 2) != 2) exit(2);
+    if (tail != length || upper != 0) exit(2);
+    for (i = 0; i < count; i++) values[i] = vals[i];
+    return 1;
+}
 static int f_sread3stat(int unit, int *a, int *b, int *c) {
     int vals[3];
     int i, length, upper, high, tail, got;
@@ -1085,7 +1125,7 @@ static void f_sback(int unit) {
     if (seek(f_sh[unit], pos - 4) < 0) exit(2);
     if (read(f_sh[unit], &tail, 2) != 2) exit(2);
     if (read(f_sh[unit], &upper, 2) != 2) exit(2);
-    if ((tail != 4 && tail != 8) || upper != 0) exit(2);
+    if ((tail < 4 || tail > 32 || tail % 4 != 0) || upper != 0) exit(2);
     if (pos < tail + 8) exit(2);
     if (seek(f_sh[unit], pos - tail - 8) < 0) exit(2);
 }
@@ -2250,6 +2290,42 @@ def convert(units, emit_units=None):
                 return
             # IOSTAT on a limited sequential INTEGER scratch READ, with
             # optional END= in either order. Negative one means EOF.
+            # Multi-INTEGER sequential unformatted scratch records; count 4..8.
+            seqvector = re.fullmatch(r'(READ|WRITE)\s*\(\s*([1-9])\s*(?:,\s*((?:END\s*=\s*[0-9]{1,5}|IOSTAT\s*=\s*[A-Z][A-Z0-9_]*)(?:\s*,\s*(?:END\s*=\s*[0-9]{1,5}|IOSTAT\s*=\s*[A-Z][A-Z0-9_]*))?))?\s*\)\s*(.*)',s)
+            if seqvector:
+                kind,unit_no,controls,listing=seqvector.groups()
+                names=split_items(listing)
+                if 4 <= len(names) <= 8:
+                    if any(not NAME_RE.fullmatch(name) or u.vars.get(name)!=('INTEGER',None) for name in names):
+                        raise FortranError(line,'unformatted vector requires INTEGER scalar list')
+                    if controls and kind != 'READ':
+                        raise FortranError(line,'unformatted vector output does not accept END/IOSTAT')
+                    ctrl=controls or ''
+                    status=re.search(r'IOSTAT\s*=\s*([A-Z][A-Z0-9_]*)',ctrl)
+                    ending=re.search(r'END\s*=\s*([0-9]{1,5})',ctrl)
+                    if controls and not (status or ending):
+                        raise FortranError(line,'invalid sequential vector control')
+                    if status and u.vars.get(status.group(1)) != ('INTEGER',None):
+                        raise FortranError(line,'IOSTAT must name INTEGER scalar')
+                    local='f_sv_'+str(len(code))
+                    extra_decls.append('int '+local+'['+str(len(names))+'];')
+                    if kind == 'WRITE':
+                        add([local+'['+str(i)+'] = F_'+name+';' for i,name in enumerate(names)]+[
+                            'f_swritev('+unit_no+', '+str(len(names))+', '+local+');'])
+                    else:
+                        flag='f_sok_'+str(len(code))
+                        extra_decls.append('int '+flag+';')
+                        lines=[flag+' = f_sreadv('+unit_no+', '+str(len(names))+', '+local+');']
+                        lines+=['if ('+flag+') F_'+name+' = '+local+'['+str(i)+'];' for i,name in enumerate(names)]
+                        if status:
+                            lines+=['F_'+status.group(1)+' = 0;',
+                                    'if (!'+flag+') F_'+status.group(1)+' = -1;']
+                        pc=add(lines)
+                        if ending:
+                            conditional_gotos.append((pc,'!'+flag,str(int(ending.group(1))),pc+1,line))
+                        elif not status:
+                            code[pc] = (code[pc][0]+['if (!'+flag+') exit(2);'],code[pc][1])
+                    return
             seqtriple_stat = re.fullmatch(
                 r'READ\s*\(\s*([1-9])\s*,\s*(END\s*=\s*[0-9]{1,5}(?:\s*,\s*IOSTAT\s*=\s*[A-Z][A-Z0-9_]*)?|IOSTAT\s*=\s*[A-Z][A-Z0-9_]*(?:\s*,\s*END\s*=\s*[0-9]{1,5})?)\s*\)\s*([A-Z][A-Z0-9_]*)\s*,\s*([A-Z][A-Z0-9_]*)\s*,\s*([A-Z][A-Z0-9_]*)',s)
             if seqtriple_stat:
