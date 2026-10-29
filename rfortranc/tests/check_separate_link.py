@@ -76,6 +76,23 @@ def main():
                                              '-o',str(out/'common.host')]+list(map(str, commons)))
         if record['common_host_compile']['exit_code'] == 0:
             record['common_host_run'] = run([str(out/'common.host')])
+        blank = ROOT/'tests/fortran/f77s_blankvary.f'
+        blank_dest = out/'blank.ssx'
+        blank_objects = out/'blank-objects'
+        record['blank_source_sha256'] = sha(blank)
+        record['blank_compile'] = run(command+['--max','12000','--object-dir',str(blank_objects),
+                                               '-o',str(blank_dest),str(blank)])
+        if record['blank_compile']['exit_code'] == 0 and blank_dest.exists():
+            record['blank_ssx_bytes'] = blank_dest.stat().st_size
+            record['blank_ssx_sha256'] = sha(blank_dest)
+            record['blank_objects'] = {f.name:{'sha256':sha(f),'bytes':f.stat().st_size}
+                                        for f in blank_objects.glob('*.sso')}
+            record['blank_target_run'] = run([sys.executable,a.rvm,'--headless','--text',
+                                                '--frames','1000',str(blank_dest)])
+        record['blank_host_compile'] = run(['gfortran','-std=legacy','-ffixed-form',
+                                            '-o',str(out/'blank.host'),str(blank)])
+        if record['blank_host_compile']['exit_code'] == 0:
+            record['blank_host_run'] = run([str(out/'blank.host')])
     def lines(output):
         return [s.rstrip() for s in output.splitlines() if s.strip()]
     native = record.get('target_run', {})
@@ -95,7 +112,16 @@ def main():
                  common_host.get('exit_code') == 0 and
                  lines(common_native.get('stdout','')) == lines(common_host.get('stdout','')) == EXPECT)
     record['common_result'] = {'passed': common_ok, 'expected_lines': EXPECT}
-    ok = ok and common_ok
+    blank_native = record.get('blank_target_run', {})
+    blank_host = record.get('blank_host_run', {})
+    blank_expected=['   5  42   7']
+    blank_ok=(len(record.get('blank_objects',{}))==3 and
+              record.get('blank_ssx_bytes',12001) <= 12000 and
+              blank_native.get('exit_code')==0 and '(exit)' in blank_native.get('stderr','') and
+              blank_host.get('exit_code')==0 and
+              lines(blank_native.get('stdout',''))==lines(blank_host.get('stdout',''))==blank_expected)
+    record['blank_result']={'passed':blank_ok,'expected_lines':blank_expected}
+    ok = ok and common_ok and blank_ok
     record['result'] = {'passed': bool(ok), 'expected_lines': EXPECT}
     a.report.parent.mkdir(parents=True, exist_ok=True)
     a.report.write_text(json.dumps(record, indent=2, sort_keys=True)+'\n')
