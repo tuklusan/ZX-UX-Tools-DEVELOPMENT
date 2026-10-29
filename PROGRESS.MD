@@ -673,8 +673,14 @@
 
 ## ACTIVE RELEASE GOAL — supersedes older physical-hardware and full-F77S instructions (2026-10-29)
 
-**Goal:** Finish the agreed user-scoped F77S-derived `rfortranc` compiler. Done means **all six simplified P0, all eight simplified P1, all four simplified P2** complete and verified with actual emulator-run ZX-UX Z80 binaries, independent numerical results, final-source regression checks and a measured approximately 12 KiB working-memory bound. Validate runtime feasibility at the Z80 target speed. A representative substantial numerical library and the original 20-program demo set are practical test inputs; console-only source adaptations may be used when the originals rely on excluded external units, explicitly identified as adapted cases.
+**Goal:** Finish the agreed user-scoped F77S-derived `rfortranc` compiler. Done means **all six simplified P0, all eight simplified P1, all four simplified P2** complete and verified with actual emulator-run ZX-UX Z80 binaries, independent numerical results, final-source regression checks and a measured 14 KiB (14,336 bytes) working-memory limit. Validate runtime feasibility at the Z80 target speed. A representative substantial numerical library and the original 20-program demo set are practical test inputs; console-only source adaptations may be used when the originals rely on excluded external units, explicitly identified as adapted cases.
 
 **NOT required for project completion:** physical ZX Spectrum hardware tests of any kind; physical cassette or ROM/EAR boot; tape/TZX creation or release packaging; external logical units (including unit 7) or external file record operations; full ANSI F77S / FCVS-wide certification; full F77-only features; separate BASIC-port deliverables. Do not try to implement or verify these to satisfy compiler completion. Retain historical logs and already-working code rather than deleting them. This instruction supersedes older project-goal sentences elsewhere in this file; it changes only the compiler workstream on `main` and does not rewrite the separate BASIC branch goal.
 
 **Scope status at checkpoint:** P0 six partial, P1 eight partial (external-file P1 excluded), P2 four partial; final-source practical proof pending. This is a goal/documentation update only. No feature code or new tests executed. Continue checkpointing root `PROGRESS.MD` on each milestone and preserve all other contributors' files.
+
+## Active RAM limit changed to 14 KiB — 2026-10-29
+
+- User changed the compiler release RAM ceiling from 12 KiB to **14 KiB (14,336 bytes)**. This supersedes older 12 KiB references in historical milestones and test evidence.
+- The release gate requires measured total RAM consumption, not just executable size, including code, data, BSS, stack and heap as applicable. Update relevant tests to use 14,336 bytes before final verification.
+- This checkpoint changes the goal only. Historical evidence and other developers' work remain untouched.
