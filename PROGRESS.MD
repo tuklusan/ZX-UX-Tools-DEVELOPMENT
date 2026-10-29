@@ -122,3 +122,9 @@
 - Added F77S INTEGER assigned-FORMAT variable support for `READ(5,K)` and `WRITE(6,K)`. The compiler pre-expands only FORMAT labels assigned via `ASSIGN ... TO K` in the program unit into checked selection branches, traps unknown runtime label values, and rejects selectors lacking a FORMAT target. This uses no runtime format string parser.
 - New strict `f77s_afmt.f` assigns two labels to one INTEGER format selector; independent gfortran and actual matched ZX-UX Z80 binary both output two records `  42`, `    42` and exit 0 at frame 164; 112/112 local frontend unit tests passed. Negative case rejects ASSIGN of non-FORMAT label used for WRITE. READ assigned-FORMAT path still needs independent native fixture.
 - P1 PAUSE/label edge cases, P0 FORMAT reversion/scale/internal I/O and P2 separate linkage remain open; no physical Spectrum proof.
+
+## Milestone — SSX static memory budget evidence (2026-10-29)
+
+- Added repeatable `rfortranc/tests/measure_memory.py` using the matching SDK's checksum-validating `rld.parse_ssx`, reporting linked SSX file size, load image, BSS, reserved stack/heap, relocations and SHA256 for each strict F77S native Z80 program. Default 12 KiB (12,288 bytes) budget. Does **not** pretend to measure live/peak RAM or kernel/loader overhead.
+- Captured `rfortranc/tests/results/f77s-memory-static-2026-10-29.json` for exact translator SHA `9c80cc...` on main `ae1a27e`: **7/7 native SSX files** have linked static reserved memory below 12,288 bytes. Sample range **1,662–4,145 bytes**; larger f77s_trig example SSX 4,232 bytes, image 3,487, BSS 274, reserved stack 384, heap 0, static sum 4,145. SDK linker SHA recorded and SSX image/relocations/checksum verified. Peak RAM and physical Spectrum still unmeasured.
+- NEXT: run full suite on exact current HEAD and add peak stack/RAM instrumentation; complete remaining F77S P0/P1/P2 and real Spectrum boot.

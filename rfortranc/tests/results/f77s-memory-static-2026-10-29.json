@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "compiled_against_main": "ae1a27e58cda504e753f63a8311cf815ef21ad3f",
+  "not_runtime_peak_measurement": true,
+  "not_physical_spectrum_test": true,
+  "target_limit_bytes": 12288,
+  "compiler_sha256": "9c80cc090358cf7b1cdd0d7e3ee1505944c3f76ac7cc953ca8d354ff5df56c16",
+  "target_sdk_linker_sha256": "1b7e2bf5b74508b0fa24e4e222aeb45f9c37241b468f3eb82ec962bd7400043f",
+  "cases": [
+    {
+      "name": "f77s_burkl2",
+      "ssx_bytes": 3982,
+      "image_bytes": 3351,
+      "bss_bytes": 257,
+      "reserved_stack_bytes": 384,
+      "reserved_heap_bytes": 0,
+      "total_static_reservation_bytes": 3992,
+      "relocation_count": 609,
+      "ssx_sha256": "298ef141c9598913a666b4b3a2613284ac1273f0ad6bdfce3b92e684ac58111a",
+      "within_limit": true
+    },
+    {
+      "name": "f77s_trig",
+      "ssx_bytes": 4232,
+      "image_bytes": 3487,
+      "bss_bytes": 274,
+      "reserved_stack_bytes": 384,
+      "reserved_heap_bytes": 0,
+      "total_static_reservation_bytes": 4145,
+      "relocation_count": 723,
+      "ssx_sha256": "efc21d9b8c65e019115727f4b5e696c6c74c36e8841100bf5334cbd17b1e51c9",
+      "within_limit": true
+    },
+    {
+      "name": "f77s_rpow",
+      "ssx_bytes": 4042,
+      "image_bytes": 3357,
+      "bss_bytes": 240,
+      "reserved_stack_bytes": 384,
+      "reserved_heap_bytes": 0,
+      "total_static_reservation_bytes": 3981,
+      "relocation_count": 663,
+      "ssx_sha256": "6eab3fbb02ab258e0fb85e95940c088dea1c056793616c329f20a77df3649524",
+      "within_limit": true
+    },
+    {
+      "name": "f77s_afmt",
+      "ssx_bytes": 1418,
+      "image_bytes": 1226,
+      "bss_bytes": 52,
+      "reserved_stack_bytes": 384,
+      "reserved_heap_bytes": 0,
+      "total_static_reservation_bytes": 1662,
+      "relocation_count": 170,
+      "ssx_sha256": "4a37331c5f8d2a02387874792f29803e3b489feac625a2d347a25a36522efb4c",
+      "within_limit": true
+    },
+    {
+      "name": "f77s_ewdee",
+      "ssx_bytes": 2582,
+      "image_bytes": 2207,
+      "bss_bytes": 212,
+      "reserved_stack_bytes": 384,
+      "reserved_heap_bytes": 0,
+      "total_static_reservation_bytes": 2803,
+      "relocation_count": 353,
+      "ssx_sha256": "44e0a0f25319105f268c9ab2b57775c220847519e5da1ab3f45d2f18fbcc290e",
+      "within_limit": true
+    },
+    {
+      "name": "f77s_bnbz",
+      "ssx_bytes": 1769,
+      "image_bytes": 1528,
+      "bss_bytes": 52,
+      "reserved_stack_bytes": 384,
+      "reserved_heap_bytes": 0,
+      "total_static_reservation_bytes": 1964,
+      "relocation_count": 219,
+      "ssx_sha256": "8f7d994362243734a068f1660238f9827dff7a761562a875fe0d57313380fe1f",
+      "within_limit": true
+    },
+    {
+      "name": "f77s_eread",
+      "ssx_bytes": 3266,
+      "image_bytes": 2778,
+      "bss_bytes": 214,
+      "reserved_stack_bytes": 384,
+      "reserved_heap_bytes": 0,
+      "total_static_reservation_bytes": 3376,
+      "relocation_count": 466,
+      "ssx_sha256": "e2637ba7afcf16a7f620c46bfe5e488d60b6d1586e3e0d7d4c26fc98175c1b40",
+      "within_limit": true
+    }
+  ],
+  "result": {
+    "within_limit": 7,
+    "total": 7
+  },
+  "notes": [
+    "These are SDK SSX image+BSS+declared stack+heap, not emulated runtime high-water or kernel overhead.",
+    "The SDK SSX checksum and relocations were verified by the actual SDK rld.parse_ssx.",
+    "The full machine memory footprint must include ZX-UX kernel and loader and separate live stack/heap measurement."
+  ]
+}

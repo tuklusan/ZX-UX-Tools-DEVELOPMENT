@@ -23,7 +23,7 @@ Source inspection date 2026-10-28; compiler source revision `e03c72542a504846911
 | P1 | Missing | Limited legal OPEN for direct-access unformatted records; REWIND, BACKSPACE and ENDFILE. Named-file OPEN, CLOSE, INQUIRE and formatted direct access are **not F77S requirements**. |
 | P1 | Partial | Exact cols 1-72 fixed source, nine continuations, comments/continuations, identifiers everywhere, statements in correct order, and rejecting all full-only forms consistently. |
 | P2 | Partial | Separate compilation and linking of F77S program units, cross-unit external ABI/type checking and procedure calling conventions. |
-| Proof | Unproven | Published strict F77S FCVS/subset corpus and substantial ported numerical library; actual Spectrum 48K + cassette boot; peak RAM including stack/kernel and target numerical accuracy/runtime. |
+| Proof | Unproven | Published strict F77S FCVS/subset corpus and substantial ported numerical library; actual Spectrum 48K + cassette boot; peak RAM including stack/kernel (static SSX image+BSS+stack reservations now measured for seven native cases), and target numerical accuracy/runtime. |
 
 **Out of scope:** full-F77-only DOUBLE/COMPLEX, PRINT, list-directed READ/WRITE, PARAMETER, BLOCK DATA, ENTRY/alternate returns, generic intrinsic references, CLOSE/INQUIRE, .EQV./.NEQV., character substrings/concatenation/functions, partial CHARACTER association, D/G/T/TL/TR/S/SP/SS edit families, Iw.m, and the FORMAT colon. See the standard for exact exclusions.
 
