@@ -1342,6 +1342,19 @@ class F77SChecks(unittest.TestCase):
                 for handle in handles:
                     self.assertIn('static int '+handle+';', c)
 
+    def test_unformatted_iostat_and_end_control(self):
+        src=(ROOT/'tests/fortran/f77s_iostat.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('F_S = -1;',c)
+        self.assertIn('f_sreadstat(7, &F_B);',c)
+        reversed_controls=src.replace('IOSTAT=S,END=100','END=100,IOSTAT=S')
+        self.assertIn('F_S = -1;',convert(parse(reversed_controls,std='f77s')))
+        bad=src.replace('IOSTAT=S,END=100','IOSTAT=A,END=999')
+        with self.assertRaisesRegex(FortranError,'undefined statement label'):
+            convert(parse(bad,std='f77s'))
+
     def test_unformatted_end_branch_to_executable_label(self):
         src=(ROOT/'tests/fortran/f77s_endgoto.f').read_text()
         units=parse(src,std='f77s')

@@ -2153,6 +2153,27 @@ def convert(units, emit_units=None):
                 op, paren, plain = seqpos.groups()
                 add([('f_srewind' if op == 'REWIND' else 'f_send' if op == 'ENDFILE' else 'f_sback') + '(' + (paren or plain) + ');'])
                 return
+            # IOSTAT on a limited sequential INTEGER scratch READ, with
+            # optional END= in either order. Negative one means EOF.
+            seqstat = re.fullmatch(
+                r'READ\s*\(\s*([1-9])\s*,\s*(IOSTAT\s*=\s*[A-Z][A-Z0-9_]*(?:\s*,\s*END\s*=\s*[0-9]{1,5})?|END\s*=\s*[0-9]{1,5}\s*,\s*IOSTAT\s*=\s*[A-Z][A-Z0-9_]*)\s*\)\s*([A-Z][A-Z0-9_]*)',
+                s)
+            if seqstat:
+                unit_no, controls, name = seqstat.groups()
+                status_var = re.search(r'IOSTAT\s*=\s*([A-Z][A-Z0-9_]*)', controls).group(1)
+                end_match = re.search(r'END\s*=\s*([0-9]{1,5})', controls)
+                if u.vars.get(name) != ('INTEGER', None) or u.vars.get(status_var) != ('INTEGER', None):
+                    raise FortranError(line, 'IOSTAT/END sequential READ requires INTEGER scalars')
+                flag = 'f_sok_' + str(len(code))
+                extra_decls.append('int ' + flag + ';')
+                ops = [flag + ' = f_sreadstat(' + unit_no + ', &F_' + name + ');',
+                       'F_' + status_var + ' = 0;',
+                       'if (!' + flag + ') F_' + status_var + ' = -1;']
+                pc = add(ops)
+                if end_match:
+                    conditional_gotos.append((pc, '!' + flag,
+                                              str(int(end_match.group(1))), pc + 1, line))
+                return
             seqend = re.fullmatch(
                 r'READ\s*\(\s*([1-9])\s*,\s*END\s*=\s*([0-9]{1,5})\s*\)\s*([A-Z][A-Z0-9_]*)', s)
             if seqend:
