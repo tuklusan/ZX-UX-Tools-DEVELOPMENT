@@ -1342,6 +1342,20 @@ class F77SChecks(unittest.TestCase):
                 for handle in handles:
                     self.assertIn('static int '+handle+';', c)
 
+    def test_sequential_unformatted_rom_real_record(self):
+        src=(ROOT/'tests/fortran/f77s_seqreal.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('f_swritef(7, F_A);',c)
+        self.assertIn('f_sreadf(7);',c)
+        self.assertIn('f_sreadfstat(7, &F_C);',c)
+        self.assertIn('tail != 5',c)
+        self.assertIn('write(f_sh[unit], &value, 5)',c)
+        bad=src.replace('REAL A,B,C','REAL A,B,C\n      LOGICAL L').replace('WRITE(7) A','WRITE(7) L')
+        with self.assertRaises(FortranError):
+            convert(parse(bad,std='f77s'))
+
     def test_sequential_vector_records_and_variable_backspace(self):
         source=(ROOT/'tests/fortran/f77s_seqquad.f').read_text()
         units=parse(source,std='f77s')

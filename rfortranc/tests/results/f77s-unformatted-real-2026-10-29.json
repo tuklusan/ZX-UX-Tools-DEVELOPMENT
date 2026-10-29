@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "base_revision": "f40960d52b1f789d69bca45ffcba5ef91f68d371",
+  "scope": "F77S scalar REAL unformatted sequential scratch I/O; C48 native ZX Spectrum five-byte ROM representation",
+  "source": "f77s_seqreal.f",
+  "source_sha256": "cd483ef548eb09013d81face564d113e8d9258871ac196996883fd36eace904d",
+  "translator_sha256": "16ccfac63902fbe27f4ac39c9a8fb909e5a491df66e1e31eab213cae35d2d765",
+  "linked_ssx_bytes": 4934,
+  "linked_ssx_sha256": "a5c3c32c460e85dbef6c3636649adbc5f6ac49a7120d5e7b7f4782c2fcc56f73",
+  "expected_output": [
+    "   -3.50",
+    "    1.25    0",
+    "  -1"
+  ],
+  "rvm_exit": 0,
+  "frames": 198,
+  "syscalls": 68,
+  "independent_gfortran_numerical_match": true,
+  "encoding_note": "gfortran uses IEEE32; ZX-UX C48 uses 5-byte ROM floats; external unformatted binary representations intentionally differ",
+  "frontend": {
+    "passed": 164,
+    "total": 164
+  },
+  "selected_native": {
+    "passed": 1,
+    "total": 1
+  },
+  "selected_differential": {
+    "passed": 1,
+    "total": 1
+  },
+  "remaining": [
+    "broader typed unformatted data lists",
+    "full subset conformance",
+    "physical Spectrum",
+    "runtime peak RAM"
+  ]
+}

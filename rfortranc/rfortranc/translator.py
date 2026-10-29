@@ -1006,6 +1006,41 @@ static void f_swritev(int unit, int count, int *values) {
     if (write(f_sh[unit], &length, 2) != 2) exit(2);
     if (write(f_sh[unit], &zero, 2) != 2) exit(2);
 }
+/* C48 REAL is five bytes (ZX Spectrum ROM format), not IEEE32.
+   An F77S unformatted file has a processor-dependent representation. */
+static void f_swritef(int unit, float value) {
+    int length, zero;
+    f_sopen(unit, 0);
+    if (tell(f_sh[unit]) > 32754) exit(2);
+    length = 5; zero = 0;
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+    if (write(f_sh[unit], &zero, 2) != 2) exit(2);
+    if (write(f_sh[unit], &value, 5) != 5) exit(2);
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+    if (write(f_sh[unit], &zero, 2) != 2) exit(2);
+}
+static int f_sreadfstat(int unit, float *dest) {
+    int length, upper, tail, got;
+    float value;
+    f_sopen(unit, 1);
+    got = read(f_sh[unit], &length, 2);
+    if (got == 0) return 0;
+    if (got != 2) exit(2);
+    if (read(f_sh[unit], &upper, 2) != 2) exit(2);
+    if (length == 0 && upper == 0) return 0;
+    if (length != 5 || upper != 0) exit(2);
+    if (read(f_sh[unit], &value, 5) != 5) exit(2);
+    if (read(f_sh[unit], &tail, 2) != 2) exit(2);
+    if (read(f_sh[unit], &upper, 2) != 2) exit(2);
+    if (tail != 5 || upper != 0) exit(2);
+    *dest = value;
+    return 1;
+}
+static float f_sreadf(int unit) {
+    float value;
+    if (!f_sreadfstat(unit, &value)) exit(2);
+    return value;
+}
 static int f_sreadv(int unit, int count, int *values) {
     int i, length, upper, high, tail, got, vals[8];
     if (count < 4 || count > 8) exit(2);
@@ -1125,7 +1160,7 @@ static void f_sback(int unit) {
     if (seek(f_sh[unit], pos - 4) < 0) exit(2);
     if (read(f_sh[unit], &tail, 2) != 2) exit(2);
     if (read(f_sh[unit], &upper, 2) != 2) exit(2);
-    if ((tail < 4 || tail > 32 || tail % 4 != 0) || upper != 0) exit(2);
+    if ((tail != 5 && (tail < 4 || tail > 32 || tail % 4 != 0)) || upper != 0) exit(2);
     if (pos < tail + 8) exit(2);
     if (seek(f_sh[unit], pos - tail - 8) < 0) exit(2);
 }
@@ -2373,11 +2408,11 @@ def convert(units, emit_units=None):
                 unit_no, controls, name = seqstat.groups()
                 status_var = re.search(r'IOSTAT\s*=\s*([A-Z][A-Z0-9_]*)', controls).group(1)
                 end_match = re.search(r'END\s*=\s*([0-9]{1,5})', controls)
-                if u.vars.get(name) != ('INTEGER', None) or u.vars.get(status_var) != ('INTEGER', None):
-                    raise FortranError(line, 'IOSTAT/END sequential READ requires INTEGER scalars')
+                if u.vars.get(name) not in (('INTEGER',None),('REAL',None)) or u.vars.get(status_var) != ('INTEGER', None):
+                    raise FortranError(line, 'IOSTAT/END sequential READ requires numeric scalar and INTEGER IOSTAT')
                 flag = 'f_sok_' + str(len(code))
                 extra_decls.append('int ' + flag + ';')
-                ops = [flag + ' = f_sreadstat(' + unit_no + ', &F_' + name + ');',
+                ops = [flag + ' = ' + ('f_sreadfstat(' if u.vars[name][0] == 'REAL' else 'f_sreadstat(') + unit_no + ', &F_' + name + ');',
                        'F_' + status_var + ' = 0;',
                        'if (!' + flag + ') F_' + status_var + ' = -1;']
                 pc = add(ops)
@@ -2389,11 +2424,11 @@ def convert(units, emit_units=None):
                 r'READ\s*\(\s*([1-9])\s*,\s*END\s*=\s*([0-9]{1,5})\s*\)\s*([A-Z][A-Z0-9_]*)', s)
             if seqend:
                 unit_no, target, name = seqend.groups()
-                if u.vars.get(name) != ('INTEGER', None):
-                    raise FortranError(line, 'END= sequential READ needs one INTEGER scalar')
+                if u.vars.get(name) not in (('INTEGER',None),('REAL',None)):
+                    raise FortranError(line, 'END= sequential READ needs one numeric scalar')
                 temp = 'f_sok_' + str(len(code))
                 extra_decls.append('int ' + temp + ';')
-                pc = add([temp + ' = f_sreadstat(' + unit_no + ', &F_' + name + ');'])
+                pc = add([temp + ' = ' + ('f_sreadfstat(' if u.vars[name][0] == 'REAL' else 'f_sreadstat(') + unit_no + ', &F_' + name + ');'])
                 conditional_gotos.append((pc, '!' + temp, str(int(target)), pc + 1, line))
                 return
             seqtriple = re.fullmatch(
@@ -2421,12 +2456,14 @@ def convert(units, emit_units=None):
             seqio = re.fullmatch(r'(READ|WRITE)\s*\(\s*([1-9])\s*\)\s*([A-Z][A-Z0-9_]*)', s)
             if seqio:
                 kind, unit_no, name = seqio.groups()
-                if u.vars.get(name) != ('INTEGER', None):
-                    raise FortranError(line, 'sequential unformatted scratch record needs one INTEGER scalar')
+                if u.vars.get(name) not in (('INTEGER',None),('REAL',None)):
+                    raise FortranError(line, 'sequential scratch record needs INTEGER or REAL scalar')
                 if kind == 'WRITE':
-                    add(['f_swrite(' + unit_no + ', F_' + name + ');'])
+                    fn = 'f_swritef' if u.vars[name][0] == 'REAL' else 'f_swrite'
+                    add([fn + '(' + unit_no + ', F_' + name + ');'])
                 else:
-                    add(['F_' + name + ' = f_sread(' + unit_no + ');'])
+                    fn = 'f_sreadf' if u.vars[name][0] == 'REAL' else 'f_sread'
+                    add(['F_' + name + ' = ' + fn + '(' + unit_no + ');'])
                 return
             # F77S narrow unnamed direct-access unformatted scratch files.
             # Each unit 1..9 owns /tmp/fuN; no named FILE= specifier.
