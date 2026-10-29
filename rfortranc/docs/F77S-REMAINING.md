@@ -30,3 +30,20 @@ Source inspection date 2026-10-28; compiler source revision `e03c72542a504846911
 **Sources checked:** `rfortranc/rfortranc/translator.py`, `f77s.py`, `data_init.py`, `common.py`, `equivalence.py`, `implicit.py`, `rfortranc/docs/F77S-MATRIX.md`, `rfortranc/README.md`, ANSI Appendix D and §§9.2/13.5.9.2.2. The longer source-level audit is `F77S-GAP-AUDIT-2026-10-28.md` with corrections in `F77S-GAP-AUDIT-CORRECTIONS.md`.
 
 **Next code milestone:** REAL SIN and original WHETSTONE native ZX-UX vs gfortran validation, followed by COS/EXP. This source audit did not execute new regression tests. All other developers' files remain untouched.
+
+## Simplified P1 — agreed release target (2026-10-29)
+
+The agreed release is deliberately narrower than complete ANSI F77S. **8 P1 areas remain partial**, and external file I/O/logical units are excluded. This concise checklist defines the release work; detailed historical P1 rows above remain for implementation and regression context.
+
+| # | Area | Remaining work | Status |
+|---|---|---|---|
+| 1 | **Procedures** | Complete function/subroutine arguments, procedure passing, and return types. | Partial |
+| 2 | **COMMON** | Complete shared numeric and CHARACTER storage, including mixed-type layouts. | Partial |
+| 3 | **EQUIVALENCE** | Complete legal memory sharing and overlapping variables. | Partial |
+| 4 | **DATA** | Finish initialization, storage aliases, and persistent values. | Partial |
+| 5 | **Arrays** | Complete adjustable dimensions, subscripts, and array arguments. | Partial |
+| 6 | **CHARACTER** | Complete string/array arguments, adjustable dimensions, and memory association. | Partial |
+| 7 | **Control flow** | Finish assigned GO TO, STOP, PAUSE, and label edge cases. | Partial |
+| 8 | **Source validation** | Enforce permitted fixed-form syntax, declaration order, and user-scoped language restrictions. | Partial |
+
+**P1 done means:** positive and negative tests, actual ZX-UX Z80 execution, and independent comparisons where appropriate. **Excluded:** cassette I/O, external logical units, external files/OPEN/REWIND/BACKSPACE/ENDFILE, and full-F77-only features. Do not delete existing working external-I/O code solely because it is outside the release scope.
