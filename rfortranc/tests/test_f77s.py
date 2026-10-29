@@ -646,6 +646,21 @@ class F77SChecks(unittest.TestCase):
                 self.assertIn('F__LEN_B', lowered)
                 self.assertIn('f_seqcheck(', lowered)
 
+    def test_common_scalar_bound_on_ranked_dummy(self):
+        src=(ROOT/'tests/fortran/f77s_cbound.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        self.assertEqual(units[1].vars['B'][1], ('N',3))
+        c=convert(units)
+        self.assertIn('f_extent(f_com_SIZE_0,',c)
+        self.assertIn('F__LEN_B',c)
+        separate=convert(units,emit_units={'ALTER'})
+        self.assertIn('extern int f_com_SIZE_0;',separate)
+        self.assertIn('f_seqcheck(0, F__LEN_B,', separate)
+        bad=src.replace('INTEGER N,B(N,3),X','REAL N\n      INTEGER B(N,3),X')
+        with self.assertRaisesRegex(FortranError,'INTEGER scalar dummy or COMMON'):
+            convert(parse(bad,std='f77s'))
+
     def test_adjustable_leading_bound_wrong_type_rejected(self):
         src=(ROOT/'tests/fortran/f77s_leaddim.f').read_text()
         src=src.replace('INTEGER N,B(N,3),X','REAL N\n      INTEGER B(N,3),X')

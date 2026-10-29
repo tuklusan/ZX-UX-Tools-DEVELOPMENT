@@ -260,3 +260,8 @@
 ### Regression correction — leading-bound milestone (2026-10-29)
 
 - First GitHub Actions run for `54fc873` failed **only** `test_adjustable_and_assumed_size_dummies/f77s_dmalt`: one older expected generated-expression substring remained unchanged because the remote test patch updated only its first occurrence. Compiler source and native proof unchanged. Updated the second assertion to accept the checked new form. Recheck full Actions frontend+gfortran against this new SHA before counting it; no overall regression pass for `54fc873`.
+
+## Milestone — COMMON scalar adjustable array bounds (2026-10-29)
+
+- Supports rank-2/3 numeric dummy array leading INTEGER bounds supplied by named COMMON. `f77s_cbound.f` has `B(N,3)` where N is in `/SIZE/` instead of a dummy. Matched ZX-UX Z80 emulator output `    6   42`, gfortran agrees; monolithic SSX 1919 bytes, separately linked two-object SSX 2094 bytes. Changing M=2 to M=4 against six elements traps Z80 exit code 2.
+- Local 136/136 frontend, selected Z80 2/2, host differential 1/1. Complete regression, P0/P1/P2, peak runtime RAM and physical Spectrum validation remain OPEN. Next: CI and further language coverage. No production-readiness claim.

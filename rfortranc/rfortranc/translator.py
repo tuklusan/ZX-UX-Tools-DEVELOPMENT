@@ -413,6 +413,7 @@ def parse(source, std='zxux'):
             else:
                 saw_exec = True
     for u in units:
+        shared_names = common_scalar_names(u)
         for name, (ty, dims) in u.vars.items():
             if dims is not None and ty.startswith('CHARACTER*') and not dynamic_extent(dims):
                 from .arrays import size as total_extent
@@ -421,8 +422,9 @@ def parse(source, std='zxux'):
                     raise FortranError(u.line, 'CHARACTER array byte extent exceeds ZX-UX 16-bit range')
             if dynamic_extent(dims):
                 for bound in dims:
-                    if isinstance(bound, str) and bound != '*' and u.vars.get(bound) != ('INTEGER', None):
-                        raise FortranError(u.line, 'adjustable array bound must be INTEGER scalar dummy: ' + bound)
+                    if isinstance(bound, str) and bound != '*':
+                        if u.vars.get(bound) != ('INTEGER', None) or (bound not in u.args and bound not in shared_names):
+                            raise FortranError(u.line, 'adjustable array bound must be INTEGER scalar dummy or COMMON: ' + bound)
                 if ty.startswith('CHARACTER*'):
                     raise FortranError(u.line, 'adjustable CHARACTER dummy arrays not yet implemented')
                 if u.kind == 'function':
@@ -430,6 +432,17 @@ def parse(source, std='zxux'):
     return units
 
 
+
+
+def common_scalar_names(unit):
+    """COMMON scalar names usable as adjustable dummy-array bounds."""
+    names = set()
+    for st in unit.statements:
+        m = re.fullmatch(r'COMMON\s+(?:/[A-Z][A-Z0-9]{0,5}/|//)?\s*(.+)', st.text)
+        if m:
+            names.update(item.strip() for item in split_items(m.group(1))
+                         if NAME_RE.fullmatch(item.strip()))
+    return names
 
 
 def parse_dims(spec, name, unit, line):
@@ -459,7 +472,7 @@ def parse_dims(spec, name, unit, line):
             dims.append(value)
         elif token == '*' and i == len(pieces)-1:
             dims.append(token)
-        elif NAME_RE.fullmatch(token) and token in unit.args and token != name:
+        elif NAME_RE.fullmatch(token) and (token in unit.args or token in common_scalar_names(unit)) and token != name:
             dims.append(token)
         else:
             raise FortranError(line, 'adjustable bound must be a scalar dummy argument: ' + token)
@@ -486,7 +499,8 @@ def array_subscript(indices, name, unit, line):
             if bound == '*':
                 limit = '(' + capacity + ' / (' + stride + '))'
             elif isinstance(bound, str):
-                limit = 'f_extent((*F_' + bound + '), (' + capacity + ' / (' + stride + ')))'
+                scalar = '(*F_' + bound + ')' if bound in unit.args else 'F_' + bound
+                limit = 'f_extent(' + scalar + ', (' + capacity + ' / (' + stride + ')))'
             else:
                 limit = str(bound)
             term = 'f_index(' + sub + ', ' + limit + ')'
@@ -1565,6 +1579,20 @@ def convert(units, emit_units=None):
         extra_decls = []
         local_decl_index = len(output)
         decl('int f_pc;')
+        for arg in u.args:
+            dims = u.vars[arg][1]
+            if not dynamic_extent(dims) or not any(isinstance(b, str) and b != '*' and b not in u.args for b in dims):
+                continue
+            cap = 'F__LEN_' + arg
+            prefix = '1'
+            for bound in dims:
+                if bound == '*':
+                    break
+                value = ('(*F_' + bound + ')' if isinstance(bound, str) and bound in u.args
+                         else 'F_' + bound if isinstance(bound, str) else str(bound))
+                checked = 'f_extent(' + value + ', (' + cap + ' / (' + prefix + ')))'
+                prefix = '(' + prefix + ' * ' + checked + ')'
+            decl('f_seqcheck(0, ' + cap + ', ' + prefix + ');')
         if u.kind == 'function':
             decl('F_' + u.name + ' = 0;')
         def data_init_statement(target, value):
@@ -2001,6 +2029,10 @@ def convert(units, emit_units=None):
                                 return str(bound)
                             if bound == '*':
                                 return '*'
+                            if bound not in known[f].args:
+                                # COMMON bound resolved from the callee's own
+                                # shared sequence; validate whole shape at entry.
+                                return '1'
                             bound_pos = known[f].args.index(bound)
                             return E(args[bound_pos], line)
                         required = str(required) if required is not None else None

@@ -75,6 +75,7 @@ PROGRAMS = {
     'f77s_burkadj': '  28',
     'f77s_dm2ad': '  42',
     'f77s_leaddim': '    6   42',
+    'f77s_cbound': '    6   42',
     'f77s_ldstar': '    6   99',
     'f77s_ld3star': '    8   77',
     'f77s_dm3ad': '  42',

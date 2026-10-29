@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "scope": "F77S scalar COMMON adjustable bound Z80 tests",
+  "candidate_base": "27e232fc73effc50014d6517cdc9d9b1d0489b9f",
+  "translator_sha256": "3d1a6638ef521581b0867aa4492d8f3bae9bcdd867dbb6d941bd5bb15bf97068",
+  "fixture": "f77s_cbound.f",
+  "expected_stdout": "    6   42",
+  "gfortran_match": true,
+  "monolithic_ssx": {
+    "bytes": 1919,
+    "sha256": "d3e5d8b1285a3c0cd1f7cf1b9279ed5b0956d0d52d303d819e8e36d66ce54645",
+    "rvm_exit": 0
+  },
+  "separate_ssx": {
+    "bytes": 2094,
+    "sha256": "5c9b51e94ee29b2de2beea5b2e562fa0f72782337888718c2875e0ef46cbffff",
+    "rvm_exit": 0
+  },
+  "out_of_bounds": {
+    "source_change": "M=2 to M=4",
+    "rvm_exit": 2
+  },
+  "frontend": {
+    "passed": 136,
+    "total": 136
+  },
+  "native_selected": {
+    "passed": 2,
+    "total": 2,
+    "sha256": "aa1798439a47842950513251ac3026aeed7bb4097c6bc31ea252e559e68627e2"
+  },
+  "differential_selected": {
+    "passed": 1,
+    "total": 1,
+    "sha256": "add3c28fe3c5d3e60081ee71ae2d775cf4dea2f6837509da0f3ee08dc5cc789c"
+  },
+  "not_proven": [
+    "full F77S",
+    "physical Spectrum",
+    "peak runtime RAM"
+  ]
+}
