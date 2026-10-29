@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "base_commit": "53e9a3c1cf7490163bf90a96dcc2ca34f2717a34",
+  "scope": "F77S rightmost nested repeated FORMAT group reversion across READ and WRITE records",
+  "fixture": "f77s_nestrevert.f",
+  "fixture_sha256": "b290e01acd704ba34973b71b32bf9667ce37b322b0c1978874c1e75098b28ecc",
+  "translator_git_blob": "143e585f6f4de38ed08a3ad8d1bdb5d9af267cba",
+  "translator_sha256": "8171ccccbc49ae1a6b81342cc8d60ad0636536d9bfd5c39e26aa0b0919d4708d",
+  "input": "  1   2    3   4    5\n   6    7   8    9\n  10\n",
+  "expected_output": [
+    "  1   2    3   4    5",
+    "   6    7   8    9",
+    "  10"
+  ],
+  "host_gfortran_match": true,
+  "native": {
+    "passed": 1,
+    "total": 1,
+    "ssx_bytes": 2455,
+    "ssx_sha256": "bd1269db735104cdf045a599b49f72b657d04185183e08c68a45e73d9bc1ebb2",
+    "exit_code": 0,
+    "frames": 477,
+    "system_calls": 77,
+    "report_sha256": "0c2148ba8cb414bfb07e25dc4e65d2f3e6cd2f0c10efaf87cda5f96865425072"
+  },
+  "differential": {
+    "passed": 1,
+    "total": 1,
+    "report_sha256": "e59cdbab3066e31e76edb94644968548ce6cfe4fd197a8c3dc883a665b35896e"
+  },
+  "frontend": {
+    "passed": 142,
+    "total": 142
+  },
+  "incomplete": [
+    "full reversion/record coverage",
+    "non-numeric format families",
+    "physical Spectrum",
+    "runtime peak RAM",
+    "all P0/P1/P2"
+  ]
+}

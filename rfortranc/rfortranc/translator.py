@@ -1744,27 +1744,96 @@ def convert(units, emit_units=None):
                 raise FortranError(line, 'CHARACTER FORMAT needs parenthesized format')
             return subset_format(body[1:-1], line)
         def revert_simple_format(items, count, identifier, line):
-            descriptors = sum(kind in ('integer','real','realexp','realexpdigits','logical','character')
-                              for kind, _ in items)
+            """Expand record reversion from the rightmost repeated FORMAT group.
+
+            F77S allows up to three nested groups. On reversion the next
+            record begins at the repeat count preceding the last opening
+            parenthesis (including edits following that group); without a
+            nested group the entire FORMAT is restarted.
+            """
+            data_kinds = ('integer', 'real', 'realexp', 'realexpdigits',
+                          'logical', 'character')
+            descriptors = sum(kind in data_kinds for kind, _ in items)
             if count <= descriptors:
                 return items
             if descriptors == 0:
-                raise FortranError(line, 'FORMAT reversion needs at least one data descriptor')
+                raise FortranError(line, 'FORMAT reversion needs a data descriptor')
             if identifier.isdecimal():
                 source = format_sources[str(int(identifier))]
             else:
                 q = identifier[0]
-                source = identifier[2:-2].replace(q+q,q)
-            if '(' in source or ')' in source:
-                raise FortranError(line, 'nested FORMAT reversion not yet implemented')
-            repeats = (count + descriptors - 1) // descriptors
-            if repeats * len(items) + repeats - 1 > 255:
-                raise FortranError(line, 'FORMAT reversion exceeds 255 operations')
-            result = []
-            for i in range(repeats):
-                if i:
-                    result.append(('newrecord', None))
-                result.extend(items)
+                source = identifier[2:-2].replace(q + q, q)
+            stack = []
+            groups = []
+            quote = None
+            i = 0
+            while i < len(source):
+                ch = source[i]
+                if quote:
+                    if ch == quote:
+                        if i + 1 < len(source) and source[i + 1] == quote:
+                            i += 2
+                            continue
+                        quote = None
+                elif ch in ("'", '"'):
+                    quote = ch
+                elif ch == '(':
+                    stack.append(i)
+                elif ch == ')':
+                    if not stack:
+                        raise FortranError(line, 'unmatched closing FORMAT parenthesis')
+                    start = stack.pop()
+                    groups.append((start, i))
+                i += 1
+            if stack:
+                raise FortranError(line, 'unmatched opening FORMAT parenthesis')
+            reversion = items
+            if groups:
+                op, close = max(groups, key=lambda pair: pair[0])
+                start = op
+                while start > 0 and source[start - 1].isdigit():
+                    start -= 1
+                # Ancestor group closing parentheses are structural only;
+                # do not repeat their enclosing initial descriptors.
+                suffix = source[start:]
+                depth = 0
+                quote = None
+                text = []
+                j = 0
+                while j < len(suffix):
+                    ch = suffix[j]
+                    if quote:
+                        text.append(ch)
+                        if ch == quote:
+                            if j + 1 < len(suffix) and suffix[j + 1] == quote:
+                                text.append(suffix[j + 1]); j += 1
+                            else:
+                                quote = None
+                    elif ch in ("'", '"'):
+                        quote = ch
+                        text.append(ch)
+                    elif ch == '(':
+                        depth += 1
+                        text.append(ch)
+                    elif ch == ')':
+                        if depth:
+                            depth -= 1
+                            text.append(ch)
+                    else:
+                        text.append(ch)
+                    j += 1
+                reversion = subset_format(''.join(text).strip().strip(','), line)
+            reversion_descriptors = sum(kind in data_kinds for kind, _ in reversion)
+            if reversion_descriptors == 0:
+                raise FortranError(line, 'rightmost FORMAT group reversion lacks a data descriptor')
+            result = list(items)
+            remaining = count - descriptors
+            while remaining > 0:
+                if len(result) + len(reversion) + 1 > 255:
+                    raise FortranError(line, 'FORMAT reversion exceeds 255 operations')
+                result.append(('newrecord', None))
+                result.extend(reversion)
+                remaining -= reversion_descriptors
             return result
         def assigned_format(kind, channel, selector, arguments, line):
             if u.vars.get(selector) != ('INTEGER', None):

@@ -1240,6 +1240,15 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(item=item), self.assertRaises(FortranError):
                 convert(parse(src, std='f77s'))
 
+    def test_rightmost_nested_format_reversion(self):
+        src=(ROOT/'tests/fortran/f77s_nestrevert.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        generated=convert(units)
+        self.assertIn('f_fmt_int(3)',generated)
+        self.assertIn('f_fmt_int(5)',generated)
+        self.assertIn('f_outintw(F_A[(f_index(10, 10))], 4)',generated)
+
     def test_simple_format_record_reversion(self):
         src=(ROOT/'tests/fortran/f77s_frevert.f').read_text()
         units=parse(src,std='f77s')
@@ -1248,8 +1257,7 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('F_A[(f_index(5, 5))] = f_fmt_int(3);', c)
         self.assertIn('f_outintw(F_A[(f_index(5, 5))], 4);', c)
         grouped=src.replace('2I3','2(I3)')
-        with self.assertRaisesRegex(FortranError,'nested FORMAT reversion'):
-            convert(parse(grouped,std='f77s'))
+        self.assertIn('f_fmt_int(3);',convert(parse(grouped,std='f77s')))
 
     def test_scalar_and_array_character_common_cross_unit(self):
         for file, declaration in (('f77s_chcommon.f','static char f_com_TEXT_0[5];'),
