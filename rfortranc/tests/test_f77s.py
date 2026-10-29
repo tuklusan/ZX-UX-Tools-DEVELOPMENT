@@ -1331,6 +1331,17 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(old=old,new=new), self.assertRaises(FortranError):
                 convert(parse(src.replace(old,new),std='f77s'))
 
+    def test_sparse_runtime_retains_scratch_file_handles(self):
+        for name, handles in (('f77s_direct2',('f_dh[10]','f_dl[10]')),
+                              ('f77s_endgoto',('f_sh[10]','f_sused[10]'))):
+            with self.subTest(name=name):
+                src=(ROOT/'tests/fortran'/(name+'.f')).read_text()
+                units=parse(src,std='f77s')
+                validate_source(src,units)
+                c=convert(units,emit_units={units[0].name})
+                for handle in handles:
+                    self.assertIn('static int '+handle+';', c)
+
     def test_unformatted_end_branch_to_executable_label(self):
         src=(ROOT/'tests/fortran/f77s_endgoto.f').read_text()
         units=parse(src,std='f77s')

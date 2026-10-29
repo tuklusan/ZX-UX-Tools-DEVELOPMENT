@@ -1722,8 +1722,10 @@ def sparse_runtime(runtime, used_in):
     for name in ('f_fmt_eor', 'f_fmt_bzero'):
         if re.search(r'\b' + name + r'\b', used_in + functions_src):
             globals_src += 'static int ' + name + ';\n'
-    if re.search(r'\bf_d(?:open|seek|writei|readi)\s*\(', used_in + functions_src):
+    if re.search(r'\bf_d(?:open|seek|writei|readi|write2|read2)\s*\(', used_in + functions_src):
         globals_src += 'static int f_dh[10];\nstatic int f_dl[10];\n'
+    if re.search(r'\bf_s(?:open|write|read|readstat|rewind|back|end)\s*\(', used_in + functions_src):
+        globals_src += 'static int f_sh[10];\nstatic int f_sused[10];\n'
     return '#include <c48.h>\n' + globals_src + functions_src + '\n'
 
 
