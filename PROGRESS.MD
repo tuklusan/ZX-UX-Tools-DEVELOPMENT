@@ -557,3 +557,8 @@
 - Exact GitHub source commit `9510e52` passed Actions frontend/host (run `40921913881`), independently reproduced on SDK: 175/175 frontend tests. Matched ZX-UX Z80 binary for mixed INTEGER/REAL unformatted READ/WRITE and END/IOSTAT passed 2/2 selected native cases and 2/2 independent gfortran differential cases, with compiler SHA `6886c8aac...`.
 - Static SSX memory reservations (image+BSS+declared stack+heap) under 12,288 bytes in 4/4 selected native cases: Burkardt L2 norm 4,284 B, mixed record 4,318 B, mixed EOF/IOSTAT 4,608 B, checked integer arithmetic 1,782 B. This is **not** a measured runtime peak and excludes kernel/loader overhead. Full JSON report SHA256 values are preserved in `rfortranc/tests/results/f77s-exact-9510-proof-2026-10-29.json`.
 - Full current-source native/bounds/release and broad F77S conformance, physical 48K Spectrum/cassette boot and live peak RAM remain OPEN. Continue all P0/P1/P2. Not production-ready.
+
+## Milestone — reject orphan F77S fixed-form continuation (2026-10-29)
+
+- Strict source gate now rejects a nonzero column-6 continuation if no preceding statement exists, rather than treating an orphan first line as a valid continuation. Ordinary nine-continuation and comment-before-continuation rules are unchanged. Added negative first-line and positive continued INTEGER expression tests.
+- GitHub Actions frontend and host checks must validate this revision; no ZX-UX runtime change or new hardware result is claimed. All P0/P1/P2 gaps in `rfortranc/docs/F77S-REMAINING.md` and physical Spectrum/peak-memory proof remain open.

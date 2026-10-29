@@ -800,6 +800,23 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaises(FortranError):
             validate_source(src,parse(src))
 
+    def test_continuation_requires_previous_statement(self):
+        bad = ('     1X=42\n'
+               '      PROGRAM BAD\n'
+               '      END\n')
+        with self.assertRaisesRegex(FortranError, 'continuation without preceding'):
+            validate_source(bad, parse(bad, std='f77s'))
+        allowed = ('      PROGRAM GOOD\n'
+                   '      INTEGER X\n'
+                   '      X=4\n'
+                   '     1+2\n'
+                   '      WRITE(6,10) X\n'
+                   '   10 FORMAT(I4)\n'
+                   '      END\n')
+        units = parse(allowed, std='f77s')
+        validate_source(allowed, units)
+        self.assertIn('f_iadd(', convert(units))
+
     def test_comment_before_continuation(self):
         src='      PROGRAM F77S\n      INTEGER N\nC comment\n     +,I\n      END\n'
         with self.assertRaises(FortranError):

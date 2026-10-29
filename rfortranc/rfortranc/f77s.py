@@ -19,6 +19,7 @@ def validate_source(source, units):
     """
     continuation = 0
     previous_comment = False
+    statement_seen = False
     for number, raw in enumerate(source.splitlines(), 1):
         if '\t' in raw[:72]:
             raise FortranError(number, 'tab is not a fixed-form F77S source character')
@@ -42,11 +43,14 @@ def validate_source(source, units):
                 raise FortranError(number, 'continuation line may not carry a statement label')
             if previous_comment:
                 raise FortranError(number, 'F77S prohibits comment immediately before continuation')
+            if not statement_seen:
+                raise FortranError(number, 'F77S continuation without preceding statement')
             continuation += 1
             if continuation > 9:
                 raise FortranError(number, 'F77S permits at most nine continuation lines')
         else:
             continuation = 0
+            statement_seen = True
         previous_comment = False
         body = raw[6:72]
         # Strip character literals before checking punctuation (except fixed comments).
