@@ -817,6 +817,20 @@ class F77SChecks(unittest.TestCase):
             self.assertIn('f_seqcheck(', generated)
             self.assertIn('f_extent(', generated)
 
+    def test_explicit_e_exponent_width(self):
+        src = (ROOT/'tests/fortran/f77s_ewdee.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        generated = convert(units)
+        self.assertIn('f_outexpw(F_A, 16, 6, 3);', generated)
+        self.assertIn('f_outexpw(F_B, 16, 6, 3);', generated)
+        self.assertIn('f_outexpw(F_C, 16, 6, 3);', generated)
+        for fmt in ('E8.6E3', 'E14.7E3', 'E300.3E3', 'E14.3E5'):
+            bad = ('      PROGRAM BAD\n      REAL X\n'
+                   '      WRITE(6,10) X\n   10 FORMAT('+fmt+')\n      END\n')
+            with self.subTest(fmt=fmt), self.assertRaises(FortranError):
+                convert(parse(bad, std='f77s'))
+
     def test_e_output_descriptor_and_strict_size_errors(self):
         src = (ROOT/'tests/fortran/f77s_expout.f').read_text()
         units = parse(src, std='f77s')

@@ -78,3 +78,10 @@
 - Independent gfortran and matched SDK RVM ran strict source `f77s_assgn.f`: output `  42`, ZX-UX exit 0 at frame 172; 104/104 frontend unit tests passed locally. `rfortranc/tests/fortran/f77s_assgn.f` added to native and differential maps.
 - The previous source revision `fe2ee3b` ran **97/97 native** regression checks, but does not prove this revision. That revision's numerical differential, bounds and release runs remain tracked in the prior local evidence until finished. Physical Spectrum validation remains untested.
 - NEXT: run all suites on current commit, implement further P0 permitted I/O and FORMAT forms, P1 procedure/storage/arrays/file positioning, P2 linker; never mark production ready without target proof.
+
+## Milestone — explicit Ew.dEe FORMAT output (2026-10-29)
+
+- Implemented explicit exponent-width FORMAT descriptor `Ew.dEe` for widths 1–4 (in addition to existing `Ew.d`), in compiler and Z80 C48 formatting runtime. F77S correction audit confirmed it is **required**. Reject unrepresentable E field widths/precision and exponent digits outside 1–4 instead of silently misformatting. Larger permitted exponent widths and full precision still need work.
+- Added strict fixed source `f77s_ewdee.f`, positive and invalid-width/precision tests, plus native and differential harness entries. Locally passed 105/105 frontend unit tests. Independently compiled host gfortran and actual matched SDK Z80 SSX (2,582 bytes); matched exact screen `   0.123400E+003    0.125000E-001   -0.123000E-004`, exit 0 after 196 frames, 28 system calls.
+- Durable historical proof summary saved at `rfortranc/tests/results/f77s-fe2ee3b-four-suites-summary.json`: 97/97 native, 67/67 gfortran differential, 13/13 bounds, 4/4 release for revision `fe2ee3b` **only**; report SHA-256 values and compiler/runtime hashes included. Full report JSON remained local at this checkpoint; never transfer these totals to newer commits.
+- Main `365c376` passed GitHub Actions 104 frontend tests + host references (run 40811648432). Current revision needs complete new native/differential/bounds/release run, plus remaining P0/P1/P2. Real 48K Spectrum hardware still untested.

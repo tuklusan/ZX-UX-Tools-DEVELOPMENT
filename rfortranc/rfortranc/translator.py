@@ -697,7 +697,7 @@ static void f_outrealw(float value, int width, int places) {
 }
 /* Restricted ANSI F77S Ew.d output (two-digit exponent, 1..6 digits).
    Compute digits separately to avoid 16-bit integer overflow on Z80. */
-static void f_outexp(float value, int width, int places) {
+static void f_outexpw(float value, int width, int places, int exponent_width) {
     int negative;
     int exponent;
     int digs[7];
@@ -743,7 +743,11 @@ static void f_outexp(float value, int width, int places) {
             return;
         }
     }
-    chars = places + 6 + negative;
+    chars = places + 4 + exponent_width + negative;
+    if (exponent_width == 1 && (exponent >= 10 || exponent <= -10)) {
+        for (i = 0; i < width; i++) putchar('*');
+        return;
+    }
     if (chars > width) {
         for (i = 0; i < width; i++) putchar('*');
         return;
@@ -756,8 +760,13 @@ static void f_outexp(float value, int width, int places) {
     putchar('E');
     if (exponent < 0) { putchar('-'); exponent = -exponent; }
     else putchar('+');
-    putchar('0' + exponent / 10);
+    if (exponent_width >= 3) putchar('0');
+    if (exponent_width >= 4) putchar('0');
+    if (exponent_width >= 2) putchar('0' + exponent / 10);
     putchar('0' + exponent % 10);
+}
+static void f_outexp(float value, int width, int places) {
+    f_outexpw(value, width, places, 2);
 }
 /* ANSI F77S formatted INTEGER input (limited Iw/X/slash subset).
    Fields are blank-padded to the end of each input record. */
@@ -1022,6 +1031,14 @@ def subset_format(source, line):
                 if width > 255 or places > 4 or width < places + 2:
                     raise FortranError(line, 'F field size/decimal places exceed supported limits')
                 append(('real', (width, places)), repeat)
+                continue
+            exponent_digits = re.fullmatch(r'([1-9][0-9]*)?E([1-9][0-9]*)\.([0-9]+)E([1-9][0-9]*)', token)
+            if exponent_digits:
+                repeat = int(exponent_digits.group(1) or 1)
+                width, places, expwidth = map(int, exponent_digits.groups()[1:])
+                if width > 255 or not (1 <= places <= 6) or not (1 <= expwidth <= 4) or width < places + 4 + expwidth:
+                    raise FortranError(line, 'E field width/precision/exponent exceeds supported limits')
+                append(('realexpdigits', (width, places, expwidth)), repeat)
                 continue
             exponential = re.fullmatch(r'([1-9][0-9]*)?E([1-9][0-9]*)\.([0-9]+)', token)
             if exponential:
@@ -1338,7 +1355,7 @@ def convert(units):
                             raise FortranError(line, 'FORMAT L needs LOGICAL scalar/array element')
                         operations.append('f_outlogw(' + E(name, line) + ', ' + str(item) + ');')
                         pos += 1
-                    elif mode in ('real', 'realexp'):
+                    elif mode in ('real', 'realexp', 'realexpdigits'):
                         if pos == len(values):
                             raise FortranError(line, 'WRITE has fewer items than FORMAT')
                         name = values[pos].strip()
@@ -1346,7 +1363,10 @@ def convert(units):
                         info = u.vars.get(m.group(1)) if m else None
                         if not info or info[0] != 'REAL' or (info[1] is None) != (m.group(2) is None):
                             raise FortranError(line, 'FORMAT F/E needs REAL variable/element')
-                        operations.append(('f_outrealw(' if mode == 'real' else 'f_outexp(') + E(name, line) + ', ' + str(item[0]) + ', ' + str(item[1]) + ');')
+                        if mode == 'realexpdigits':
+                            operations.append('f_outexpw(' + E(name, line) + ', ' + str(item[0]) + ', ' + str(item[1]) + ', ' + str(item[2]) + ');')
+                        else:
+                            operations.append(('f_outrealw(' if mode == 'real' else 'f_outexp(') + E(name, line) + ', ' + str(item[0]) + ', ' + str(item[1]) + ');')
                         pos += 1
                     elif mode == 'integer':
                         if pos == len(values):
