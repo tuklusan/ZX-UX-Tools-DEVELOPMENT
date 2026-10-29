@@ -1114,6 +1114,23 @@ class F77SChecks(unittest.TestCase):
                 with self.subTest(expression=bad),self.assertRaises(FortranError):
                     convert(parse(s,std='f77s'))
 
+    def test_mixed_integer_real_end_and_iostat(self):
+        src=(ROOT/'tests/fortran/f77s_seqmixend.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('f_sreadifstat(7, &F_J, &F_S);',c)
+        self.assertIn('F_K = -1;',c)
+
+    def test_mixed_integer_real_unformatted_sequential_records(self):
+        src=(ROOT/'tests/fortran/f77s_seqmix.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('f_swriteif(7, F_I, F_R);',c)
+        self.assertIn('f_sreadif(7, &F_J, &F_S);',c)
+        self.assertIn('static int f_sreadifstat(int unit',c)
+
     def test_integer_add_sub_16_bit_signed_limits(self):
         src=(ROOT/'tests/fortran/f77s_iaddsub.f').read_text()
         units=parse(src,std='f77s')

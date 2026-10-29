@@ -1074,6 +1074,46 @@ static void f_swritef(int unit, float value) {
     if (write(f_sh[unit], &length, 2) != 2) exit(2);
     if (write(f_sh[unit], &zero, 2) != 2) exit(2);
 }
+/* One sequential scratch record: INTEGER sign-extended 32-bit then ZX REAL 5-byte. */
+static void f_swriteif(int unit, int iv, float rv) {
+    int length, zero, high;
+    f_sopen(unit, 0);
+    if (tell(f_sh[unit]) > 32750) exit(2);
+    length = 9; zero = 0; high = 0;
+    if (iv < 0) high = -1;
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+    if (write(f_sh[unit], &zero, 2) != 2) exit(2);
+    if (write(f_sh[unit], &iv, 2) != 2) exit(2);
+    if (write(f_sh[unit], &high, 2) != 2) exit(2);
+    if (write(f_sh[unit], &rv, 5) != 5) exit(2);
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+    if (write(f_sh[unit], &zero, 2) != 2) exit(2);
+}
+static int f_sreadifstat(int unit, int *out_i, float *out_r) {
+    int length, zero, high, tail, got, value;
+    float real_value;
+    f_sopen(unit, 1);
+    got = read(f_sh[unit], &length, 2);
+    if (got == 0) return 0;
+    if (got != 2) exit(2);
+    if (read(f_sh[unit], &zero, 2) != 2) exit(2);
+    if (length == 0 && zero == 0) return 0;
+    if (length != 9 || zero != 0) exit(2);
+    if (read(f_sh[unit], &value, 2) != 2) exit(2);
+    if (read(f_sh[unit], &high, 2) != 2) exit(2);
+    if (value < 0) { if (high != -1) exit(2); }
+    else if (high != 0) exit(2);
+    if (read(f_sh[unit], &real_value, 5) != 5) exit(2);
+    if (read(f_sh[unit], &tail, 2) != 2) exit(2);
+    if (read(f_sh[unit], &zero, 2) != 2) exit(2);
+    if (tail != 9 || zero != 0) exit(2);
+    *out_i = value;
+    *out_r = real_value;
+    return 1;
+}
+static void f_sreadif(int unit, int *out_i, float *out_r) {
+    if (!f_sreadifstat(unit, out_i, out_r)) exit(2);
+}
 /* Processor-dependent fixed CHARACTER unformatted scratch record.
    The record stores exactly length bytes (no C zero terminator). */
 static void f_swritec(int unit, char *src, int length) {
@@ -2485,6 +2525,28 @@ def convert(units, emit_units=None):
                         elif not status:
                             code[pc] = (code[pc][0]+['if (!'+flag+') exit(2);'],code[pc][1])
                     return
+            # Mixed INTEGER/REAL two-item unformatted READ with END/IOSTAT.
+            seqmix_stat = re.fullmatch(
+                r'READ\s*\(\s*([1-9])\s*,\s*(END\s*=\s*[0-9]{1,5}(?:\s*,\s*IOSTAT\s*=\s*[A-Z][A-Z0-9_]*)?|IOSTAT\s*=\s*[A-Z][A-Z0-9_]*(?:\s*,\s*END\s*=\s*[0-9]{1,5})?)\s*\)\s*(' + NAME + r')\s*,\s*(' + NAME + r')', s)
+            if (seqmix_stat and u.vars.get(seqmix_stat.group(3)) == ('INTEGER',None)
+                    and u.vars.get(seqmix_stat.group(4)) == ('REAL',None)):
+                unit_no,controls,first,second=seqmix_stat.groups()
+                status=re.search(r'IOSTAT\s*=\s*([A-Z][A-Z0-9_]*)',controls)
+                ending=re.search(r'END\s*=\s*([0-9]{1,5})',controls)
+                if status and u.vars.get(status.group(1)) != ('INTEGER',None):
+                    raise FortranError(line,'IOSTAT must name INTEGER scalar')
+                flag='f_smok_'+str(len(code))
+                extra_decls.append('int '+flag+';')
+                ops=[flag+' = f_sreadifstat('+unit_no+', &F_'+first+', &F_'+second+');']
+                if status:
+                    target='F_'+status.group(1)
+                    ops.extend([target+' = 0;', 'if (!'+flag+') '+target+' = -1;'])
+                pc=add(ops)
+                if ending:
+                    conditional_gotos.append((pc,'!'+flag,str(int(ending.group(1))),pc+1,line))
+                elif not status:
+                    code[pc]=(code[pc][0]+['if (!'+flag+') exit(2);'],code[pc][1])
+                return
             seqtriple_stat = re.fullmatch(
                 r'READ\s*\(\s*([1-9])\s*,\s*(END\s*=\s*[0-9]{1,5}(?:\s*,\s*IOSTAT\s*=\s*[A-Z][A-Z0-9_]*)?|IOSTAT\s*=\s*[A-Z][A-Z0-9_]*(?:\s*,\s*END\s*=\s*[0-9]{1,5})?)\s*\)\s*([A-Z][A-Z0-9_]*)\s*,\s*([A-Z][A-Z0-9_]*)\s*,\s*([A-Z][A-Z0-9_]*)',s)
             if seqtriple_stat:
@@ -2562,6 +2624,17 @@ def convert(units, emit_units=None):
                 pc = add([temp + ' = ' + reader])
                 conditional_gotos.append((pc, '!' + temp, str(int(target)), pc + 1, line))
                 return
+            # Mixed INTEGER,REAL sequential unformatted scratch record.
+            seqmixed = re.fullmatch(
+                r'(READ|WRITE)\s*\(\s*([1-9])\s*\)\s*(' + NAME + r')\s*,\s*(' + NAME + r')', s)
+            if seqmixed:
+                kind,unit_no,first,second=seqmixed.groups()
+                if u.vars.get(first) == ('INTEGER',None) and u.vars.get(second) == ('REAL',None):
+                    if kind == 'WRITE':
+                        add(['f_swriteif('+unit_no+', F_'+first+', F_'+second+');'])
+                    else:
+                        add(['f_sreadif('+unit_no+', &F_'+first+', &F_'+second+');'])
+                    return
             seqtriple = re.fullmatch(
                 r'(READ|WRITE)\s*\(\s*([1-9])\s*\)\s*([A-Z][A-Z0-9_]*)\s*,\s*([A-Z][A-Z0-9_]*)\s*,\s*([A-Z][A-Z0-9_]*)',s)
             if seqtriple:
