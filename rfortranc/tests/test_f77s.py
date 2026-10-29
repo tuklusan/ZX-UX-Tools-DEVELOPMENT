@@ -636,9 +636,21 @@ class F77SChecks(unittest.TestCase):
         self.assertEqual(c.count('f_fmt_int(3);'), 3)
         self.assertIn('f_outintw(F_S, 4);', c)
 
+    def test_six_decimal_f_format_input_output(self):
+        source = (ROOT/'tests/fortran/f77s_f6.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        c = convert(units)
+        self.assertIn('int digs[7];', c)
+        self.assertIn('f_outrealw(F_A, 12, 6);', c)
+        self.assertIn('F_A = f_fmt_real(12, 6);', c)
+        with self.assertRaises(FortranError):
+            from rfortranc.translator import subset_format
+            subset_format('F12.7', 2)
+
     def test_format_unsupported_or_excess_nesting(self):
         from rfortranc.translator import subset_format
-        for fmt in ('I4.2', '3(2(2(I4)))', '256(I3)', 'F8.6'):
+        for fmt in ('I4.2', '3(2(2(I4)))', '256(I3)', 'F8.7'):
             with self.subTest(fmt=fmt), self.assertRaises(FortranError):
                 subset_format(fmt, 10)
 

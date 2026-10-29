@@ -791,6 +791,9 @@ static void f_outrealw(float value, int width, int places) {
     int fraction;
     int scale;
     int divisor;
+    int digs[7];
+    int carry;
+    float fpart;
     int digits;
     int chars;
     float x;
@@ -803,9 +806,30 @@ static void f_outrealw(float value, int width, int places) {
     }
     integer_part = (int)x;
     scale = 1;
-    for (i = 0; i < places; i++) scale = scale * 10;
-    fraction = (int)((x - (float)integer_part) * (float)scale + 0.5);
-    if (fraction >= scale) { integer_part++; fraction = 0; }
+    fraction = 0;
+    if (places <= 4) {
+        for (i = 0; i < places; i++) scale = scale * 10;
+        fraction = (int)((x - (float)integer_part) * (float)scale + 0.5);
+        if (fraction >= scale) { integer_part++; fraction = 0; }
+    } else {
+        fpart = x - (float)integer_part;
+        for (i = 0; i <= places; i++) {
+            fpart = fpart * 10.0;
+            digs[i] = (int)fpart;
+            if (digs[i] < 0) digs[i] = 0;
+            if (digs[i] > 9) digs[i] = 9;
+            fpart = fpart - (float)digs[i];
+        }
+        carry = digs[places] >= 5;
+        for (i = places - 1; i >= 0; i--) {
+            if (carry) {
+                digs[i]++;
+                if (digs[i] == 10) digs[i] = 0;
+                else carry = 0;
+            }
+        }
+        if (carry) { integer_part++; }
+    }
     if (integer_part > 32767) {
         for (i = 0; i < width; i++) putchar('*');
         return;
@@ -822,11 +846,15 @@ static void f_outrealw(float value, int width, int places) {
     if (negative) putchar('-');
     f_outint(integer_part);
     putchar('.');
-    divisor = scale / 10;
-    while (divisor > 0) {
-        putchar('0' + fraction / divisor);
-        fraction = fraction % divisor;
-        divisor = divisor / 10;
+    if (places > 4) {
+        for (i = 0; i < places; i++) putchar('0' + digs[i]);
+    } else {
+        divisor = scale / 10;
+        while (divisor > 0) {
+            putchar('0' + fraction / divisor);
+            fraction = fraction % divisor;
+            divisor = divisor / 10;
+        }
     }
 }
 /* Restricted ANSI F77S Ew.d output (two-digit exponent, 1..6 digits).
@@ -1235,7 +1263,7 @@ def subset_format(source, line):
             if real:
                 repeat = int(real.group(1) or 1)
                 width, places = int(real.group(2)), int(real.group(3))
-                if width > 255 or places > 4 or width < places + 2:
+                if width > 255 or places > 6 or width < places + 2:
                     raise FortranError(line, 'F field size/decimal places exceed supported limits')
                 append(('real', (width, places)), repeat)
                 continue

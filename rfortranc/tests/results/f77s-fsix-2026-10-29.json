@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "source_commit": "prior_head_ecc645f0c69d267143e707ee2efb259ceead37b5",
+  "scope": "F77S fixed F12.6 input/output",
+  "source": "f77s_f6.f",
+  "stdin": "    1.234567   -0.000125    9.999999\n",
+  "expected_stdout": [
+    "    1.234567   -0.000125    9.999999",
+    "    1.234567   -0.000125    9.999999"
+  ],
+  "gfortran_match": true,
+  "ssx_bytes": 3621,
+  "rvm_exit": 0,
+  "rvm_frames": 420,
+  "rvm_syscalls": 66,
+  "frontend_passed": 128,
+  "frontend_total": 128,
+  "selected_native_passed": 1,
+  "selected_differential_passed": 1,
+  "physical_spectrum_tested": false,
+  "complete_F_format_precision": false
+}
