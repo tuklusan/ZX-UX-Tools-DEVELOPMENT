@@ -365,11 +365,11 @@ def parse(source, std='zxux'):
                     raise FortranError(st.line, 'EXTERNAL/INTRINSIC name conflicts with dummy/array')
                 if kind == 'INTRINSIC':
                     if name not in ('ABS','IABS','INT','IFIX','FLOAT','AINT','NINT',
-                                    'SQRT','SIN','COS','EXP','LOG','MOD'):
+                                    'SQRT','SIN','COS','EXP','LOG','TAN','ASIN','ACOS','ATAN','ALOG10','MOD'):
                         raise FortranError(st.line, 'INTRINSIC specific not yet supported: ' + name)
                     u.intrinsics.add(name)
                 else:
-                    if name in ('SIN','COS','EXP','LOG','ABS','IABS','INT','MOD'):
+                    if name in ('SIN','COS','EXP','LOG','TAN','ASIN','ACOS','ATAN','ALOG10','ABS','IABS','INT','MOD'):
                         raise FortranError(st.line, 'external intrinsic-name shadowing not yet supported')
                     u.externals.add(name)
     # Statement functions have specification scope, before DATA/executables.
@@ -584,7 +584,7 @@ class Expr:
                         result_type = 'REAL'
                     else:
                         raise FortranError(self.line, t + ' intrinsic argument type mismatch')
-                elif t in ('SQRT', 'SIN', 'COS', 'EXP', 'LOG') and len(params) == 1:
+                elif t in ('SQRT', 'SIN', 'COS', 'EXP', 'LOG', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'ALOG10') and len(params) == 1:
                     if self.expr_types[params[0]] != 'REAL':
                         raise FortranError(self.line, t + ' needs REAL argument')
                     lhs = 'f_' + ('sqrt' if t == 'SQRT' else t.lower()) + '_real(' + params[0] + ')'
@@ -713,18 +713,8 @@ static float f_scale_real(float value, int factor) {
 }
 /* ANSI subset REAL SQRT, Newton iteration with domain check. */
 static float f_sqrt_real(float x) {
-    float y;
-    int k;
     if (x < 0.0) exit(2);
-    if (x == 0.0) return 0.0;
-    y = 1.0;
-    if (x >= 1.0) {
-        while (y < x / y) y = y * 2.0;
-    } else {
-        while (y > x / y) y = y * 0.5;
-    }
-    for (k = 0; k < 9; k++) y = (y + x / y) * 0.5;
-    return y;
+    return sqrt(x);
 }
 static int f_index(int n, int size) {
     if (n < 1 || n > size) exit(2);
@@ -1298,49 +1288,35 @@ def subset_format(source, line):
 # included in generated C48, so integer-only programs do not pay for them.
 REAL_MATH_RUNTIME = {
     'SIN': """
-static float f_sin_real(float x) {
-    float p, square;
-    int negative;
-    negative = 0;
-    if (x < 0.0) { x = -x; negative = 1; }
-    p = 6.2831853;
-    while (p <= x / 2.0) p = p * 2.0;
-    while (p >= 6.2831853) {
-        if (x >= p) x = x - p;
-        p = p / 2.0;
-    }
-    if (x > 3.14159265) { x = 6.2831853 - x; negative = 1 - negative; }
-    if (x > 1.57079633) x = 3.14159265 - x;
-    square = x * x;
-    x = x * (1.0 - square * (0.1666666667 -
-         square * (0.00833333333 - square * (0.000198412698 -
-         square * 0.00000275573192))));
-    if (negative) return -x;
-    return x;
-}
+static float f_sin_real(float x) { return sin(x); }
 """,
     'COS': """
-static float f_cos_real(float x) { return f_sin_real(x + 1.57079633); }
+static float f_cos_real(float x) { return cos(x); }
 """,
     'EXP': """
 static float f_exp_real(float x) {
-    float y, term;
-    int inv, k, n;
-    inv = 0;
-    if (x < 0.0) { x = -x; inv = 1; }
-    if (x > 80.0) { if (inv) return 0.0; exit(2); }
-    k = 0;
-    while (x > 0.5) { x = x * 0.5; k++; }
-    y = 1.0;
-    term = 1.0;
-    for (n = 1; n <= 10; n++) {
-        term = term * x / (float)n;
-        y = y + term;
-    }
-    while (k > 0) { y = y * y; k--; }
-    if (inv) return 1.0 / y;
-    return y;
+    if (x > 80.0) exit(2);
+    if (x < -80.0) return 0.0;
+    return exp(x);
 }
+""",
+    'LOG': """
+static float f_log_real(float x) { if (x <= 0.0) exit(2); return log(x); }
+""",
+    'TAN': """
+static float f_tan_real(float x) { return tan(x); }
+""",
+    'ASIN': """
+static float f_asin_real(float x) { if (x < -1.0 || x > 1.0) exit(2); return asin(x); }
+""",
+    'ACOS': """
+static float f_acos_real(float x) { if (x < -1.0 || x > 1.0) exit(2); return acos(x); }
+""",
+    'ATAN': """
+static float f_atan_real(float x) { return atan(x); }
+""",
+    'ALOG10': """
+static float f_alog10_real(float x) { if (x <= 0.0) exit(2); return log(x) * 0.4342944819; }
 """,
     'RIPOW': """
 static float f_ripow_real(float base, int power) {
@@ -1364,24 +1340,6 @@ static float f_rpow_real(float base, float power) {
     if (base == 0.0 && power > 0.0) return 0.0;
     if (base <= 0.0) exit(2);
     return f_exp_real(power * f_log_real(base));
-}
-""",
-    'LOG': """
-static float f_log_real(float x) {
-    float z, term, sum;
-    int scale, n;
-    if (x <= 0.0) exit(2);
-    scale = 0;
-    while (x >= 2.0) { x = x * 0.5; scale++; }
-    while (x < 1.0) { x = x * 2.0; scale--; }
-    z = (x - 1.0) / (x + 1.0);
-    term = z;
-    sum = z;
-    for (n = 3; n <= 15; n = n + 2) {
-        term = term * z * z;
-        sum = sum + term / (float)n;
-    }
-    return 2.0 * sum + (float)scale * 0.69314718056;
 }
 """
 }
@@ -2188,12 +2146,10 @@ def convert(units, emit_units=None):
         chunks.append(bind('\n'.join(output), aliases))
     # Supply only the REAL math code called by this translation unit.
     emitted = '\n'.join(chunks)
-    needed = {name for name in ('SIN', 'COS', 'EXP', 'LOG', 'RIPOW', 'RPOW')
+    needed = {name for name in ('SIN', 'COS', 'EXP', 'LOG', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'ALOG10', 'RIPOW', 'RPOW')
               if 'f_' + name.lower() + '_real(' in emitted}
-    if 'COS' in needed:
-        needed.add('SIN')
     if 'RPOW' in needed:
         needed.update(('EXP', 'LOG'))
     chunks[1:1] = [REAL_MATH_RUNTIME[name] for name in
-                    ('SIN', 'COS', 'EXP', 'LOG', 'RIPOW', 'RPOW') if name in needed]
+                    ('SIN', 'COS', 'EXP', 'LOG', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'ALOG10', 'RIPOW', 'RPOW') if name in needed]
     return '\n\n'.join(chunks) + '\n'

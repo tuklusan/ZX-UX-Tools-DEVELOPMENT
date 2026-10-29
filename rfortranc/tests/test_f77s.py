@@ -810,7 +810,7 @@ class F77SChecks(unittest.TestCase):
         generated = convert(units)
         self.assertIn('f_sqrt_real(', generated)
         self.assertIn('f_RVNML2(', generated)
-        self.assertIn('while (y < x / y)', generated)
+        self.assertIn('return sqrt(x);', generated)
         self.assertIn('if (x < 0.0) exit(2);', generated)
         self.assertIn('f_seqcheck(', generated)
 
@@ -961,6 +961,24 @@ class F77SChecks(unittest.TestCase):
         integer_c = convert(parse(integer_source, std='f77s'))
         for name in ('sin', 'cos', 'exp', 'log'):
             self.assertNotIn('static float f_' + name + '_real(', integer_c)
+
+    def test_target_math_real_specific_and_domain_checks(self):
+        src = (ROOT/'tests/fortran/f77s_invtrig.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        generated = convert(units)
+        for name in ('asin', 'acos', 'atan', 'tan', 'alog10'):
+            self.assertIn('static float f_' + name + '_real(', generated)
+        self.assertIn('return asin(x);', generated)
+        self.assertIn('return acos(x);', generated)
+        self.assertIn('return atan(x);', generated)
+        self.assertIn('return tan(x);', generated)
+        self.assertIn('return log(x) * 0.4342944819;', generated)
+        for intrinsic in ('ASIN','ACOS','ATAN','TAN','ALOG10'):
+            for expression in (intrinsic+'(1)', intrinsic+'(.TRUE.)',intrinsic+'(1.0,2.0)'):
+                bad='      PROGRAM BAD\n      REAL R\n      R='+expression+'\n      END\n'
+                with self.subTest(expression=expression), self.assertRaises(FortranError):
+                    convert(parse(bad, std='f77s'))
 
     def test_real_specific_intrinsics_wrong_arity(self):
         for func in ('SIN', 'COS', 'EXP', 'LOG'):

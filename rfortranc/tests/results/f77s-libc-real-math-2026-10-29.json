@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "scope": "Matched SDK libc-backed specific F77S REAL intrinsics, gfortran differential + actual ZX-UX RVM",
+  "compiler_source_sha256_local_test": "907fceb6ce754b4eecce9a87c4ccf8c2e1f248772207d51b463666a320faf37e",
+  "sdk_libc48_sha256": "b79354ef8580a2888caadff7d8bcc334adc31ba3ee545292fb8c5758d479e191",
+  "programs": [
+    {
+      "name": "f77s_invtrig",
+      "ssx_bytes": 2713,
+      "expected": "   0.5236   1.0472   0.4636   0.5463   2.0000",
+      "gfortran_match": true,
+      "rvm_exit": 0,
+      "rvm_frames": 222,
+      "syscalls": 29
+    },
+    {
+      "name": "f77s_trig",
+      "ssx_bytes": 2587,
+      "expected": "     0.48     0.88     1.65     0.50    -0.48",
+      "gfortran_match": true,
+      "rvm_exit": 0,
+      "rvm_frames": 201,
+      "syscalls": 29
+    },
+    {
+      "name": "f77s_rpow",
+      "ssx_bytes": 3171,
+      "expected": "     8.00     3.00     4.00     0.25    -8.00   512.00",
+      "gfortran_match": true,
+      "rvm_exit": 0,
+      "rvm_frames": 210,
+      "syscalls": 28
+    }
+  ],
+  "domain_trap_cases": [
+    "ASIN(1.25)",
+    "ACOS(-1.25)",
+    "LOG(0.0)",
+    "ALOG10(-0.125)",
+    "EXP(90.0)",
+    "SQRT(-1.0)"
+  ],
+  "domain_traps_passed": 6,
+  "domain_traps_total": 6,
+  "focused_frontend_tests": 125,
+  "complete_numerical_accuracy_verified": false,
+  "physical_spectrum_verified": false
+}
