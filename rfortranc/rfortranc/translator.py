@@ -365,7 +365,7 @@ def parse(source, std='zxux'):
                     raise FortranError(st.line, 'EXTERNAL/INTRINSIC name conflicts with dummy/array')
                 if kind == 'INTRINSIC':
                     if name not in ('ABS','IABS','INT','IFIX','FLOAT','AINT','NINT',
-                                    'SQRT','SIN','COS','EXP','LOG','TAN','ASIN','ACOS','ATAN','ATAN2','ALOG10','AMOD','ISIGN','SIGN','IDIM','DIM','MOD'):
+                                    'SQRT','SIN','COS','EXP','LOG','TAN','ASIN','ACOS','ATAN','ATAN2','ALOG10','AMOD','ISIGN','SIGN','IDIM','DIM','MAX0','MIN0','AMAX1','AMIN1','AMAX0','AMIN0','MAX1','MIN1','MOD'):
                         raise FortranError(st.line, 'INTRINSIC specific not yet supported: ' + name)
                     u.intrinsics.add(name)
                 else:
@@ -644,6 +644,21 @@ class Expr:
                         raise FortranError(self.line, t + ' needs two ' + expected + ' arguments')
                     lhs = 'f_' + t.lower() + '(' + ', '.join(params) + ')'
                     result_type = expected
+                elif t in ('MAX0', 'MIN0', 'AMAX1', 'AMIN1', 'AMAX0', 'AMIN0', 'MAX1', 'MIN1') and len(params) >= 2:
+                    expected = 'REAL' if t in ('AMAX1', 'AMIN1', 'MAX1', 'MIN1') else 'INTEGER'
+                    if any(self.expr_types[p] != expected for p in params):
+                        raise FortranError(self.line, t + ' requires at least two ' + expected + ' arguments')
+                    chosen = ('f_max0' if t in ('MAX0', 'AMAX0') else
+                              'f_min0' if t in ('MIN0', 'AMIN0') else
+                              'f_amax1' if t in ('AMAX1', 'MAX1') else 'f_amin1')
+                    lhs = params[0]
+                    for param in params[1:]:
+                        lhs = chosen + '(' + lhs + ', ' + param + ')'
+                    if t in ('AMAX0', 'AMIN0'):
+                        lhs = '((float)(' + lhs + '))'
+                    elif t in ('MAX1', 'MIN1'):
+                        lhs = 'f_int_real(' + lhs + ')'
+                    result_type = 'REAL' if t in ('AMAX0', 'AMIN0', 'AMAX1', 'AMIN1') else 'INTEGER'
                 elif t in ('ATAN2', 'AMOD') and len(params) == 2:
                     if any(self.expr_types[p] != 'REAL' for p in params):
                         raise FortranError(self.line, t + ' intrinsic needs two REAL arguments')
@@ -765,6 +780,10 @@ static float f_dim(float x, float y) {
     if (x <= y) return 0.0;
     return x - y;
 }
+static int f_max0(int a,int b) { if(a>b)return a; return b; }
+static int f_min0(int a,int b) { if(a<b)return a; return b; }
+static float f_amax1(float a,float b) { if(a>b)return a; return b; }
+static float f_amin1(float a,float b) { if(a<b)return a; return b; }
 static int f_nint_real(float x) {
     if (x < 0.0) return f_int_real(x - 0.5);
     return f_int_real(x + 0.5);

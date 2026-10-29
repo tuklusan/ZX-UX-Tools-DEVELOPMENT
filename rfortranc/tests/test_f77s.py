@@ -1039,6 +1039,20 @@ class F77SChecks(unittest.TestCase):
         for name in ('sin', 'cos', 'exp', 'log'):
             self.assertNotIn('static float f_' + name + '_real(', integer_c)
 
+    def test_specific_maxmin_types_and_multiargument(self):
+        source=(ROOT/'tests/fortran/f77s_maxmin.f').read_text()
+        units=parse(source,std='f77s')
+        validate_source(source,units)
+        c=convert(units)
+        for method in ('f_max0','f_min0','f_amax1','f_amin1'):
+            self.assertIn('static ',c)
+            self.assertIn(method+'(',c)
+        for name in ('MAX0','MIN0','AMAX1','AMIN1','AMAX0','AMIN0','MAX1','MIN1'):
+            for bad in (name+'(1)', name+'(1,2.5)', name+'(.TRUE.,.FALSE.)'):
+                s='      PROGRAM BAD\n      REAL R\n      R='+bad+'\n      END\n'
+                with self.subTest(expression=bad),self.assertRaises(FortranError):
+                    convert(parse(s,std='f77s'))
+
     def test_sign_and_dim_specific_typing(self):
         src=(ROOT/'tests/fortran/f77s_sigdim.f').read_text()
         units=parse(src,std='f77s')

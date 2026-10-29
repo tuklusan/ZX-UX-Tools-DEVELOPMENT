@@ -271,3 +271,9 @@
 - Implemented F77S specific numeric ISIGN/SIGN and IDIM/DIM with INTEGER/REAL two-argument type checks. Integer -32768 sign-transfer and positive-difference overflow trap with code 2 instead of wrapping. Invalid arities and mixed types are diagnosed.
 - The actual matched ZX-UX Z80 binary of `f77s_sigdim.f` was 3,674 bytes. RVM exited 0 after 203 frames/29 system calls; stdout lines were `     7    -7     7     0` and `     2.50    -2.50     5.00     0.00`, identical to independent gfortran. Two separate negative overflow binaries exit 2. Local frontend 137/137, host gfortran reference 98/98, selected native 1/1 and selected differential 1/1.
 - Tests, strict source, harness mappings and hash-linked report are committed. The complete current-SHA native/bounds/release suites, remaining F77S P0/P1/P2, live RAM peak and physical Spectrum/cassette validation remain OPEN. Do not claim production readiness.
+
+## Milestone — specific MIN/MAX with 2+ typed operands (2026-10-29)
+
+- Implemented F77S MAX0/MIN0, AMAX1/AMIN1, AMAX0/AMIN0 and MAX1/MIN1, with correct INTEGER/REAL input and result conversions, and 2-or-more arguments. Invalid arity or type diagnoses instead of generating broken C48; 24 negative cases cover these rules.
+- Actual matched ZX-UX Z80 binary `f77s_maxmin.f`: 3,737-byte SSX, exit 0 after 206 frames and 29 calls. Outputs `    7   -4    3   -2` and `     3.25    -1.50     7.00    -4.00` exactly match independent gfortran. Local frontend 138/138, host 99/99, native selected 1/1, differential selected 1/1. GitHub Actions on preceding `c1f7bc7` passed; new SHA CI must be checked.
+- Full native/bounds/release on this source, entire ANSI F77S conformance, peak RAM and physical Spectrum validation remain OPEN. Next continue remaining intrinsic semantics and missing I/O/procedural P0/P1/P2.
