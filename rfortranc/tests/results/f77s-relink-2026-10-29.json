@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "baseline_commit": "54b4ec2d39b1a3b12e108ba32826118a82c84404",
+  "scope": "P2 native prebuilt ZX-UX SSO relinking (not full FORTRAN ABI validation)",
+  "test": "python tests/check_relink.py --sdk <matching sdk> --rvm <matching rvm> --report <path>",
+  "local_candidate_driver_sha256": "1f0c6f9d028f274f42bfd4e6f86f22e0fd80e6e2010fef13f4e5d0d29e971d71",
+  "pushed_driver_blob_sha1": "3dd41b6c4bfe9ccbaffd4319be39fac0ff306ab4",
+  "matching_sdk_rld_sha256": "1b7e2bf5b74508b0fa24e4e222aeb45f9c37241b468f3eb82ec962bd7400043f",
+  "matching_rvm_sha256": "e7cfb59b6c76e49faf4a0876520e44d3fcb34a5d9bce45831ae0d25242cc7830",
+  "report": {
+    "passed": 9,
+    "total": 9
+  },
+  "checks": [
+    "preserved two native SSO objects",
+    "native separate build and prebuilt relink both succeed",
+    "linked SSX bit-identical to direct separate build",
+    "actual target Z80 RVM executes and exits 0",
+    "stdout '  42' matches independent gfortran",
+    "valid TZX produced from prebuilt SSOs",
+    "--max 1000 fails and removes output",
+    "missing SSO rejected",
+    "FORTRAN .f supplied as SSO rejected"
+  ],
+  "linked_ssx": {
+    "sha256": "975b813a8b6b641fe4e32a0401eb020a6ba391ad325f9ead902764d826b3fe69",
+    "bytes": 1236
+  },
+  "objects": {
+    "00_SEPM.sso": "446117423cb1a01ed6147c83bf8f78e15c658af88b67fae18936dae38cd0155a",
+    "01_STEPER.sso": "572d15ade0fa22cfa60a89bedb549351c11c0e2f3ca6a7862bad64f41f092f95"
+  },
+  "native_stdout": "  42",
+  "native_exit_code": 0,
+  "limitations": [
+    "local driver candidate and pushed driver differ in source comments/spacing; rerun pushed SHA to bind proof exactly",
+    "the .sso linker does not carry FORTRAN argument type metadata",
+    "no actual physical Spectrum run",
+    "declared SSX reservation not live RAM peak"
+  ]
+}

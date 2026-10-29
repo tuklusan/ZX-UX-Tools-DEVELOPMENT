@@ -1348,6 +1348,18 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(expression=expression), self.assertRaises(FortranError):
                 convert(parse(source, std='f77s'))
 
+    def test_link_only_rejects_incompatible_frontend_modes(self):
+        from rfortranc.driver import main as cli
+        from contextlib import redirect_stderr
+        from io import StringIO
+        for flags in (['-S'], ['-c'], ['--bytecode'],
+                      ['--separate'], ['--emit-c']):
+            with self.subTest(flags=flags), redirect_stderr(StringIO()):
+                self.assertEqual(cli(['--std', 'f77s', '--link-only']
+                                     + flags + ['missing.sso']), 1)
+        with redirect_stderr(StringIO()):
+            self.assertEqual(cli(['--link-only', 'missing.sso']), 1)
+
     def test_original_machar_int_probe_parses_strict(self):
         src=(ROOT/'tests/fortran/f77s_machar.f').read_text()
         units=parse(src,std='f77s')

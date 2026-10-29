@@ -33,6 +33,27 @@ time. The packaged SDK puts the new command in `dist/sdk/bin/rfortranc` and its
 Python modules in `dist/sdk/bin/py/rfortranc` automatically, **provided that**
 installation is performed before the SDK's `build/build.py` stages sources.
 
+## Reuse compiled Z80 objects (F77S P2 partial)
+
+Compile and retain native program-unit objects. Link them later without
+recompiling or reparsing FORTRAN:
+
+```sh
+python bin/rfortranc --std f77s --native --separate --sdk /path/to/sdk \
+  --object-dir /tmp/f77s-objects -o /tmp/first.ssx \
+  tests/fortran/separate/main.f tests/fortran/separate/step.f
+python bin/rfortranc --std f77s --native --link-only --sdk /path/to/sdk \
+  -o /tmp/relinked.ssx /tmp/f77s-objects/00_SEPM.sso \
+  /tmp/f77s-objects/01_STEPER.sso
+```
+
+`--link-only` also supports `--tzx`, `--stack` and `--max`. It checks
+the linked SSX header and declared static memory. It does **not** verify
+FORTRAN argument types for previously compiled objects: the SDK linker only
+checks symbols. Use compatible compiler/SDK objects and check their ABI.
+Repeatable proof: `python tests/check_relink.py --sdk ... --rvm ... --report ...`.
+Physical 48K Spectrum execution and live RAM peaks still need testing.
+
 ## Chain and memory limits
 
 ```text

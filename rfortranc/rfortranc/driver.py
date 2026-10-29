@@ -26,11 +26,56 @@ def sdk_path(explicit=None):
             return root
     return None
 
+def link_existing_objects(sdk, packaged, objects, target, args, rtap, tape_name):
+    """Link retained native Z80 SSO objects without FORTRAN source parsing.
+
+    The linker resolves symbols, but SSO has no FORTRAN dummy-type metadata.
+    ABI compatibility of previously compiled objects remains caller-owned.
+    """
+    linker = sdk / ('rld' if packaged else 'bin/rld')
+    library = sdk / 'lib/libc48.ssa'
+    if not linker.is_file() or not library.is_file():
+        raise ValueError('ZX-UX SDK linker/library missing for object linkage')
+    for obj in objects:
+        if obj.suffix.lower() != '.sso' or not obj.is_file():
+            raise ValueError('link input must be an existing SSO object: ' + str(obj))
+    if not objects:
+        raise ValueError('at least one SSO object required')
+    with tempfile.TemporaryDirectory(prefix='rfortranc-link-') as scratch:
+        binary = Path(scratch) / 'linked.ssx' if args.tzx else target
+        linkcmd = [sys.executable, str(linker), '-o', str(binary)]
+        if args.stack is not None:
+            linkcmd += ['--stack', str(args.stack)]
+        linkcmd += [str(obj) for obj in objects] + [str(library)]
+        rc = subprocess.run(linkcmd, check=False)
+        if rc.returncode:
+            if not args.tzx:
+                binary.unlink(missing_ok=True)
+            return rc.returncode
+        # Header describes reserved RAM, NOT observed runtime high-water.
+        blob = binary.read_bytes()
+        if len(blob) < 22 or blob[:4] != b'SSX1':
+            binary.unlink(missing_ok=True)
+            raise ValueError('linker generated an invalid SSX image')
+        _, _, image, bss, stack, heap, _, _, _ = struct.unpack_from('<BBHHHHHHH', blob, 4)
+        need = max(len(blob), image + bss + stack + heap)
+        if need > (args.max if args.max is not None else 14000):
+            binary.unlink(missing_ok=True)
+            raise ValueError('linked SSX exceeds memory limit: ' + str(need))
+        if not args.tzx:
+            return 0
+        if not (1 <= len(tape_name) <= 10 and
+                all(32 < ord(c) < 127 and c != '/' for c in tape_name)):
+            raise ValueError('TZX program name must have 1..10 printable ASCII chars without /')
+        return subprocess.run([sys.executable, str(rtap), '-o', str(target),
+                               str(binary) + '=' + tape_name], check=False).returncode
+
 
 def main(argv=None):
     p = argparse.ArgumentParser(prog='rfortranc', description='FORTRAN 77 subset to ZX-UX SSX/TZX')
     p.add_argument('source', nargs='+', help='FORTRAN source .f or .for')
     p.add_argument('--separate', action='store_true', help='compile each F77S program unit to SSO and link them')
+    p.add_argument('--link-only', action='store_true', help='link retained Z80 SSO objects without FORTRAN source')
     p.add_argument('--object-dir', help='preserve per-unit SSO objects (requires --separate)')
     p.add_argument('-o', '--output', help='output file (default SOURCE.ssx)')
     p.add_argument('--sdk', help='ZX-UX source SDK root or packaged SDK bin')
@@ -57,12 +102,23 @@ def main(argv=None):
             raise ValueError('--tape-name requires --tzx')
         if target in sources:
             raise ValueError('output would overwrite FORTRAN source')
-        if len(sources) > 1 and not args.separate:
+        if len(sources) > 1 and not (args.separate or args.link_only):
             raise ValueError('multiple sources require --separate')
         if args.object_dir and not args.separate:
             raise ValueError('--object-dir requires --separate')
         if args.separate and (args.std != 'f77s' or args.emit_c or args.S or args.c or args.bytecode or args.no_fit):
             raise ValueError('--separate needs --std f77s with linked native SSX/TZX output')
+        if args.link_only:
+            if (args.separate or args.std != 'f77s' or args.emit_c or args.S or args.c or
+                    args.bytecode or args.no_fit or args.object_dir):
+                raise ValueError('--link-only requires --std f77s with native SSX/TZX objects')
+            sdk = sdk_path(args.sdk)
+            if not sdk:
+                raise ValueError('ZX-UX SDK not found; pass --sdk or set ZXUX_SDK')
+            packaged = (sdk / 'py/rcc').is_dir()
+            rtap = sdk / ('rtap' if packaged else 'bin/rtap')
+            name = args.tape_name if args.tape_name is not None else sources[0].stem[:10]
+            return link_existing_objects(sdk, packaged, sources, target, args, rtap, name)
         program = ''.join(source.read_text(encoding='utf-8').rstrip('\n') + '\n' for source in sources)
         units = parse(program, std=args.std)
         if args.std == 'f77s':
@@ -99,31 +155,8 @@ def main(argv=None):
                     if rc.returncode:
                         return rc.returncode
                     objects.append(obj)
-                binary = tmp / (sources[0].stem + '.ssx') if args.tzx else target
-                linkcmd = [sys.executable, str(linker), '-o', str(binary)]
-                if args.stack is not None:
-                    linkcmd += ['--stack', str(args.stack)]
-                linkcmd += [str(o) for o in objects] + [str(library)]
-                linked = subprocess.run(linkcmd, check=False)
-                if linked.returncode:
-                    return linked.returncode
-                # The SDK SSX header records load image, BSS, stack and heap.
-                # This only checks declared allocation, not peak runtime use.
-                blob = binary.read_bytes()
-                if len(blob) < 20 or blob[:4] != b'SSX1':
-                    raise ValueError('separate linker generated invalid SSX')
-                _, _, image, bss, stack, heap, _, _, _ = struct.unpack_from('<BBHHHHHHH', blob, 4)
-                need = max(len(blob), image + bss + stack + heap)
-                if need > (args.max if args.max is not None else 14000):
-                    binary.unlink(missing_ok=True)
-                    raise ValueError('separate SSX exceeds memory limit: ' + str(need))
-                if not args.tzx:
-                    return 0
                 name = args.tape_name if args.tape_name is not None else sources[0].stem[:10]
-                if not (1 <= len(name) <= 10 and all(32 < ord(c) < 127 and c != '/' for c in name)):
-                    raise ValueError('TZX program name must have 1..10 printable ASCII chars without /')
-                return subprocess.run([sys.executable, str(rtap), '-o', str(target),
-                                       str(binary) + '=' + name], check=False).returncode
+                return link_existing_objects(sdk, packaged, objects, target, args, rtap, name)
             generated = tmp / (sources[0].stem + '.c')
             generated.write_text(c48, encoding='utf-8')
             binary = tmp / (sources[0].stem + '.ssx') if args.tzx else target
