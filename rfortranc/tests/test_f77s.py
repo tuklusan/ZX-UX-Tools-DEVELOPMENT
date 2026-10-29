@@ -1288,6 +1288,16 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(item=item), self.assertRaises(FortranError):
                 convert(parse(src, std='f77s'))
 
+    def test_runtime_implied_do_with_integer_unit_variables(self):
+        src=(ROOT/'tests/fortran/f77s_vuniio.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        lowered=convert(units)
+        self.assertIn('if (F_INU != 5) exit(2);',lowered)
+        self.assertIn('if (F_OUTU != 6) exit(2);',lowered)
+        self.assertIn('f_iend_',lowered)
+        self.assertIn('f_fmt_int(3);',lowered)
+
     def test_integer_variable_console_units(self):
         src = (ROOT/'tests/fortran/f77s_unitvar.f').read_text()
         units = parse(src, std='f77s')

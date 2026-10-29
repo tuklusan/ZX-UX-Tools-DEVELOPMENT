@@ -1858,7 +1858,7 @@ def convert(units, emit_units=None):
                 result.append('}')
             result.append('if (!' + flag + ') exit(2);')
             add(result)
-        def runtime_io_implied_do(values, format_ops, mode, line):
+        def runtime_io_implied_do(values, format_ops, mode, line, guard=None):
             """One runtime-count INTEGER array-list implied DO and I edit.
 
             FORMAT I edits must be identical; wrap at the descriptor repeat
@@ -1947,6 +1947,8 @@ def convert(units, emit_units=None):
             body += ['    ' + count + ' = ' + count + ' + 1;',
                      '    F_' + var + ' = f_add_checked(F_' + var + ', ' + inc + ');',
                      '}', 'f_fmt_end();' if mode == 'READ' else 'putchar(10);']
+            if guard:
+                body.insert(0, guard)
             add(body)
             return True
 
@@ -1994,9 +1996,7 @@ def convert(units, emit_units=None):
                     return
                 format_ops = resolve_format(format_label, line)
                 values = split_items(arguments) if arguments.strip() else []
-                if guard and u.std == 'f77s' and values and values[0].startswith('('):
-                    raise FortranError(line, 'variable unit with runtime implied-DO is not yet implemented')
-                if u.std == 'f77s' and runtime_io_implied_do(values, format_ops, 'WRITE', line):
+                if u.std == 'f77s' and runtime_io_implied_do(values, format_ops, 'WRITE', line, guard):
                     return
                 if u.std == 'f77s':
                     values, index_updates = expand_static_io_items(values, u, line)
@@ -2082,9 +2082,7 @@ def convert(units, emit_units=None):
                     return
                 format_ops = resolve_format(format_label, line)
                 values = split_items(arguments) if arguments.strip() else []
-                if guard and u.std == 'f77s' and values and values[0].startswith('('):
-                    raise FortranError(line, 'variable unit with runtime implied-DO is not yet implemented')
-                if u.std == 'f77s' and runtime_io_implied_do(values, format_ops, 'READ', line):
+                if u.std == 'f77s' and runtime_io_implied_do(values, format_ops, 'READ', line, guard):
                     return
                 if u.std == 'f77s':
                     values, index_updates = expand_static_io_items(values, u, line)

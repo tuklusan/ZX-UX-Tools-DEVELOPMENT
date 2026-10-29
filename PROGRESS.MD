@@ -358,3 +358,9 @@
 - Exact `17a32e1005d1e603cd9d72352ec7a94a85fc286f` completed GitHub Actions frontend+host CI successfully (run `40896398490`); unpacked exact GitHub source artifact and independently reran **149/149 strict frontend unittest cases**.
 - Actual matched ZX-UX SDK compiled `f77s_unitvar.f` into **1,828-byte SSX** (SHA-256 `86584b97d3f020c6ba1aaa19eaa8a76dc2611a8630939fe4ed226af2265952d0`); real Z80 RVM exits 0 after 196 frames/37 syscalls and prints `   42` from input `  42`. Independent gfortran produced exactly the same output. Selected native 1/1 and gfortran differential 1/1 (full report SHA hashes in `tests/results/f77s-variable-unit-2026-10-29.json`). A separately compiled invalid unit-variable program (`OUTU=7`) exits 2 at runtime after 195 frames.
 - Other console/file units, runtime variable-unit implied-DO, P0/P1/P2 completion, full current SHA native/bounds/release, live peak RAM and physical Spectrum/cassette proof remain OPEN. Do not claim production readiness.
+
+## Milestone — runtime implied-DO with INTEGER console units (2026-10-29)
+
+- Extended checked INTEGER variable units to runtime-bound formatted I/O implied-DO READ/WRITE. The unit-value guard is emitted before the generated I/O loop, so out-of-range units exit 2 without touching console records. Also permits ordinary fixed-count implied-DO with a variable unit; existing fixed-console behavior unchanged.
+- New strict F77S `f77s_vuniio.f` exercises a five-item rank-1 integer array with variable unit 5/6, negative step, 2I3/2I4 FORMAT record reversion and final loop index. Expected seven lines `   1   2`, `   3   4`, `   5`, `   5   4`, `   3   2`, `   1`, `   6`. Registered in native and gfortran differential harness and added explicit guard/loop frontend assertions. Exact SHA CI and native execution are pending.
+- Non-console streams, general nested implied-DO and mixed descriptor runtime FORMAT still open. Other P0/P1/P2, peak RAM and physical ZX Spectrum remain unproven.
