@@ -868,6 +868,59 @@ static float f_fmt_real(int width, int places) {
     if (sign < 0) v = -v;
     return v;
 }
+/* F77S E input: explicit or implicit decimal point, signed E/D exponent.
+   Current source conversion uses BN (blank-ignore) behavior. */
+static float f_fmt_ereal(int width, int places) {
+    float value;
+    int i, ch, sign, exponent, exp_sign, after, point;
+    int digits, exp_digits, in_exp, exp_sign_seen;
+    value = 0.0;
+    sign = 1;
+    exponent = 0;
+    exp_sign = 1;
+    after = 0;
+    point = 0;
+    digits = 0;
+    exp_digits = 0;
+    in_exp = 0;
+    exp_sign_seen = 0;
+    for (i = 0; i < width; i++) {
+        ch = f_fmt_get();
+        if (ch == ' ') continue;
+        if (!in_exp && (ch == '+' || ch == '-') && !digits && !point) {
+            if (ch == '-') sign = -1;
+            continue;
+        }
+        if (!in_exp && ch == '.' && !point) { point = 1; continue; }
+        if ((ch == 'E' || ch == 'e' || ch == 'D' || ch == 'd') && !in_exp && digits) {
+            in_exp = 1;
+            continue;
+        }
+        if (in_exp && (ch == '+' || ch == '-') && !exp_digits && !exp_sign_seen) {
+            if (ch == '-') exp_sign = -1;
+            exp_sign_seen = 1;
+            continue;
+        }
+        if (ch < '0' || ch > '9') exit(2);
+        if (in_exp) {
+            if (exponent > 20) exit(2);
+            exponent = exponent * 10 + ch - '0';
+            exp_digits++;
+        } else {
+            value = value * 10.0 + (float)(ch - '0');
+            digits++;
+            if (point) after++;
+        }
+    }
+    if (!digits || (in_exp && !exp_digits)) exit(2);
+    if (!point) after = places;
+    exponent = exponent * exp_sign - after;
+    if (exponent > 20 || exponent < -20) exit(2);
+    for (i = 0; i < exponent; i++) value = value * 10.0;
+    for (i = exponent; i < 0; i++) value = value / 10.0;
+    if (sign < 0) value = -value;
+    return value;
+}
 static void f_fmt_end(void) {
     int ch;
     if (!f_fmt_eor) {
@@ -1415,7 +1468,7 @@ def convert(units):
                             raise FortranError(line, 'FORMAT L needs LOGICAL scalar/array element')
                         operations.append(E(name, line) + ' = f_fmt_logical(' + str(item) + ');')
                         pos += 1
-                    elif mode == 'real':
+                    elif mode in ('real', 'realexp', 'realexpdigits'):
                         if pos == len(values):
                             raise FortranError(line, 'READ has fewer items than FORMAT')
                         name = values[pos].strip()
@@ -1423,7 +1476,8 @@ def convert(units):
                         info = u.vars.get(m.group(1)) if m else None
                         if not info or info[0] != 'REAL' or (info[1] is None) != (m.group(2) is None):
                             raise FortranError(line, 'FORMAT F needs REAL variable/element')
-                        operations.append(E(name, line) + ' = f_fmt_real(' + str(item[0]) + ', ' + str(item[1]) + ');')
+                        reader = 'f_fmt_real' if mode == 'real' else 'f_fmt_ereal'
+                        operations.append(E(name, line) + ' = ' + reader + '(' + str(item[0]) + ', ' + str(item[1]) + ');')
                         pos += 1
                     elif mode == 'integer':
                         if pos == len(values):

@@ -85,3 +85,10 @@
 - Added strict fixed source `f77s_ewdee.f`, positive and invalid-width/precision tests, plus native and differential harness entries. Locally passed 105/105 frontend unit tests. Independently compiled host gfortran and actual matched SDK Z80 SSX (2,582 bytes); matched exact screen `   0.123400E+003    0.125000E-001   -0.123000E-004`, exit 0 after 196 frames, 28 system calls.
 - Durable historical proof summary saved at `rfortranc/tests/results/f77s-fe2ee3b-four-suites-summary.json`: 97/97 native, 67/67 gfortran differential, 13/13 bounds, 4/4 release for revision `fe2ee3b` **only**; report SHA-256 values and compiler/runtime hashes included. Full report JSON remained local at this checkpoint; never transfer these totals to newer commits.
 - Main `365c376` passed GitHub Actions 104 frontend tests + host references (run 40811648432). Current revision needs complete new native/differential/bounds/release run, plus remaining P0/P1/P2. Real 48K Spectrum hardware still untested.
+
+## Milestone — E formatted READ of numeric records (2026-10-29)
+
+- Added `f_fmt_ereal` fixed-width REAL E-input parsing with explicit/implicit decimal point and E/D signed exponent, with bounded numeric range to avoid silent target overflow; compiled for both `Ew.d` and `Ew.dEe` descriptors. Standard cases beyond implemented 20-power range, BN/BZ, EOF and error specifiers remain open.
+- New strict `f77s_eread.f` accepts built-in test input `   0.123400E+003   0.500000E+001`. Independently tested gfortran and matched Z80 SDK/RVM: both wrote `   123.40     5.00`, native exited 0 after 385 frames, 65 system calls; strict frontend 106/106 unit tests passed on local candidate.
+- Input fixture keys registered in native emulator and differential harness; pushed with source and root checkpoint. Full four-suite native regression results for this changed compiler are pending; no physical Spectrum proof or peak RAM measurement yet.
+- NEXT: run complete native/differential/bounds/release on exact current source SHA; implement required BN/BZ, F/E wider support, I/O implied-DO and all remaining P0/P1/P2.

@@ -25,9 +25,10 @@ CASES['f77s_stfn'] = ['    12.00    99.00']
 CASES['f77s_rpow'] = ['     8.00     3.00     4.00     0.25    -8.00   512.00']
 CASES['f77s_assgn'] = ['  42']
 CASES['f77s_ewdee'] = ['   0.123400E+003    0.125000E-001   -0.123000E-004']
+CASES['f77s_eread'] = ['   123.40     5.00']
 
 
-INPUTS = {'f77s_read': '0042 007\n', 'f77s_repeat': '003 005 010\n', 'f77s_charread': 'XYZ\n', 'f77s_arrread': 'XYZ\n', 'f77s_realio': '   -3.25\n  001234\n', 'f77s_logio': '   F   T\n'}
+INPUTS = {'f77s_eread': '   0.123400E+003   0.500000E+001\n', 'f77s_read': '0042 007\n', 'f77s_repeat': '003 005 010\n', 'f77s_charread': 'XYZ\n', 'f77s_arrread': 'XYZ\n', 'f77s_realio': '   -3.25\n  001234\n', 'f77s_logio': '   F   T\n'}
 
 def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()

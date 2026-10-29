@@ -817,6 +817,15 @@ class F77SChecks(unittest.TestCase):
             self.assertIn('f_seqcheck(', generated)
             self.assertIn('f_extent(', generated)
 
+    def test_exponential_formatted_input(self):
+        src = (ROOT/'tests/fortran/f77s_eread.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        generated = convert(units)
+        self.assertIn('F_A = f_fmt_ereal(16, 6);', generated)
+        self.assertIn('F_B = f_fmt_ereal(16, 6);', generated)
+        self.assertIn('static float f_fmt_ereal(int width, int places)', generated)
+
     def test_explicit_e_exponent_width(self):
         src = (ROOT/'tests/fortran/f77s_ewdee.f').read_text()
         units = parse(src, std='f77s')
