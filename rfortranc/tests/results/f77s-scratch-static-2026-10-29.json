@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "compiler_commit": "a073a37affbf96fb0c6d2217f83b22a696d2d4ea",
+  "scope": "matched ZX-UX Z80 scratch unformatted I/O: ENDFILE, REWIND, BACKSPACE, direct 2-INTEGER",
+  "static_linked_reservation_bytes": {
+    "f77s_endfile": 2696,
+    "f77s_sequnio": 2924,
+    "f77s_direct2": 2708
+  },
+  "ssx_bytes": {
+    "f77s_endfile": 2541,
+    "f77s_sequnio": 2807,
+    "f77s_direct2": 2556
+  },
+  "target_limit_bytes": 12288,
+  "within_limit": {
+    "passed": 3,
+    "total": 3
+  },
+  "notes": [
+    "SSX image+BSS+declared stack/heap only; not kernel or measured high-water",
+    "Local native tests: ENDFILE+sequential 2/2; independent host matches for both; total four local stdout lines",
+    "No physical Spectrum"
+  ],
+  "outstanding": [
+    "all P0/P1/P2",
+    "full native/differential/bounds/release",
+    "peak RAM",
+    "physical Spectrum"
+  ]
+}
