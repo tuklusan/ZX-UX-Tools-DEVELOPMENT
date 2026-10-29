@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "source_parent": "cc8128b9ba265a25ddb8c991b4a549b6562fef62",
+  "scope": "Versioned SHA-256-bound F77S SSO ABI tags and real Z80 separate link-only checking",
+  "compiler_sha256": "d15e27224b0c019e5286c95aa3a18c80b7cf78f91f4a9999245804ba86e83c27",
+  "driver_sha256": "9b7a5a742d31e4d000583fb83c5ca2c005732c1aedbf4ba16db0ed2e3fda4958",
+  "abi_sha256": "e83d9644730f43169109b7bd242936fa9b4a316df67608a53d32a05ed3af498f",
+  "sdk_archive_sha256": "42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17",
+  "source_sha256": {
+    "main.f": "feaca1c42746248bdc56d122815bc2ebb80bd02e758b9329b750b614d7ee89ce",
+    "step.f": "93b4fce7b9dd64079b1372455282b050f3b6983429b2957f89e2862f183709e2"
+  },
+  "tests": [
+    {
+      "name": "frontend F77S strict unittest",
+      "passed": 183,
+      "total": 183,
+      "command": "python -m unittest discover -s tests -p test_f77s.py -q"
+    },
+    {
+      "name": "real Z80 and independent gfortran with ABI negative checks",
+      "passed": 8,
+      "total": 8,
+      "command": "python tests/check_abi.py --sdk <source-sdk> --rvm <shipped-kernel-rvm> --report <report>",
+      "local_full_report_sha256": "d6f6c93ca02664e013962ce95458a01238c9f6b6426094398e0d7ce9c809552b",
+      "conditions": [
+        "build two tagged SSO",
+        "byte-identical relink",
+        "real Z80 vs independent gfortran: 42",
+        "reject independently compiled REAL callee for INTEGER caller",
+        "reject changed SSO with stale SHA tag",
+        "reject mixed tagged and untagged objects",
+        "reject untagged by default",
+        "explicit legacy opt-in link succeeds"
+      ],
+      "z80": {
+        "exit": 0,
+        "frames": 155,
+        "system_calls": 26,
+        "stdout": "  42"
+      }
+    },
+    {
+      "name": "existing retained SSO relink checks",
+      "passed": 9,
+      "total": 9,
+      "command": "python tests/check_relink.py --sdk <source-sdk> --rvm <shipped-kernel-rvm> --report <report>"
+    },
+    {
+      "name": "existing separate SSO native and gfortran checks",
+      "passed": 4,
+      "total": 4,
+      "command": "python tests/check_separate_link.py --sdk <source-sdk> --rvm <shipped-kernel-rvm> --report <report>",
+      "local_full_report_sha256": "98f0b9e9b2bdfaa7e3828325195a78333732bc82348c10a8f1173c0b0fb4948e",
+      "cases": [
+        "main + step output 42",
+        "matching numeric named COMMON",
+        "different blank COMMON sizes and prefix",
+        "separate REAL SQRT and FORMAT helper"
+      ]
+    }
+  ],
+  "known_limits": [
+    "ABI checked only when tagged SSO created by --separate",
+    "legacy C48 SSO must explicitly opt out",
+    "COMMON layout across separately produced manifests not yet checked",
+    "full F77S signatures/typed separately compiled declarations still incomplete",
+    "not physical Spectrum or live peak RAM"
+  ],
+  "production_ready": false,
+  "physical_hardware_tested": false,
+  "live_peak_ram_measured": false
+}

@@ -29,8 +29,8 @@ def sdk_path(explicit=None):
 def link_existing_objects(sdk, packaged, objects, target, args, rtap, tape_name):
     """Link retained native Z80 SSO objects without FORTRAN source parsing.
 
-    The linker resolves symbols, but SSO has no FORTRAN dummy-type metadata.
-    ABI compatibility of previously compiled objects remains caller-owned.
+    Every retained F77S SSO has a versioned SHA-256 tag describing its
+    procedure ABI; legacy raw SSO requires explicit unverified opt-in.
     """
     linker = sdk / ('rld' if packaged else 'bin/rld')
     library = sdk / 'lib/libc48.ssa'
@@ -41,6 +41,8 @@ def link_existing_objects(sdk, packaged, objects, target, args, rtap, tape_name)
             raise ValueError('link input must be an existing SSO object: ' + str(obj))
     if not objects:
         raise ValueError('at least one SSO object required')
+    from .abi import validate as validate_abi
+    validate_abi(objects, getattr(args, 'allow_untagged_objects', False))
     with tempfile.TemporaryDirectory(prefix='rfortranc-link-') as scratch:
         binary = Path(scratch) / 'linked.ssx' if args.tzx else target
         linkcmd = [sys.executable, str(linker), '-o', str(binary)]
@@ -77,6 +79,8 @@ def main(argv=None):
     p.add_argument('--separate', action='store_true', help='compile each F77S program unit to SSO and link them')
     p.add_argument('--link-only', action='store_true', help='link retained Z80 SSO objects without FORTRAN source')
     p.add_argument('--object-dir', help='preserve per-unit SSO objects (requires --separate)')
+    p.add_argument('--allow-untagged-objects', action='store_true',
+                   help='link legacy C48 SSO without F77S ABI checking (--link-only only)')
     p.add_argument('-o', '--output', help='output file (default SOURCE.ssx)')
     p.add_argument('--sdk', help='ZX-UX source SDK root or packaged SDK bin')
     p.add_argument('--std', choices=('zxux', 'f77s'), default='zxux',
@@ -106,6 +110,8 @@ def main(argv=None):
             raise ValueError('multiple sources require --separate')
         if args.object_dir and not args.separate:
             raise ValueError('--object-dir requires --separate')
+        if args.allow_untagged_objects and not args.link_only:
+            raise ValueError('--allow-untagged-objects requires --link-only')
         if args.separate and (args.std != 'f77s' or args.emit_c or args.S or args.c or args.bytecode or args.no_fit):
             raise ValueError('--separate needs --std f77s with linked native SSX/TZX output')
         if args.link_only:
@@ -142,6 +148,8 @@ def main(argv=None):
                 if not linker.is_file() or not library.is_file():
                     raise ValueError('ZX-UX SDK linker/library missing for --separate')
                 objects = []
+                from .abi import write as write_abi
+                known = {unit.name: unit for unit in units}
                 preserved = Path(args.object_dir).resolve() if args.object_dir else None
                 if preserved:
                     preserved.mkdir(parents=True, exist_ok=True)
@@ -154,6 +162,7 @@ def main(argv=None):
                                          '-o', str(obj), str(generated)], check=False)
                     if rc.returncode:
                         return rc.returncode
+                    write_abi(u, known, obj)
                     objects.append(obj)
                 name = args.tape_name if args.tape_name is not None else sources[0].stem[:10]
                 return link_existing_objects(sdk, packaged, objects, target, args, rtap, name)

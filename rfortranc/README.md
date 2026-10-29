@@ -47,12 +47,24 @@ python bin/rfortranc --std f77s --native --link-only --sdk /path/to/sdk \
   /tmp/f77s-objects/01_STEPER.sso
 ```
 
-`--link-only` also supports `--tzx`, `--stack` and `--max`. It checks
-the linked SSX header and declared static memory. It does **not** verify
-FORTRAN argument types for previously compiled objects: the SDK linker only
-checks symbols. Use compatible compiler/SDK objects and check their ABI.
-Repeatable proof: `python tests/check_relink.py --sdk ... --rvm ... --report ...`.
-Physical 48K Spectrum execution and live RAM peaks still need testing.
+`--separate --object-dir` now writes a versioned `.f77s-abi.json` beside each
+retained `.sso`. It records the source-defined export and referenced FORTRAN
+procedures, INTEGER/REAL/LOGICAL/CHARACTER dummy types and scalar/array/procedure
+calling convention, hidden adjustable-array capacity argument and SHA-256 of
+the exact object. `--link-only` verifies all sidecars before invoking `rld`,
+refuses mixed tagged/untagged objects, and catches mismatched cross-build
+procedure signatures (e.g. INTEGER vs REAL dummy) instead of silently
+passing incompatible by-reference values. Fully untagged legacy SSO link only
+with **explicit** `--allow-untagged-objects` (ABI unverified). The SDK linker
+still resolves symbols. This is **partial** P2 checking: COMMON-layout
+compatibility across separately produced tags, arbitrary prebuilt object
+metadata, external procedure chains and full independent unit compilation
+remain open. `--link-only` still accepts `--tzx`, `--stack` and `--max` and
+checks SSX static reservations; it does not measure peak runtime RAM.
+Repeatable Z80/host/negative proof:
+`python tests/check_abi.py --sdk ... --rvm ... --report ...` plus
+`python tests/check_relink.py --sdk ... --rvm ... --report ...`.
+Physical 48K Spectrum and cassette execution still need testing.
 
 ## Chain and memory limits
 

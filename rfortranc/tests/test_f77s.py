@@ -97,6 +97,46 @@ class F77SChecks(unittest.TestCase):
     def test_do_limits_restricted(self):
         self.check(['INTEGER I,N','N=3','DO 10 I=1,N+1','10 CONTINUE'],False)
 
+    def test_versioned_separate_object_abi_checks(self):
+        from tempfile import TemporaryDirectory
+        from rfortranc.abi import write, validate, path_for
+        with TemporaryDirectory(prefix='f77s-abi-front-') as d:
+            path = Path(d)
+            src = ((ROOT/'tests/fortran/separate/main.f').read_text() + '\n' +
+                   (ROOT/'tests/fortran/separate/step.f').read_text())
+            units = parse(src, std='f77s')
+            known = {u.name: u for u in units}
+            objects = []
+            for i, unit in enumerate(units):
+                obj = path/('%02d_%s.sso' % (i, unit.name))
+                obj.write_bytes(bytes([i+1])*16)
+                write(unit, known, obj)
+                objects.append(obj)
+            self.assertTrue(validate(objects))
+            self.assertTrue(all(path_for(o).exists() for o in objects))
+            objects[1].write_bytes(b'different object contents')
+            with self.assertRaisesRegex(ValueError, 'SHA-256 mismatch'):
+                validate(objects)
+            objects[1].write_bytes(bytes([2])*16)
+            bad = path_for(objects[1])
+            content = __import__('json').loads(bad.read_text())
+            content['exports']['args'][0]['type'] = 'REAL'
+            bad.write_text(__import__('json').dumps(content))
+            with self.assertRaisesRegex(ValueError, 'ABI mismatch'):
+                validate(objects)
+            content['exports']['args'][0]['type'] = 'INTEGER'
+            content['exports']['args'][0]['capacity_argument'] = []
+            bad.write_text(__import__('json').dumps(content))
+            with self.assertRaisesRegex(ValueError, 'invalid or duplicate export'):
+                validate(objects)
+            bad.unlink()
+            with self.assertRaisesRegex(ValueError, 'mixed tagged and untagged'):
+                validate(objects)
+            path_for(objects[0]).unlink()
+            with self.assertRaisesRegex(ValueError, 'ABI tags missing'):
+                validate(objects)
+            self.assertFalse(validate(objects, allow_untagged=True))
+
     def test_do_integer_type_and_target_range_enforced(self):
         good = ("      PROGRAM DOTYPE\n"
                 "      INTEGER I,J,N,ST,T\n"
