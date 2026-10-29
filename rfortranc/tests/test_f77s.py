@@ -439,6 +439,18 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaisesRegex(FortranError, 'mixed-type EQUIVALENCE'):
             convert(parse(invalid, std='f77s'))
 
+    def test_subprogram_data_in_equivalence_static_lifetime(self):
+        for fixture in ('f77s_eqdata', 'f77s_eqchdat'):
+            source = (ROOT/'tests/fortran'/(fixture+'.f')).read_text()
+            with self.subTest(fixture=fixture):
+                units = parse(source, std='f77s')
+                validate_source(source, units)
+                c = convert(units)
+                self.assertIn('if (!f_sdi1)', c)
+                self.assertIn('f_e1_0', c)
+                self.assertIn('static ' + ('int' if fixture == 'f77s_eqdata' else 'char') + ' f_e1_0', c)
+                self.assertNotIn('    int f_eq_0[2];', c)
+
     def test_equivalence_rejects_invalid_constraints(self):
         bodies = [
             ['INTEGER A(2),B', 'EQUIVALENCE (A(3),B)'],

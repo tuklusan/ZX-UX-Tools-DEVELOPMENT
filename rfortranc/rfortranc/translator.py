@@ -1488,6 +1488,23 @@ def convert(units, emit_units=None):
         data_entries = initializers(u)
         data_guard = None
         if data_entries and not is_main:
+            # A DATA-initialized EQUIVALENCE storage sequence must survive
+            # repeated calls just like an ordinary subprogram DATA object.
+            # Use a unit-specific external identifier for each static group.
+            data_names_for_eq = {re.match(r'F_([A-Z0-9_]+)', target).group(1)
+                                 for target, _ in data_entries}
+            if any('F_' + name in eq_uses for name in data_names_for_eq):
+                renames = {}
+                for n, declaration in enumerate(eq_decls):
+                    original = 'f_eq_' + str(n)
+                    replacement = 'f_e' + str(unit_ordinal) + '_' + str(n)
+                    renames[original] = replacement
+                    chunks.append('static ' + declaration.replace(original, replacement))
+                eq_decls = []
+                for alias, expr_text in eq_uses.items():
+                    for original, replacement in renames.items():
+                        expr_text = re.sub(r'\b' + original + r'\b', replacement, expr_text)
+                    aliases[alias] = expr_text
             # A DATA object must outlive the subprogram's stack frame.
             # C48 identifiers are limited to 15 characters.
             from .arrays import size as total_extent
@@ -1499,7 +1516,11 @@ def convert(units, emit_units=None):
                 data_names.add(m.group(1))
             for var in sorted(data_names):
                 if 'F_' + var in aliases:
-                    raise FortranError(u.line, 'DATA with storage-associated object not yet supported: ' + var)
+                    if 'F_' + var in common_uses.get(u.name, {}):
+                        raise FortranError(u.line, 'DATA cannot initialize COMMON storage: ' + var)
+                    if 'F_' + var in eq_uses:
+                        continue  # storage allocated statically as entire EQUIVALENCE group
+                    raise FortranError(u.line, 'DATA with unsupported storage association: ' + var)
                 typ, extent = u.vars[var]
                 if typ not in ('INTEGER', 'REAL', 'LOGICAL') and not typ.startswith('CHARACTER*'):
                     raise FortranError(u.line, 'unsupported subprogram DATA type: ' + typ)
