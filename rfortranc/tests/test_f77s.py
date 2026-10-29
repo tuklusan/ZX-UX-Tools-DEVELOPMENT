@@ -1342,6 +1342,15 @@ class F77SChecks(unittest.TestCase):
                 for handle in handles:
                     self.assertIn('static int '+handle+';', c)
 
+    def test_backspace_across_endfile_record(self):
+        src=(ROOT/'tests/fortran/f77s_backend.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        generated=convert(units)
+        self.assertIn('if (tail == 0 && upper == 0)',generated)
+        self.assertIn('f_sback(7);',generated)
+        self.assertIn('f_sread(7);',generated)
+
     def test_unformatted_logical_and_character_scalar_records(self):
         for name,need in (('f77s_seqlog','f_sreadstat(7, &F_C)'),
                           ('f77s_seqchar','f_sreadcstat(7, F_C, 4)')):

@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "base_commit": "af7782710da5c9cd80c0d45827dca525266b0faa",
+  "scope": "F77S sequential scratch BACKSPACE over ENDFILE marker and previous INTEGER record",
+  "translator_sha256": "a30d9f9804e5bc137fe1092fef259b51c95d0ab7b85196bbba8d2d270b8ba346",
+  "source": "f77s_backend.f",
+  "source_sha256": "509e74004054d2f81f08baf5bdd1b4603e194beb71c74859d14039bb9cc6b191",
+  "ssx_bytes": 3045,
+  "ssx_sha256": "cf7ae6533e5f850dc3ebef830f32f5834ab21468fbed4e43ffcf2ef4052f46a8",
+  "output": [
+    "  -42"
+  ],
+  "rvm_exit": 0,
+  "rvm_frames": 172,
+  "syscalls": 62,
+  "independent_gfortran_match": true,
+  "frontend": {
+    "passed": 166,
+    "total": 166
+  },
+  "selected_native": {
+    "passed": 1,
+    "total": 1
+  },
+  "differential": {
+    "passed": 1,
+    "total": 1
+  },
+  "limitations": [
+    "generalized END/IOSTAT",
+    "complete F77S",
+    "physical Spectrum",
+    "peak RAM"
+  ]
+}

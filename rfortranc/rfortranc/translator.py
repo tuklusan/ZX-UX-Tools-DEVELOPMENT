@@ -1196,6 +1196,10 @@ static void f_sback(int unit) {
     if (seek(f_sh[unit], pos - 4) < 0) exit(2);
     if (read(f_sh[unit], &tail, 2) != 2) exit(2);
     if (read(f_sh[unit], &upper, 2) != 2) exit(2);
+    if (tail == 0 && upper == 0) {
+        if (seek(f_sh[unit], pos - 4) < 0) exit(2);
+        return;
+    }
     if ((tail < 1 || tail > 64) || upper != 0) exit(2);
     if (pos < tail + 8) exit(2);
     if (seek(f_sh[unit], pos - tail - 8) < 0) exit(2);

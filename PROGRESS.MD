@@ -492,3 +492,9 @@
 - Strict `f77s_seqlog.f`: native 3,125-byte Z80 SSX, exit 0 after 170 frames/73 system calls, prints `  T`, `  F   0`, `  -1`. Strict `f77s_seqchar.f`: native 3,661-byte SSX, exit 0 after 180 frames/65 calls, prints `WXYZ`, `AB     0`, `  -1`. Both exactly match independent gfortran output (processor-dependent unformatted binary formats need not be byte-identical).
 - Focused frontend **165/165**, selected native **2/2**, host-vs-Z80 differential **2/2** passed locally. Previous REAL unformatted commit `eba551a` passed GitHub Actions. Positive and negative tests, source, expected outputs and evidence are committed; run full CI on the new SHA.
 - Still partial: arbitrary unformatted lists, different CHARACTER lengths in the same record, internal I/O, named/unit file semantics, full P0/P1/P2, physical Spectrum validation, and peak RAM proof remain OPEN. **Not production-ready.**
+
+## Milestone — BACKSPACE across ENDFILE record (2026-10-29)
+
+- Fixed ZX-UX sequential scratch `BACKSPACE` treating the zero-length ENDFILE marker as a corrupt record; now backs over its four-byte marker, permitting a second BACKSPACE to reach the preceding data record. Retains range checks for real/CHARACTER/integer record lengths and invalid trailing markers.
+- New strict `f77s_backend.f`: WRITE(7) 17, WRITE(7) -42, ENDFILE, BACKSPACE twice, READ(7), WRITE(6). Independent gfortran and actual native ZX-UX Z80 SSX both output `  -42`; SSX 3,045 bytes, RVM exit 0 after 172 frames/62 system calls. Local frontend **166/166**, selected native **1/1**, host-vs-Z80 differential **1/1** passed. GitHub Actions on preceding `af77827` passed; re-run on this milestone SHA.
+- Still partial P1 file-positioning and P0 full I/O: extended ENDFILE truncation, variable and named files, broad records and EOF semantics remain open, alongside P2 ABI/procedure arguments, physical Spectrum and peak RAM. Not production-ready.
