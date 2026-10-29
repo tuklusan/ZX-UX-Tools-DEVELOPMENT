@@ -836,12 +836,26 @@ static int f_mod_int(int a, int b) {
     if (a == -32768 && b == -1) exit(2);
     return a % b;
 }
+/* Detect signed 16-bit multiplication overflow before executing it. */
+static int f_imul(int a, int b) {
+    if (a > 0) {
+        if (b > 0 && a > 32767 / b) exit(2);
+        if (b < 0 && b < -32768 / a) exit(2);
+    } else if (a < 0) {
+        if (b > 0 && a < -32768 / b) exit(2);
+        if (b < 0 && a < 32767 / b) exit(2);
+    }
+    return a * b;
+}
 static int f_ipow(int base, int e) {
-    int n;
     int result;
     result = 1;
     if (e < 0) exit(2);
-    for (n = 0; n < e; n++) result = result * base;
+    while (e > 0) {
+        if (e % 2 != 0) result = f_imul(result, base);
+        e = e / 2;
+        if (e > 0) base = f_imul(base, base);
+    }
     return result;
 }
 /* F77S unnamed direct-access scratch units; one file per unit 1..9.

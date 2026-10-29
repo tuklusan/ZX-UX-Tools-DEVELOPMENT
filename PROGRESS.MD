@@ -516,3 +516,9 @@
 - Strict F77S MOD now requires two INTEGER operands. Native C48 helper rejects zero divisor and the signed 16-bit MININT/-1 overflow case with exit 2, avoiding undefined C division. Added four invalid-arity/type frontend tests and one fixed-form valid arithmetic fixture.
 - On base `825ccad`, local Python unittest **169/169** passed. Independent gfortran and matched actual ZX-UX Z80 SSX both printed `      2     -2      2     -1` for signed MOD inputs; SSX 1,? bytes (not measured), SHA-256 `c89cbf46f30ced1513cd0cab284fc400d5a7c1a1f2213cbd1090909a6264137e`, RVM exit 0 at 147 frames/25 calls. Independently compiled native `MOD(1,0)` and `MOD(-32768,-1)` exited 2 at 141/153 frames. The earlier current-base CI 168 frontend and host tests was green (run 40915373088); changed source requires new CI.
 - Not full F77S proof; current-source comprehensive native/differential/bounds/release, peak RAM and physical Spectrum validation remain open.
+
+## Milestone — checked logarithmic INTEGER exponentiation (2026-10-29)
+
+- Replaced linear-time unchecked 16-bit `f_ipow` multiplication with exponentiation by squaring and a signed 16-bit pre-multiply overflow guard. This avoids silent wrapping and thousands of needless multiplications on 3.5 MHz Z80, while retaining the prior rejection of negative INTEGER powers.
+- Strict `f77s_ipow.f` covers 2**14, (-2)**15, 1**32767, 0**0 and (-3)**3. Actual matched ZX-UX Z80 SSX **1,728 bytes**, SHA256 `a7d4be9444a0deda6de8022e47a1dee63a0f33c69891cb932e317a452431fd65`, exits 0 after 147 frames/23 calls and prints `   16384  -32768       1       1     -27`, matching independent gfortran. Separate overflow binaries for 2**15 and (-2)**16 both exit 2 on Z80. Local focused frontend 170/170 passes.
+- Added regression fixture and host/native case maps. Full latest-SHA native/differential/bounds/release tests, other F77S P0/P1/P2, physical Spectrum and peak live RAM proof remain OPEN. Not production-ready.

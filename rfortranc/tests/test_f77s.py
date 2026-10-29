@@ -1114,6 +1114,15 @@ class F77SChecks(unittest.TestCase):
                 with self.subTest(expression=bad),self.assertRaises(FortranError):
                     convert(parse(s,std='f77s'))
 
+    def test_integer_powers_use_checked_logarithmic_multiply(self):
+        source=(ROOT/'tests/fortran/f77s_ipow.f').read_text()
+        units=parse(source,std='f77s')
+        validate_source(source,units)
+        generated=convert(units)
+        self.assertIn('static int f_imul(int a, int b)',generated)
+        self.assertIn('result = f_imul(result, base)',generated)
+        self.assertIn('base = f_imul(base, base)',generated)
+
     def test_integer_mod_intrinsic_has_guards_and_type_rules(self):
         src=(ROOT/'tests/fortran/f77s_modint.f').read_text()
         units=parse(src,std='f77s')
