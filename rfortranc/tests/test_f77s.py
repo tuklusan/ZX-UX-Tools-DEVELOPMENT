@@ -97,6 +97,34 @@ class F77SChecks(unittest.TestCase):
     def test_do_limits_restricted(self):
         self.check(['INTEGER I,N','N=3','DO 10 I=1,N+1','10 CONTINUE'],False)
 
+    def test_do_integer_type_and_target_range_enforced(self):
+        good = ("      PROGRAM DOTYPE\n"
+                "      INTEGER I,J,N,ST,T\n"
+                "      N=3\n      ST=1\n      T=0\n"
+                "      DO 10 I=1,N,ST\n"
+                "      T=T+I\n   10 CONTINUE\n"
+                "      DO 20 J=3,1,-1\n"
+                "      T=T+J\n   20 CONTINUE\n"
+                "      WRITE(6,30) T\n   30 FORMAT(I5)\n      END\n")
+        units = parse(good, std='f77s')
+        validate_source(good, units)
+        self.assertIn('f_step_', convert(units))
+        for invalid in (
+            good.replace('INTEGER I,J,N,ST,T', 'INTEGER J,N,ST,T\n      REAL I'),
+            good.replace('INTEGER I,J,N,ST,T', 'INTEGER I,J,ST,T\n      REAL N'),
+            good.replace('INTEGER I,J,N,ST,T', 'INTEGER I,J,N,T\n      REAL ST'),
+            good.replace('INTEGER I,J,N,ST,T', 'INTEGER I,J,N,ST,T,A(2)').replace('I=1,N,ST', 'I=1,A,ST'),
+            good.replace('I=1,N,ST', 'I=1,32768,ST'),
+            good.replace('I=1,N,ST', 'I=-32769,N,ST'),
+            good.replace('I=1,N,ST', 'I=1,N,1+1'),
+        ):
+            with self.subTest(invalid=invalid):
+                parsed = parse(invalid, std='f77s')
+                with self.assertRaisesRegex(FortranError, 'F77S DO'):
+                    validate_source(invalid, parsed)
+                with self.assertRaisesRegex(FortranError, 'DO'):
+                    convert(parsed)
+
     def test_computed_goto_constant_not_subset(self):
         self.check(['GO TO (10,20), 2','10 CONTINUE','20 CONTINUE'],False)
 

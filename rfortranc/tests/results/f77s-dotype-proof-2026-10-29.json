@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "run_date": "2026-10-29",
+  "base_commit": "336e46d0106ab72d5b7c091655aac2310cc79bb3",
+  "scope": "F77S DO-control type and range checks",
+  "compiler_sha256": "e3a08237cbf9aece89f81aee7d60dff383b1b039e1494b031ce71f22d0f5acfd",
+  "validator_sha256": "b33468db9923efd1e4f75eaf4be798ec590c49df005a67c6de50486a50c396f2",
+  "fixture_sha256": "31903f62e02073761745474c407a7c26cdb2f286a9a99eab71311c0943142bf9",
+  "sdk_archive_sha256": "42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17",
+  "cases": [
+    {
+      "name": "frontend unittest",
+      "command": "python -m unittest discover -s tests -p test_f77s.py -q",
+      "passed": 177,
+      "total": 177
+    },
+    {
+      "name": "native ZX-UX emulator",
+      "command": "python tests/run_tests.py --sdk <matched-source-sdk> --rvm <shipped-kernel-rvm> --only f77s_dotype --report <report>",
+      "passed": 1,
+      "total": 1,
+      "host_boot": true,
+      "output": "   12",
+      "exit_code": 0,
+      "frames": 174,
+      "system_calls": 26,
+      "ssx_bytes": 1755,
+      "ssx_sha256": "a8d57c6907903d55c15b64450540983342bfe0acc4641406ee5fc62ab5550f43",
+      "full_local_report_sha256": "9bdde6aa3f51ad8514be75b2e202551f2f69db57f78293527f5606b8e25a847e"
+    },
+    {
+      "name": "independent gfortran differential",
+      "command": "python tests/compare_f77s.py --sdk <matched-source-sdk> --rvm <shipped-kernel-rvm> --only f77s_dotype --out <report>",
+      "passed": 1,
+      "total": 1,
+      "output": "   12",
+      "full_local_report_sha256": "a26cde19eeb2b1c4e01876aefc0989a0b8806f9ce91fdc11ae1439d31939a851"
+    }
+  ],
+  "strict_negative_cases": [
+    "REAL DO index",
+    "REAL final bound",
+    "REAL step",
+    "INTEGER array final bound",
+    "literal 32768",
+    "literal -32769",
+    "expression step"
+  ],
+  "physical_spectrum_tested": false,
+  "live_peak_ram_measured": false,
+  "complete_f77s_conformance": false
+}

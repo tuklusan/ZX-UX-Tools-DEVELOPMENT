@@ -3230,6 +3230,10 @@ def convert(units, emit_units=None):
                 parts = split_items(values)
                 if len(parts) not in (2, 3) or u.vars.get(var) != ('INTEGER', None):
                     raise FortranError(st.line, 'DO needs INTEGER scalar and 2 or 3 limits')
+                if u.std == 'f77s':
+                    from .f77s import _integer_control
+                    if any(not _integer_control(p, u) for p in parts):
+                        raise FortranError(st.line, 'F77S DO bounds and step require INTEGER scalars or 16-bit constants')
                 beg, finish = parts[:2]
                 step = parts[2] if len(parts) == 3 else '1'
                 k = len(code)

@@ -8,7 +8,14 @@ import re
 from .translator import FortranError, split_items
 
 _WORD = r'[A-Z][A-Z0-9_]*'
-_INT = r'[+-]?\d+|[A-Z][A-Z0-9_]*'
+def _integer_control(text, unit):
+    """An F77S DO bound/step is a target INTEGER constant or scalar name."""
+    token = text.strip()
+    if re.fullmatch(r'[+-]?\d+', token):
+        return -32768 <= int(token) <= 32767
+    return bool(re.fullmatch(_WORD, token) and
+                unit.vars.get(token) == ('INTEGER', None))
+
 
 
 def validate_source(source, units):
@@ -81,8 +88,10 @@ def validate_source(source, units):
             m = re.fullmatch(r'DO\s+(\d+)\s+(' + _WORD + r')\s*=\s*(.+)', s)
             if m:
                 vals = split_items(m.group(3))
-                if len(vals) not in (2, 3) or any(not re.fullmatch(_INT, v.strip()) for v in vals):
-                    raise FortranError(st.line, 'F77S DO limits must be INTEGER constants or scalar variables')
+                if (unit.vars.get(m.group(2)) != ('INTEGER', None) or
+                        len(vals) not in (2, 3) or
+                        any(not _integer_control(v, unit) for v in vals)):
+                    raise FortranError(st.line, 'F77S DO variable, bounds and step must be INTEGER scalars or 16-bit constants')
             m = re.fullmatch(r'GO\s*TO\s*\([^()]*\)\s*,?\s*(.*)', s)
             if m and not re.fullmatch(_WORD, m.group(1)):
                 raise FortranError(st.line, 'F77S computed GO TO selector must be an INTEGER variable')
