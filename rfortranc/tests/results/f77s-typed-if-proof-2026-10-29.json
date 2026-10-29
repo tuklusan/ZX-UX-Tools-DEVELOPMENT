@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "base_commit": "25a84392338185f923b4a9ba78ce35f3b58ed857",
+  "scope": "F77S typed numeric and LOGICAL operators, arithmetic and logical IF, .NOT. precedence",
+  "translator_sha256": "7baf8360daf3435f65f2285c4343d1f9f29b0f20e72e483a2776e0924c605e14",
+  "fixture_sha256": "a9965a749f0ec8d2b61b2aae92898a0bd954135c049a3f24f4fc45e6dfc6ec63",
+  "sdk_archive_sha256": "42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17",
+  "tests": [
+    {
+      "name": "frontend strict Python unit tests",
+      "pass": 180,
+      "total": 180,
+      "command": "python -m unittest discover -s tests -p test_f77s.py -q"
+    },
+    {
+      "name": "native SDK/RVM SSX",
+      "pass": 1,
+      "total": 1,
+      "command": "python tests/run_tests.py --sdk <matched-sdk> --rvm <shipped-kernel-rvm> --only f77s_iftypes --report <report>",
+      "local_report_sha256": "92f39c0c8bdf5aa9b72627ff11f9c7256666b3eaea70554a677d3089404c9f7e"
+    },
+    {
+      "name": "independent gfortran output comparison",
+      "pass": 1,
+      "total": 1,
+      "command": "python tests/compare_f77s.py --sdk <matched-sdk> --rvm <shipped-kernel-rvm> --only f77s_iftypes --out <report>",
+      "local_report_sha256": "3636c1ce8eca65868624994d621defbf9957c9d1968653e388369d17c2d391eb"
+    }
+  ],
+  "native": {
+    "ssx_bytes": 2401,
+    "sha256": "01d386dba38908e87ad62c5d21c1541e384e5eeba3dded5e37fc81cfe7fe3f61",
+    "output": "  44",
+    "exit_code": 0,
+    "frames": 183,
+    "syscalls": 29
+  },
+  "negative_cases": [
+    "LOGICAL as arithmetic IF condition",
+    "INTEGER or REAL as logical IF condition",
+    "LOGICAL arithmetic operands",
+    "numeric logical operands",
+    "numeric .NOT. operand",
+    "mixed LOGICAL numeric comparison"
+  ],
+  "not_full_f77s_conformance": true,
+  "not_physical_spectrum_proof": true,
+  "live_ram_peak_unmeasured": true
+}

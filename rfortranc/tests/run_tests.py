@@ -111,6 +111,7 @@ PROGRAMS = {
     'f77s_expout': '  0.123400E+02',
     'f77s_datado': '  42',
     'f77s_dotype': '   12',
+    'f77s_iftypes': '  44',
     'f77s_int': '     3    -3     0     0    -2',
     'f77s_datcom': '  42  41',
     'f77s_invtrig': '   0.5236   1.0472   0.4636   0.5463   2.0000',

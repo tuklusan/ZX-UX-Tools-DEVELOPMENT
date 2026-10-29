@@ -125,6 +125,45 @@ class F77SChecks(unittest.TestCase):
                 with self.assertRaisesRegex(FortranError, 'DO'):
                     convert(parsed)
 
+    def test_f77s_numeric_and_logical_operator_types(self):
+        positive = ('      PROGRAM OPS\n      INTEGER I\n      LOGICAL L,M\n'
+                    '      I=3\n      L=(I.GT.0).AND..TRUE.\n'
+                    '      M=.NOT.I.EQ.0\n      IF(L.AND.M) I=I+1\n      END\n')
+        self.assertIn('f_iadd(', convert(parse(positive, std='f77s')))
+        for expression_text, dest in (
+            ('1+.TRUE.', 'I'),
+            ('1*.FALSE.', 'I'),
+            ('2**.TRUE.', 'I'),
+            ('-.TRUE.', 'I'),
+            ('.NOT.2', 'L'),
+            ('(1).AND.(2)', 'L'),
+            ('.TRUE..OR.2', 'L'),
+            ('(1).EQ.(.TRUE.)', 'L'),
+            ('L+1', 'I'),
+            ('I.LT.L', 'L'),
+        ):
+            source = ('      PROGRAM BAD\n      INTEGER I\n      LOGICAL L\n'
+                      '      '+dest+'='+expression_text+'\n      END\n')
+            with self.subTest(source=source), self.assertRaisesRegex(FortranError, 'F77S .* operand'):
+                convert(parse(source, std='f77s'))
+
+    def test_arithmetic_and_logical_if_types(self):
+        source = (ROOT/'tests/fortran/f77s_iftypes.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        self.assertIn('f_arth_', convert(units))
+        for bad in (
+            '      LOGICAL L\n      L=.TRUE.\n      IF(L) 10,20,30',
+            '      IF(.TRUE.) 10,20,30',
+            '      INTEGER I\n      I=1\n      IF(I) THEN\n      ENDIF',
+            '      IF(2) CONTINUE',
+            '      REAL R\n      R=1.0\n      IF(R) THEN\n      ENDIF',
+        ):
+            test = ('      PROGRAM BAD\n' + bad +
+                    '\n   10 CONTINUE\n   20 CONTINUE\n   30 CONTINUE\n      END\n')
+            with self.subTest(bad=bad), self.assertRaisesRegex(FortranError, 'F77S .* IF requires'):
+                convert(parse(test, std='f77s'))
+
     def test_computed_goto_constant_not_subset(self):
         self.check(['GO TO (10,20), 2','10 CONTINUE','20 CONTINUE'],False)
 

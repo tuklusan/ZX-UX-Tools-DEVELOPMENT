@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "tested_commit": "3658424d2513c0ec2f5624d55254019d90acc1ca",
+  "scope": "Entire source-revision native and independent host-versus-Z80 suites (DO-control milestone)",
+  "source_translator_sha256": "e3a08237cbf9aece89f81aee7d60dff383b1b039e1494b031ce71f22d0f5acfd",
+  "sdk_archive_sha256": "42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17",
+  "suites": [
+    {
+      "runner": "tests/run_tests.py",
+      "scope": "all positive/negative Z80 emulator/TZX checks",
+      "passed": 164,
+      "total": 164,
+      "local_report_sha256": "9c9813aeeb3f4ec466e4c8c98f63f71196a3be0d39c7ba2b45ec5033027c873d"
+    },
+    {
+      "runner": "tests/compare_f77s.py",
+      "scope": "all pinned strict cases vs independent gfortran",
+      "passed": 133,
+      "total": 133,
+      "local_report_sha256": "f6971e310e2061b73d282516fee92201146e67d9309c35425766ca194fef4c99"
+    }
+  ],
+  "changed_translator_after_this_revision": true,
+  "physical_spectrum_unchecked": true,
+  "live_peak_memory_unchecked": true,
+  "production_ready": false
+}

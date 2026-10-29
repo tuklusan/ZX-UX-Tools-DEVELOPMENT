@@ -561,9 +561,17 @@ class Expr:
         t = self.pop()
         if t in ('+', '-', '.NOT.'):
             op = '!' if t == '.NOT.' else t
-            operand = self.pratt(6)
+            # Relational operators bind tighter than .NOT., which still
+            # binds tighter than .AND. and .OR. in ANSI subset FORTRAN.
+            operand = self.pratt(3 if t == '.NOT.' else 6)
+            argument_type = self.expr_types[operand]
+            if self.unit.std == 'f77s':
+                if t == '.NOT.' and argument_type != 'LOGICAL':
+                    raise FortranError(self.line, 'F77S .NOT. needs LOGICAL operand')
+                if t in ('+', '-') and argument_type not in ('INTEGER', 'REAL'):
+                    raise FortranError(self.line, 'F77S unary sign needs numeric operand')
             lhs = '(' + op + operand + ')'
-            result_type = 'LOGICAL' if t == '.NOT.' else self.expr_types[operand]
+            result_type = 'LOGICAL' if t == '.NOT.' else argument_type
         elif t == '(':
             operand = self.pratt(0)
             lhs = '(' + operand + ')'
@@ -717,6 +725,15 @@ class Expr:
             self.pop()
             rhs = self.pratt(prec if op == '**' else prec + 1)
             lt, rt = self.expr_types[lhs], self.expr_types[rhs]
+            if self.unit.std == 'f77s':
+                if op in ('.AND.', '.OR.') and (lt != 'LOGICAL' or rt != 'LOGICAL'):
+                    raise FortranError(self.line, 'F77S logical operator needs LOGICAL operands')
+                if op in ('.EQ.', '.NE.', '.LT.', '.LE.', '.GT.', '.GE.') and (
+                        lt not in ('INTEGER', 'REAL') or rt not in ('INTEGER', 'REAL')):
+                    raise FortranError(self.line, 'F77S numeric relational operator needs numeric operands')
+                if op in ('+', '-', '*', '/', '**') and (
+                        lt not in ('INTEGER', 'REAL') or rt not in ('INTEGER', 'REAL')):
+                    raise FortranError(self.line, 'F77S arithmetic operator needs numeric operands')
             if op == '**':
                 if lt == 'INTEGER' and rt == 'INTEGER':
                     lhs = 'f_ipow(' + lhs + ', ' + rhs + ')'
@@ -1740,7 +1757,7 @@ def character_item(token, unit, units, line):
     return ('(F_' + name + ' + (' + index + ') * ' + str(width + 1) + ')', width)
 
 
-def expression(src, unit, units, line):
+def expression(src, unit, units, line, typed=False):
     # F77S CHARACTER operands are blank-padded to equal length for comparison.
     # Restrict lowering to scalar CHARACTER names and string literals.
     m = re.fullmatch(r'\s*(.*?)\s*(\.(?:EQ|NE|LT|LE|GT|GE)\.)\s*(.*?)\s*', src)
@@ -1757,8 +1774,11 @@ def expression(src, unit, units, line):
                 raise FortranError(line, 'CHARACTER comparison requires CHARACTER operands')
             operators = {'.EQ.': '==', '.NE.': '!=', '.LT.': '<',
                          '.LE.': '<=', '.GT.': '>', '.GE.': '>='}
-            return '(f_char_cmp(' + lhs[0] + ', ' + str(lhs[1]) + ', ' + rhs[0] + ', ' + str(rhs[1]) + ') ' + operators[m.group(2)] + ' 0)'
-    return Expr(src, unit, units, line).read()
+            code = '(f_char_cmp(' + lhs[0] + ', ' + str(lhs[1]) + ', ' + rhs[0] + ', ' + str(rhs[1]) + ') ' + operators[m.group(2)] + ' 0)'
+            return (code, 'LOGICAL') if typed else code
+    parser = Expr(src, unit, units, line)
+    code = parser.read()
+    return (code, parser.expr_types[code]) if typed else code
 
 
 def c_string(s):
@@ -3284,14 +3304,19 @@ def convert(units, emit_units=None):
                 if arithmetic_labels:
                     value = 'f_arth_' + str(len(code))
                     extra_decls.append('float ' + value + ';')
-                    add([value + ' = ' + E(raw_condition, st.line) + ';'])
+                    tested, condition_type = expression(raw_condition, u, known, st.line, typed=True)
+                    if u.std == 'f77s' and condition_type not in ('INTEGER', 'REAL'):
+                        raise FortranError(st.line, 'F77S arithmetic IF requires numeric scalar expression')
+                    add([value + ' = ' + tested + ';'])
                     neg_pc = add([])
                     zero_pc = add([])
                     minus, zero, plus = (str(int(n)) for n in arithmetic_labels.groups())
                     conditional_gotos.append((neg_pc, value + ' < 0', minus, zero_pc, st.line))
                     conditional_gotos.append((zero_pc, value + ' == 0', zero, ('label', plus), st.line))
                 else:
-                    cond = E(raw_condition, st.line)
+                    cond, condition_type = expression(raw_condition, u, known, st.line, typed=True)
+                    if u.std == 'f77s' and condition_type != 'LOGICAL':
+                        raise FortranError(st.line, 'F77S logical IF requires LOGICAL expression')
                     check = add([])
                     if tail == 'THEN':
                         blocks.append({'kind': 'if', 'check': check, 'cond': cond, 'start': len(code)})
