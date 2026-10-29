@@ -658,3 +658,16 @@
 
 - Added the user-approved **Simplified P1** checklist to `rfortranc/docs/F77S-REMAINING.md`, immediately after the existing detailed checklist. It has **8 partial areas**: procedures; COMMON; EQUIVALENCE; DATA; arrays; CHARACTER; control flow; strict source validation. Each has concrete short remaining-work text and explicit test criteria.
 - External files, logical units and cassette I/O remain **excluded** from the release target. Historical code and tests are retained. This is a documentation checkpoint, not proof that any P1 feature is complete; no compiler/test execution in this milestone.
+
+## Project goal checkpoint — simplified P2 remaining work (2026-10-29)
+
+**P2 goal:** Reliable separate compilation and linkage of independently compiled FORTRAN units into working ZX-UX Z80 binaries, using only the user-approved F77S-derived language scope. **Status: PARTIAL.** Basic `.sso` compilation, `.ssx` linking/relinking, versioned SHA-256-bound ABI manifests, selected compatible COMMON layouts, native ZX-UX execution, and tested size rejection already work. Prior dedicated proof: 8/8 ABI, 9/9 relink, 4/4 separate-link checks on the recorded compiler revision; these results are not full P2 completion.
+
+**Remaining P2 work, required for project completion:**
+
+1. **COMMON compatibility:** Check compatible and incompatible named/blank COMMON storage layouts across independently built objects, including legal alternate storage views within the scoped language.
+2. **Procedure compatibility:** Complete cross-object checking of supported function/subroutine parameters, procedure actual/dummy passing, result types, and multi-unit procedure-call chains.
+3. **ABI validation:** Reject all relevant incompatible combinations of retained objects before linking, including stale/mismatched metadata; define and test the limitations of untagged legacy objects without claiming they are ABI-verified.
+4. **Independent compilation tests:** Add broad positive and negative tests built from separate source/object builds, run the resulting ZX-UX Z80 executables under the matched emulator, compare results independently where appropriate, and verify relinking and memory bounds.
+
+**Excluded:** cassette I/O, cassette/TZX generation and loading, external logical units and external-file I/O. Do not add these as conditions for finishing P2; preserve working legacy code. Completion requires passing real Z80 tests against the final compiler revision and updating `rfortranc/docs/F77S-REMAINING.md` and this root checkpoint with exact test results. This checkpoint records the agreed P2 work only; no compiler code or tests changed here. Other developers' files untouched.
