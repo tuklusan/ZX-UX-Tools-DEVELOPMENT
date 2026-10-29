@@ -59,3 +59,10 @@ Basic Z80 SSO object generation, SSX link/relink, ABI sidecars, and native execu
 
 - Removed dated historical test reports under `rfortranc/tests/results/`, superseded audit/history documents, and old long-form checkpoint text, while retaining compiler source, test scripts, FORTRAN regression fixtures, live docs, and unrelated work.
 - No compiler features or test outcomes are claimed by this cleanup. Next: review active scoped test runners, align RAM checks with 14,336 bytes, then resume P0/P1/P2 implementation and native validation.
+
+## Cleanup milestone — active runners and RAM target (2026-10-29)
+
+- Removed obsolete cassette/TZX-only test runners `tests/check_realtape.py`, `tests/check_release.py` and tape packaging helper `tools/release.py`. Removed the tape-only check from the retained independent-object relink runner; retained its binary identity, emulator, host comparison, bad object and link-memory tests.
+- Reset `tests/measure_memory.py` default static reservation budget to **14,336 bytes**. This is not a live peak-RAM measurement; full working-memory proof remains open. Replaced stale compiler README with compact usage and active test instructions.
+- Keep native link/build capabilities already present in the compiler; removing optional tape features from the compiler itself is not necessary to finish the agreed scope.
+- No feature or regression pass claimed from this cleanup. Next: run frontend and host tests on this exact revision; continue scoped P0/P1/P2 and add measured runtime RAM high-water checks.
