@@ -1,5 +1,8 @@
 # Still-missing ANSI F77S compiler requirements
 
+> **ACTIVE USER PRIORITY — 2026-10-28:** The next fresh chat must address and **close out every still-missing F77S requirement on this list before any separate demo-focused work or unrelated development**. Implement all P0/P1/P2 items and the proof gate, verify each against the actual compiler and target, and checkpoint `PROGRESS.MD` after each milestone. SIN/COS/EXP are *just the first items*, not the end goal. Keep exclusions strictly F77S (never full F77); don't claim closed without real evidence, and leave physical hardware marked open if it cannot be tested. The initial handover is at repository-root `PROGRESS.MD`; earlier historical checkpoints were retained losslessly under `rfortranc/docs/PROGRESS-HISTORY-THROUGH-F77S-GAP-AUDIT-2026-10-28.md`.
+
+
 Source inspection date 2026-10-28; compiler source revision `e03c72542a5048469110c100f502856b708f5f87` (audit-only commits after that). This is **Subset FORTRAN**, not full F77, using Appendix D of ANSI X3.9-1978. Status is *missing*, *partial*, or *unproven*; neither syntax acceptance nor previous 95-case runtime smoke tests prove complete conformance.
 
 | Priority | Status | Required remaining work |
