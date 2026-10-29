@@ -25,5 +25,5 @@ Deliver the **user-scoped F77S-derived FORTRAN compiler** that produces working 
 - **P0: 6 incomplete; P1: 8 incomplete; P2: 4 incomplete.** Existing compiler supports tested subsets of each area; re-evaluate each against the active checklist, don't reimplement working features.
 - Latest scope: console and internal CHARACTER I/O only; no external logical units; no physical Spectrum or tape. Static reservation test default now 14,336 bytes; **live peak-RAM proof remains unfinished**.
 - Previous dated test dumps have been removed. Keep live test sources, scripts and compiler code. Run tests anew against the current source; do not borrow older pass counts.
-- **Latest small step:** added `rfortranc/tests/negative/math_log_zero.f` (`1a188bd9`) and wired it into `check_math_domains.py` (`7c6f1522`). Native/emulator tests not yet run. All P0/P1/P2 items remain incomplete.
+- **Latest small step:** added `rfortranc/tests/negative/math_log_zero.f` (`1a188bd9`) and wired it into `check_math_domains.py` (`7c6f1522`). removed excluded TZX release test (`e1aef187`). Native/emulator tests not yet run. All P0/P1/P2 items remain incomplete.
 - **Next action:** wire the new domain fixture into emulator regression, run tests, continue P0 item 1.
