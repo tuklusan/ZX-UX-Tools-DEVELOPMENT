@@ -826,4 +826,31 @@ class F77SChecks(unittest.TestCase):
             self.assertIn(declaration, generated)
             self.assertLess(generated.index(declaration), data_pos)
 
+    def test_real_to_int_truncation_and_machine_guard(self):
+        src=(ROOT/'tests/fortran/f77s_int.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src, units)
+        c=convert(units)
+        self.assertIn('static int f_int_real(float x)', c)
+        self.assertIn('return (int)x;', c)
+        self.assertIn('x >= 32768.0 || x <= -32769.0', c)
+        self.assertIn('F_I = f_int_real(', c)
+        self.assertIn('F_J = f_int_real(', c)
+        self.assertIn('F_M = f_int_real(', c)
+
+    def test_int_wrong_arity_rejected(self):
+        for expression in ('INT()', 'INT(1.0,2.0)'):
+            source=('      PROGRAM BAD\n      INTEGER I\n'
+                    + '      I=' + expression + '\n      END\n')
+            with self.subTest(expression=expression), self.assertRaises(FortranError):
+                convert(parse(source, std='f77s'))
+
+    def test_original_machar_int_probe_parses_strict(self):
+        src=(ROOT/'tests/fortran/f77s_machar.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src, units)
+        c=convert(units)
+        self.assertIn('F_IBETA = f_int_real(', c)
+        self.assertIn('f_outexp(', c)
+
 if __name__=='__main__': unittest.main()
