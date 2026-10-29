@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "run_date": "2026-10-29",
+  "base_commit": "3658424d2513c0ec2f5624d55254019d90acc1ca",
+  "scope": "F77S STOP without code, code digits 1..5, CHARACTER diagnostic",
+  "translator_sha256": "94ac7024b67f70b84a5c0f32809b37ba39560413a2a2b89774ee722f59d3931f",
+  "sdk_archive_sha256": "42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17",
+  "tests": [
+    {
+      "name": "F77S frontend unit tests",
+      "passed": 178,
+      "total": 178,
+      "command": "python -m unittest discover -s tests -p test_f77s.py -q"
+    },
+    {
+      "name": "matched SDK native ZX-UX Z80 vs independent gfortran",
+      "passed": 2,
+      "total": 2,
+      "command": "python tests/check_stop.py --sdk <matched-source-sdk> --rvm <shipped-kernel-rvm> --report <report>",
+      "local_full_report_sha256": "405d2d19d110bc369f42a3f7b7b5fd2dbcce363976051a5281265fb4597e3181"
+    }
+  ],
+  "native_cases": [
+    {
+      "source": "f77s_stopmsg.f",
+      "ssx_bytes": 1240,
+      "ssx_sha256": "5c98ad11371373b4f079e50bedd2b7eff7af8b9be52eb0820861bab17e7e097d",
+      "host_and_native_exit": 0,
+      "z80_stdout": [
+        "  42",
+        "STOP DONE"
+      ],
+      "host_stdout": [
+        "  42"
+      ],
+      "host_stderr": "STOP DONE",
+      "frames": 130,
+      "syscalls": 22
+    },
+    {
+      "source": "f77s_stopnum.f",
+      "ssx_bytes": 1238,
+      "ssx_sha256": "122f8cdaa8b147cfbbc0049e640a1feee37149f7c54906b762668ae3900b3d24",
+      "host_and_native_exit": 42,
+      "z80_stdout": [
+        "  42",
+        "STOP 42"
+      ],
+      "host_stdout": [
+        "  42"
+      ],
+      "host_stderr": "STOP 42",
+      "frames": 130,
+      "syscalls": 22
+    }
+  ],
+  "rejected": [
+    "STOP I",
+    "STOP 1+2",
+    "STOP 123456",
+    "STOP 42.0"
+  ],
+  "positive_syntax": [
+    "STOP",
+    "STOP 00042",
+    "STOP 'DONE'",
+    "STOP 'CAN''T'"
+  ],
+  "complete_f77s_conformance": false,
+  "physical_hardware_tested": false,
+  "live_peak_ram_measured": false
+}

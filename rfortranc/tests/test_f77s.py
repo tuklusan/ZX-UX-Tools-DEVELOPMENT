@@ -1775,6 +1775,20 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(code=code), self.assertRaises(FortranError):
                 convert(parse(bad,std='f77s'))
 
+    def test_stop_code_and_character_message(self):
+        for command, terminal in (("STOP", "exit(0);"),
+                                  ("STOP 00042", "exit(42);"),
+                                  ("STOP 'DONE'", 'f_outstr("STOP DONE")'),
+                                  ("STOP 'CAN''T'", 'f_outstr("STOP CAN\'T")')):
+            source = '      PROGRAM STOPS\n      ' + command + '\n      END\n'
+            units = parse(source, std='f77s')
+            validate_source(source, units)
+            self.assertIn(terminal, convert(units))
+        for bad in ('STOP 1+2', 'STOP I', 'STOP 123456', 'STOP 42.0'):
+            source = '      PROGRAM BAD\n      ' + bad + '\n      END\n'
+            with self.subTest(bad=bad), self.assertRaisesRegex(FortranError, 'STOP code'):
+                convert(parse(source, std='f77s'))
+
     def test_f_format_p_scale_input_output(self):
         src = (ROOT/'tests/fortran/f77s_pscale.f').read_text()
         units = parse(src, std='f77s')

@@ -2923,8 +2923,22 @@ def convert(units, emit_units=None):
                 return
             if s == 'CONTINUE':
                 return
-            if s == 'STOP':
-                add(['exit(0);'], 'return'); return
+            stop = re.fullmatch(r'STOP(?:\s+([0-9]{1,5}|\'(?:[^\']|\'\')*\'|\"(?:[^\"]|\"\")*\"))?', s)
+            if stop:
+                token = stop.group(1)
+                if token is None:
+                    add(['exit(0);'], 'return')
+                elif token[0].isdigit():
+                    number = int(token)
+                    add(['f_outstr(\"STOP ' + str(number) + '\");',
+                         'putchar(10);', 'exit(' + str(number % 256) + ');'], 'return')
+                else:
+                    message = token[1:-1].replace(token[0] * 2, token[0])
+                    add(['f_outstr(' + c_string("'STOP " + message + "'") + ');',
+                         'putchar(10);', 'exit(0);'], 'return')
+                return
+            if re.match(r'^STOP(?:\s|$)', s):
+                raise FortranError(line, 'STOP code must be 1-5 digits or a CHARACTER constant')
             if s == 'RETURN':
                 add([ret_stmt()], 'return'); return
             m = re.fullmatch(r'GO\s*TO\s+(\d+)', s)
