@@ -669,7 +669,9 @@ class Expr:
                     lhs = 'f_' + t.lower() + '_real(' + ', '.join(params) + ')'
                     result_type = 'REAL'
                 elif t == 'MOD' and len(params) == 2:
-                    lhs = '((' + params[0] + ') % (' + params[1] + '))'
+                    if any(self.expr_types[p] != 'INTEGER' for p in params):
+                        raise FortranError(self.line, 'MOD needs two INTEGER arguments')
+                    lhs = 'f_mod_int(' + ', '.join(params) + ')'
                     result_type = 'INTEGER'
                 elif t in self.unit.externals and t in self.unit.args:
                     if (len(params) != 1 or self.unit.vars[t][0] not in ('INTEGER','REAL')
@@ -827,6 +829,12 @@ static int f_seqcheck(int start, int total, int needed) {
 static int f_extent(int declared, int available) {
     if (declared < 1 || declared > available) exit(2);
     return declared;
+}
+/* 16-bit signed MOD: trap divisor zero and MININT / -1 overflow. */
+static int f_mod_int(int a, int b) {
+    if (b == 0) exit(2);
+    if (a == -32768 && b == -1) exit(2);
+    return a % b;
 }
 static int f_ipow(int base, int e) {
     int n;

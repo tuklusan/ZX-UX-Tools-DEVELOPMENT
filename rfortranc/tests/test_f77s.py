@@ -1114,6 +1114,19 @@ class F77SChecks(unittest.TestCase):
                 with self.subTest(expression=bad),self.assertRaises(FortranError):
                     convert(parse(s,std='f77s'))
 
+    def test_integer_mod_intrinsic_has_guards_and_type_rules(self):
+        src=(ROOT/'tests/fortran/f77s_modint.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        result=convert(units)
+        self.assertIn('f_mod_int(',result)
+        self.assertIn('if (b == 0) exit(2);',result)
+        self.assertIn('if (a == -32768 && b == -1) exit(2);',result)
+        for expr in ('MOD(2.0,1)','MOD(2,1.0)','MOD(2)','MOD(2,1,1)'):
+            source='      PROGRAM BAD\n      INTEGER A\n      A='+expr+'\n      END\n'
+            with self.subTest(expr=expr),self.assertRaises(FortranError):
+                convert(parse(source,std='f77s'))
+
     def test_sign_and_dim_specific_typing(self):
         src=(ROOT/'tests/fortran/f77s_sigdim.f').read_text()
         units=parse(src,std='f77s')
