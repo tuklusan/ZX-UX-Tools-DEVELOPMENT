@@ -805,7 +805,7 @@ class F77SChecks(unittest.TestCase):
                '      PROGRAM BAD\n'
                '      END\n')
         with self.assertRaisesRegex(FortranError, 'continuation without preceding'):
-            validate_source(bad, parse(bad, std='f77s'))
+            validate_source(bad, [])
         allowed = ('      PROGRAM GOOD\n'
                    '      INTEGER X\n'
                    '      X=4\n'

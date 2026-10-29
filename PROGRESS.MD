@@ -562,3 +562,7 @@
 
 - Strict source gate now rejects a nonzero column-6 continuation if no preceding statement exists, rather than treating an orphan first line as a valid continuation. Ordinary nine-continuation and comment-before-continuation rules are unchanged. Added negative first-line and positive continued INTEGER expression tests.
 - GitHub Actions frontend and host checks must validate this revision; no ZX-UX runtime change or new hardware result is claimed. All P0/P1/P2 gaps in `rfortranc/docs/F77S-REMAINING.md` and physical Spectrum/peak-memory proof remain open.
+
+### Orphan-continuation CI correction (2026-10-29)
+
+- CI for `51a13cf` failed because the parser *already* detects orphan continuation lines first, using the different wording `orphaned continuation line`. Corrected the new validator unit test to exercise the strict validator directly, without first invoking the parser. Compiler parser behavior remains unchanged; only validation coverage is new. CI must pass before counting this milestone.
