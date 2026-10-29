@@ -1288,6 +1288,23 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(item=item), self.assertRaises(FortranError):
                 convert(parse(src, std='f77s'))
 
+    def test_integer_variable_console_units(self):
+        src = (ROOT/'tests/fortran/f77s_unitvar.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        c = convert(units)
+        self.assertIn('if (F_INU != 5) exit(2);', c)
+        self.assertIn('if (F_OUTU != 6) exit(2);', c)
+        for decl in ('REAL INU', 'LOGICAL INU'):
+            bad = src.replace('INTEGER INU,OUTU,N', decl+'\n      INTEGER OUTU,N')
+            with self.subTest(decl=decl), self.assertRaisesRegex(FortranError,'unit must be INTEGER scalar'):
+                convert(parse(bad,std='f77s'))
+        for replacement in ('READ(7,10) N', 'READ(OUTU,10) N'):
+            bad = src.replace('READ(INU,10) N', replacement)
+            if replacement.startswith('READ(7'):
+                with self.assertRaisesRegex(FortranError,'console unit 5'):
+                    convert(parse(bad,std='f77s'))
+
     def test_rightmost_nested_format_reversion(self):
         src=(ROOT/'tests/fortran/f77s_nestrevert.f').read_text()
         units=parse(src,std='f77s')

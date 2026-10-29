@@ -1975,15 +1975,27 @@ def convert(units, emit_units=None):
                 n = add([E(var, line) + ' = ' + label + ';'])
                 gotos.append((None, label, line))  # validate target exists, including FORMAT
                 return
+            def console_unit_guard(identifier, required):
+                if identifier in (str(required), '*'):
+                    return None
+                if u.std == 'f77s' and NAME_RE.fullmatch(identifier):
+                    if u.vars.get(identifier) != ('INTEGER', None):
+                        raise FortranError(line, 'formatted I/O unit must be INTEGER scalar')
+                    return 'if (F_' + identifier + ' != ' + str(required) + ') exit(2);'
+                raise FortranError(line, 'ZX-UX formatted I/O supports only console unit ' + str(required))
+            unit_ident = r'(\d{1,5}|\*|[A-Z][A-Z0-9_]*)'
             fmt_ident = r'(\d{1,5}|[A-Z][A-Z0-9_]*|\'(?:[^\']|\'\')*\'|"(?:[^"]|"")*")'
-            fm = re.fullmatch(r'WRITE\s*\(\s*(6|\*)\s*,\s*' + fmt_ident + r'\s*\)\s*(.*)', s)
+            fm = re.fullmatch(r'WRITE\s*\(\s*' + unit_ident + r'\s*,\s*' + fmt_ident + r'\s*\)\s*(.*)', s)
             if fm:
                 channel, format_label, arguments = fm.groups()
+                guard = console_unit_guard(channel, 6)
                 if NAME_RE.fullmatch(format_label):
                     assigned_format('WRITE', channel, format_label, arguments, line)
                     return
                 format_ops = resolve_format(format_label, line)
                 values = split_items(arguments) if arguments.strip() else []
+                if guard and u.std == 'f77s' and values and values[0].startswith('('):
+                    raise FortranError(line, 'variable unit with runtime implied-DO is not yet implemented')
                 if u.std == 'f77s' and runtime_io_implied_do(values, format_ops, 'WRITE', line):
                     return
                 if u.std == 'f77s':
@@ -1991,7 +2003,7 @@ def convert(units, emit_units=None):
                 else:
                     index_updates = []
                 format_ops = revert_simple_format(format_ops, len(values), format_label, line)
-                operations = []
+                operations = [guard] if guard else []
                 pos = 0
                 scale_factor = 0
                 for mode, item in format_ops:
@@ -2061,14 +2073,17 @@ def convert(units, emit_units=None):
                 operations.extend('F_' + var + ' = ' + str(value) + ';' for var, value in index_updates)
                 add(operations)
                 return
-            fm = re.fullmatch(r'READ\s*\(\s*(5|\*)\s*,\s*' + fmt_ident + r'\s*\)\s*(.*)', s)
+            fm = re.fullmatch(r'READ\s*\(\s*' + unit_ident + r'\s*,\s*' + fmt_ident + r'\s*\)\s*(.*)', s)
             if fm:
                 channel, format_label, arguments = fm.groups()
+                guard = console_unit_guard(channel, 5)
                 if NAME_RE.fullmatch(format_label):
                     assigned_format('READ', channel, format_label, arguments, line)
                     return
                 format_ops = resolve_format(format_label, line)
                 values = split_items(arguments) if arguments.strip() else []
+                if guard and u.std == 'f77s' and values and values[0].startswith('('):
+                    raise FortranError(line, 'variable unit with runtime implied-DO is not yet implemented')
                 if u.std == 'f77s' and runtime_io_implied_do(values, format_ops, 'READ', line):
                     return
                 if u.std == 'f77s':
@@ -2076,7 +2091,7 @@ def convert(units, emit_units=None):
                 else:
                     index_updates = []
                 format_ops = revert_simple_format(format_ops, len(values), format_label, line)
-                operations = ['f_fmt_bzero = 0;']
+                operations = ([guard] if guard else []) + ['f_fmt_bzero = 0;']
                 pos = 0
                 scale_factor = 0
                 for mode, item in format_ops:

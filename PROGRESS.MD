@@ -346,3 +346,9 @@
 - Corrected strict source-label handling: the fixed-form reader now accepts blanks interspersed among digits in columns 1–5, normalizes them to a numeric label, and the F77S gate handles them without raising Python `ValueError`. Invalid zero labels remain rejected. Example `1 2 3 CONTINUE` is label 123, not three statements.
 - Added positive strict parse+lowering test. The source gate tab check is independent of this fix. Exact pushed GitHub frontend/host Actions must be checked; no Z80 codegen changes expected for ordinary labels.
 - Still partial P1 lexical and P0/P1/P2 overall; no new complete native suite, measured peak RAM or physical Spectrum proof.
+
+## Milestone — formatted console I/O with INTEGER unit variables (2026-10-29)
+
+- Added strict F77S `READ(INU,fmt)` / `WRITE(OUTU,fmt)` for scalar INTEGER unit variables. The generated native code checks values at runtime: ZX-UX console input unit 5 or output unit 6; other values terminate with exit code 2 instead of quietly writing to the wrong device. Constants for other units remain deliberately rejected until non-console file I/O is truly implemented. Dynamic-unit runtime implied-DO is currently rejected rather than miscompiled.
+- New strict `f77s_unitvar.f` uses `INU=5`, `OUTU=6` with formatted I4 READ and I5 WRITE; supplied input `  42` and expected output `   42`. Positive and invalid-type frontend tests, native and independent gfortran harness registration added. At this checkpoint, source review completed; actual Z80 execution and exact SHA GitHub Actions result are pending and must not be claimed.
+- Remaining P0 file I/O (direct/unformatted/internal, non-console units, END/IOSTAT) and P1 OPEN/positioning are still open, along with other P0/P1/P2 and physical/peak RAM proof. Not production-ready.
