@@ -798,6 +798,11 @@ static float f_sqrt_real(float x) {
     if (x < 0.0) exit(2);
     return sqrt(x);
 }
+static int f_add_checked(int a, int b) {
+    if (b > 0 && a > 32767 - b) exit(2);
+    if (b < 0 && a < ((-32767 - b) - 1)) exit(2);
+    return a + b;
+}
 static int f_index(int n, int size) {
     if (n < 1 || n > size) exit(2);
     return n - 1;
@@ -1752,6 +1757,74 @@ def convert(units, emit_units=None):
                 result.append('}')
             result.append('if (!' + flag + ') exit(2);')
             add(result)
+        def runtime_io_implied_do(values, format_ops, mode, line):
+            """One runtime-count INTEGER array-list implied DO and I edit.
+
+            FORMAT I edits must be identical; wrap at the descriptor repeat
+            count. Nonstandard device mapping and general lists remain errors.
+            """
+            if len(values) != 1 or not values[0].startswith('(') or not values[0].endswith(')'):
+                return False
+            parts = split_items(values[0][1:-1])
+            if len(parts) not in (3, 4):
+                return False
+            target = re.fullmatch(r'(' + NAME + r')\s*\(\s*(' + NAME + r')\s*\)', parts[0].strip())
+            control = re.fullmatch(r'(' + NAME + r')\s*=\s*([+-]?[0-9]+|' + NAME + r')', parts[1].strip())
+            if not target or not control or target.group(2) != control.group(1):
+                return False
+            var, first = control.groups()
+            if u.vars.get(var) != ('INTEGER', None):
+                raise FortranError(line, 'runtime implied-DO needs INTEGER scalar control')
+            array = target.group(1)
+            ty, extent = u.vars.get(array, (None, None))
+            if ty != 'INTEGER' or extent is None or (isinstance(extent, tuple) and len(extent) != 1):
+                raise FortranError(line, 'runtime I/O implied-DO currently requires rank-1 INTEGER array')
+            values_expr = [first] + parts[2:]
+            for token in values_expr:
+                if not re.fullmatch(r'[+-]?[0-9]+|' + NAME, token):
+                    raise FortranError(line, 'implied-DO runtime bound must be INTEGER variable or constant')
+                if NAME_RE.fullmatch(token) and u.vars.get(token) != ('INTEGER', None):
+                    raise FortranError(line, 'implied-DO bound must be INTEGER scalar: ' + token)
+            if not any(NAME_RE.fullmatch(token) for token in values_expr):
+                return False  # fixed-count I/O expansion retains its original behavior
+            step = values_expr[2] if len(values_expr) == 3 else '1'
+            if step == '0':
+                raise FortranError(line, 'implied-DO step must be nonzero')
+            widths = [item for kind, item in format_ops if kind == 'integer']
+            if not widths or len(widths) != len(format_ops) or len(set(widths)) != 1:
+                raise FortranError(line, 'runtime implied-DO needs uniform FORMAT I descriptors')
+            n = len(widths)
+            if n > 255:
+                raise FortranError(line, 'FORMAT field count exceeds target 255 cap')
+            unique = str(len(code))
+            end = 'f_iend_' + unique
+            inc = 'f_istep_' + unique
+            count = 'f_icount_' + unique
+            for name in (end, inc, count):
+                extra_decls.append('int ' + name + ';')
+            bound_expr = lambda token: E(token, line)
+            body = [end + ' = ' + bound_expr(values_expr[1]) + ';',
+                    inc + ' = ' + bound_expr(step) + ';',
+                    count + ' = 0;',
+                    'F_' + var + ' = ' + bound_expr(first) + ';',
+                    'if (' + inc + ' == 0) exit(2);']
+            if mode == 'READ':
+                body.append('f_fmt_bzero = 0;')
+            body += ['while ((' + inc + ' > 0 && F_' + var + ' <= ' + end +
+                     ') || (' + inc + ' < 0 && F_' + var + ' >= ' + end + ')) {',
+                     '    if (' + count + ' >= 255) exit(2);']
+            if mode == 'READ':
+                body.append('    if (' + count + ' && (' + count + ' % ' + str(n) + ') == 0) f_fmt_end();')
+                body.append('    ' + E(parts[0], line) + ' = f_fmt_int(' + str(widths[0]) + ');')
+            else:
+                body.append('    if (' + count + ' && (' + count + ' % ' + str(n) + ') == 0) putchar(10);')
+                body.append('    f_outintw(' + E(parts[0], line) + ', ' + str(widths[0]) + ');')
+            body += ['    ' + count + ' = ' + count + ' + 1;',
+                     '    F_' + var + ' = f_add_checked(F_' + var + ', ' + inc + ');',
+                     '}', 'f_fmt_end();' if mode == 'READ' else 'putchar(10);']
+            add(body)
+            return True
+
         def stmt(s, line):
             sf = re.match(r'^(' + NAME + r')\s*\(', s)
             if sf and sf.group(1) in u.statement_functions:
@@ -1786,6 +1859,8 @@ def convert(units, emit_units=None):
                     return
                 format_ops = resolve_format(format_label, line)
                 values = split_items(arguments) if arguments.strip() else []
+                if u.std == 'f77s' and runtime_io_implied_do(values, format_ops, 'WRITE', line):
+                    return
                 if u.std == 'f77s':
                     values, index_updates = expand_static_io_items(values, u, line)
                 else:
@@ -1869,6 +1944,8 @@ def convert(units, emit_units=None):
                     return
                 format_ops = resolve_format(format_label, line)
                 values = split_items(arguments) if arguments.strip() else []
+                if u.std == 'f77s' and runtime_io_implied_do(values, format_ops, 'READ', line):
+                    return
                 if u.std == 'f77s':
                     values, index_updates = expand_static_io_items(values, u, line)
                 else:

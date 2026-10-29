@@ -1181,9 +1181,25 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('F_A[(f_index(3, 3))] = f_fmt_int(3);', generated)
         self.assertIn('F_I = 4;', generated)
 
+    def test_runtime_bound_io_implied_do_read_write(self):
+        source=(ROOT/'tests/fortran/f77s_vario.f').read_text()
+        units=parse(source,std='f77s')
+        validate_source(source,units)
+        c=convert(units)
+        self.assertIn('f_iend_1 = F_N;',c)
+        self.assertIn('F_I = F_N;',c)
+        self.assertIn('f_fmt_int(3);',c)
+        self.assertIn('f_add_checked(F_I, f_istep_',c)
+        for ctrl in ('I=1,N,0', 'I=1,R', 'I=1,N,R'):
+            bad=('      PROGRAM BAD\n      INTEGER A(5),I,N\n'
+                 '      REAL R\n      WRITE(6,10) (A(I),'+ctrl+')\n'
+                 '   10 FORMAT(2I4)\n      END\n')
+            with self.subTest(ctrl=ctrl),self.assertRaises(FortranError):
+                convert(parse(bad,std='f77s'))
+
     def test_io_implied_do_rejects_bad_controls_and_expressions(self):
-        for item in ('(A(I),I=1,N)', '(A(I),I=1,3,0)', '(A(I),I=1,3,1+1)', 'A(1+1)', 'A(1)+1'):
-            src = ('      PROGRAM BAD\n      INTEGER A(3),I,N\n'
+        for item in ('(A(I),I=1,R)', '(A(I),I=1,3,0)', '(A(I),I=1,3,1+1)', 'A(1+1)', 'A(1)+1'):
+            src = ('      PROGRAM BAD\n      INTEGER A(3),I,N\n      REAL R\n'
                    '      WRITE(6,10) ' + item + '\n'
                    '   10 FORMAT(3I4)\n      END\n')
             with self.subTest(item=item), self.assertRaises(FortranError):
