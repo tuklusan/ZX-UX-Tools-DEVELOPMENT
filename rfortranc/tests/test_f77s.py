@@ -1083,6 +1083,25 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaisesRegex(FortranError,'nested FORMAT reversion'):
             convert(parse(grouped,std='f77s'))
 
+    def test_blank_common_unequal_unit_views_and_sparse_runtime(self):
+        src=(ROOT/'tests/fortran/f77s_blankvary.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        merged=convert(units)
+        self.assertIn('static int f_com_0_2;',merged)
+        sub=convert(units,emit_units={'INC'})
+        self.assertIn('extern int f_com_0_2;',sub)
+        self.assertIn('void f_INC(void) {',sub)
+        self.assertNotIn('static void f_outint(',sub)
+        self.assertNotIn('static int f_fmt_get(',sub)
+        self.assertLess(len(sub),1500)
+        invalid=('      PROGRAM BAD\n      INTEGER N\n'
+                 '      COMMON N\n      END\n'
+                 '      SUBROUTINE X()\n      REAL R\n'
+                 '      COMMON R\n      END\n')
+        with self.assertRaisesRegex(FortranError,'COMMON.*mismatch'):
+            convert(parse(invalid,std='f77s'))
+
     def test_cross_unit_common_external_linkage(self):
         folder=ROOT/'tests/fortran/separate'
         src=(folder/'common_main.f').read_text()+(folder/'common_sub.f').read_text()

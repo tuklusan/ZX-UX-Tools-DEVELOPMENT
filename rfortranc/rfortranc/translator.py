@@ -1345,6 +1345,52 @@ static float f_rpow_real(float base, float power) {
 }
 
 
+def sparse_runtime(runtime, used_in):
+    """Keep only C48 runtime functions reachable from one linked SSO unit.
+
+    The legacy monolithic translator emitted every runtime helper into every
+    SSO. Separate compilation had an O(units * runtime) footprint. Scan the
+    static function bodies and recursively retain only reachable helpers.
+    Do not change the ABI or remove range checks from the retained helpers.
+    """
+    head = re.compile(r'^static\s+(?:void|int|float|char)\s*\*?\s*(f_[a-z0-9_]+)\s*\(', re.M)
+    functions = {}
+    for match in head.finditer(runtime):
+        opening = runtime.find('{', match.end())
+        if opening == -1:
+            raise ValueError('malformed C48 runtime helper definition')
+        depth = 0
+        closing = -1
+        for position in range(opening, len(runtime)):
+            if runtime[position] == '{':
+                depth += 1
+            elif runtime[position] == '}':
+                depth -= 1
+                if depth == 0:
+                    closing = position + 1
+                    break
+        if closing == -1:
+            raise ValueError('unbalanced C48 runtime helper definition')
+        functions[match.group(1)] = runtime[match.start():closing]
+    if len(functions) < 25:
+        raise ValueError('runtime helper scanning lost functions')
+    required = {name for name in functions
+                if re.search(r'\b' + name + r'\s*\(', used_in)}
+    pending = list(required)
+    while pending:
+        source = functions[pending.pop()]
+        for name in functions:
+            if name not in required and re.search(r'\b' + name + r'\s*\(', source):
+                required.add(name)
+                pending.append(name)
+    functions_src = '\n'.join(body for name, body in functions.items() if name in required)
+    globals_src = ''
+    for name in ('f_fmt_eor', 'f_fmt_bzero'):
+        if re.search(r'\b' + name + r'\b', used_in + functions_src):
+            globals_src += 'static int ' + name + ';\n'
+    return '#include <c48.h>\n' + globals_src + functions_src + '\n'
+
+
 def convert(units, emit_units=None):
     """Build explicit control-flow blocks, then lower them to portable C48.
 
@@ -2152,4 +2198,6 @@ def convert(units, emit_units=None):
         needed.update(('EXP', 'LOG'))
     chunks[1:1] = [REAL_MATH_RUNTIME[name] for name in
                     ('SIN', 'COS', 'EXP', 'LOG', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'ALOG10', 'RIPOW', 'RPOW') if name in needed]
+    if emit_units is not None:
+        chunks[0] = sparse_runtime(RUNTIME, '\n'.join(chunks[1:]))
     return '\n\n'.join(chunks) + '\n'

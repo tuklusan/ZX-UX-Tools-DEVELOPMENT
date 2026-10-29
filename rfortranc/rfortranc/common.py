@@ -2,8 +2,8 @@
 
 Fixed scalar and constant-bound INTEGER/REAL/LOGICAL arrays are handled here.
 Layout uses storage sequence position; array extents can differ in rank if the
-flat storage extent and numeric element type agree. Named and blank COMMON
-are supported with restricted equal-size views. F77S SAVE /name/ is validated.
+flat storage extent and numeric element type agree. Named COMMON requires matching views; blank COMMON permits distinct lengths
+with identical overlapping numeric slots. F77S SAVE /name/ is validated.
 """
 import re
 from .translator import FortranError, NAME, split_items
@@ -87,6 +87,15 @@ def layout(units):
             types = list(members)
             if block not in blocks:
                 blocks[block] = types
+            elif block == '0':
+                # Blank COMMON may have different extents in distinct units.
+                # Keep the longest storage sequence, but still reject an
+                # incompatible view of any overlapping declared slot.
+                previous = blocks[block]
+                if any(a != b for a, b in zip(previous, types)):
+                    raise FortranError(unit.line, 'blank COMMON overlapping layout mismatch')
+                if len(types) > len(previous):
+                    blocks[block] = types
             elif blocks[block] != types:
                 raise FortranError(unit.line, 'COMMON block layout mismatch: /' + block + '/')
         if per_name:
