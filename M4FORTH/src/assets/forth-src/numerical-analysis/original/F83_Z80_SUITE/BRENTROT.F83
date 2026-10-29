@@ -1,0 +1,29 @@
+( SAFEGUARDED SECANT/BISECTION, FIXED POINT. )
+VARIABLE BRMODE VARIABLE BRA VARIABLE BRB
+VARIABLE BRFA VARIABLE BRFB VARIABLE BRC VARIABLE BRFC
+VARIABLE BRIT
+: BR-F ( x -- y )
+  DUP DUP F* BRMODE @ 1 = IF SWAP DROP 2000 -
+  ELSE OVER F* SWAP - 2000 - THEN ;
+: BRENT-ROOT
+  3 1 DO I BRMODE ! 1000 BRA ! 2000 BRB !
+    BRA @ BR-F BRFA ! BRB @ BR-F BRFB !
+    16 0 DO
+      I BRIT !
+      BRFA @ BRFB @ - 0= IF
+        BRA @ BRB @ + 2 /
+      ELSE
+        BRFB @ BRB @ BRA @ - BRFB @ BRFA @ - */
+        BRB @ SWAP -
+      THEN BRC !
+      BRC @ BRA @ 1+ < BRC @ BRB @ 1- > OR
+      IF BRA @ BRB @ + 2 / BRC ! THEN
+      BRC @ BR-F BRFC !
+      BRFA @ 0< BRFC @ 0< =
+      IF BRC @ BRA ! BRFC @ BRFA !
+      ELSE BRC @ BRB ! BRFC @ BRFB ! THEN
+    LOOP
+    ." BRENT " BRMODE @ . BRA @ BRB @ + 2 / .
+    BRA @ BRB @ + 2 / BR-F . CR
+  LOOP ;
+BRENT-ROOT

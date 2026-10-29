@@ -1,0 +1,35 @@
+( LEAST SQUARES NORMAL EQUATIONS, NC=3/4. )
+CREATE PC 10 ALLOT CREATE PP 18 ALLOT
+VARIABLE PN VARIABLE PM VARIABLE PNC VARIABLE PX
+VARIABLE PY VARIABLE PT VARIABLE PE VARIABLE PK
+: POLY-FIT
+  3 1 DO I PM ! I 2 + PNC ! I 2 * 7 + PN !
+    0 0 PC A! 0 1 PC A! 0 2 PC A! 0 3 PC A!
+    I 1 = IF
+      1000 0 PC A! 500 1 PC A! -250 2 PC A!
+    ELSE
+      250 0 PC A! -400 1 PC A!
+      300 2 PC A! -100 3 PC A! THEN
+    PNC @ 0 DO
+      0 I LB A!
+      PNC @ 0 DO 0 I J LA M! LOOP LOOP
+    PN @ 0 DO
+      I 2 * PN @ 1- - 1000 PN @ 1- */ PX !
+      1000 0 PP A!
+      8 1 DO I 1- PP A@ PX @ F* I PP A! LOOP
+      0 PY ! PNC @ 0 DO
+        I PC A@ I PP A@ F* PY @ + PY ! LOOP
+      PNC @ 0 DO I PK !
+        I LB A@ PY @ I PP A@ F* + I LB A!
+        PNC @ 0 DO
+          I PK @ LA M@ PK @ PP A@ I PP A@ F* +
+          I PK @ LA M!
+        LOOP LOOP
+    LOOP
+    PNC @ LINSOLVE
+    0 PE ! PNC @ 0 DO
+      I LB A@ I PC A@ - ABS PE @ MAX PE ! LOOP
+    ." POLYFIT " PM @ . PN @ . PNC @ . PE @ .
+    0 LB A@ . PNC @ 1- LB A@ . CR
+  LOOP ;
+POLY-FIT

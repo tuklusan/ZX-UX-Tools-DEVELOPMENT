@@ -1,0 +1,45 @@
+( SPD MATRIX GENERATE / CHOLESKY, N=5/7. )
+CREATE CL0 128 ALLOT CREATE CA 128 ALLOT
+CREATE CL 128 ALLOT
+VARIABLE CN VARIABLE CM VARIABLE CI VARIABLE CJ
+VARIABLE CK VARIABLE CS VARIABLE CE
+: C8@ >R 8 * + 2 * R> + @ ;
+: C8! >R 8 * + 2 * R> + ! ;
+: CHOLESKY
+  3 1 DO I CM ! I 2 * 3 + CN !
+    CN @ 0 DO CN @ 0 DO
+      I J < IF 0 ELSE
+        I J = IF I 100 * 2000 + ELSE I J - 25 * THEN
+      THEN I J CL0 C8!
+      0 I J CL C8!
+    LOOP LOOP
+    CN @ 0 DO
+      I CJ !
+      CN @ 0 DO
+        I CI ! 0 CS !
+        CN @ 0 DO
+          CI @ I CL0 C8@ CJ @ I CL0 C8@ F*
+          CS @ + CS !
+        LOOP
+        CS @ CI @ CJ @ CA C8!
+      LOOP
+    LOOP
+    CN @ 0 DO
+      I CJ ! CN @ I DO
+        I CI ! CI @ CJ @ CA C8@ CS !
+        CJ @ 0> IF
+          CJ @ 0 DO
+            CS @ CI @ I CL C8@ CJ @ I CL C8@ F* - CS !
+          LOOP
+        THEN
+        CI @ CJ @ = IF CS @ FSQRT ELSE
+          CS @ CJ @ CJ @ CL C8@ F/ THEN
+        CI @ CJ @ CL C8!
+      LOOP
+    LOOP
+    0 CE ! CN @ 0 DO CN @ I DO
+      I J CL C8@ I J CL0 C8@ - ABS CE @ MAX CE !
+    LOOP LOOP
+    ." CHOLESKY " CM @ . CN @ . CE @ . CR
+  LOOP ;
+CHOLESKY

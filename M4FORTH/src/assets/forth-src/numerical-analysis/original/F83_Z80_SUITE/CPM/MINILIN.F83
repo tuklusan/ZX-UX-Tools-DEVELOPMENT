@@ -1,0 +1,19 @@
+( TRIMMED LINPACK-LIKE GENERATE/FACTOR/SOLVE. )
+VARIABLE MN VARIABLE MM VARIABLE ME VARIABLE MT
+: MINI-LINPACK
+  3 1 DO I MM ! I 3 * 2 + MN !
+    MN @ 0 DO MN @ 0 DO
+      I J + 25 * I J = IF DROP 4000 THEN
+      I J LA M!
+    LOOP LOOP
+    MN @ 0 DO
+      0 MT ! MN @ 0 DO
+        J I LA M@ 1000 I 50 * + F* MT @ + MT !
+      LOOP MT @ I LB A!
+    LOOP
+    MN @ LINSOLVE
+    0 ME ! MN @ 0 DO
+      I LB A@ 1000 I 50 * + - ABS ME @ MAX ME ! LOOP
+    ." MINILIN " MM @ . MN @ . ME @ . 0 LB A@ . CR
+  LOOP ;
+MINI-LINPACK

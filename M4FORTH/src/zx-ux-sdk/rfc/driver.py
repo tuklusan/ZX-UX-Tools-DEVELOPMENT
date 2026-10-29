@@ -62,7 +62,31 @@ PRELUDE = """
 : 2! swap over ! 2+ ! ;
 : <> = invert ;
 : 0<> 0= invert ;
-: */mod >r um* r> um/mod ;
+variable rfc-sma variable rfc-smb variable rfc-smdiv
+variable rfc-smd variable rfc-smps variable rfc-smqs
+variable rfc-smr variable rfc-smq
+: */mod
+  >r
+  r> dup 0< rfc-smd ! abs rfc-smdiv !
+  rfc-smb ! rfc-sma !
+  rfc-sma @ 0< rfc-smb @ 0< xor rfc-smps !
+  rfc-sma @ abs rfc-sma ! rfc-smb @ abs rfc-smb !
+  rfc-sma @ rfc-smb @ um* rfc-smdiv @ um/mod
+  rfc-smq ! rfc-smr !
+  rfc-smps @ rfc-smd @ xor rfc-smqs !
+  rfc-smr @ 0= if
+    rfc-smq @ rfc-smqs @ if negate then
+    0 swap
+  else
+    rfc-smqs @ if
+      rfc-smdiv @ rfc-smr @ -
+      rfc-smd @ if negate then
+      rfc-smq @ negate 1-
+    else
+      rfc-smr @ rfc-smd @ if negate then
+      rfc-smq @
+    then
+  then ;
 : */ */mod nip ;
 : cells 2* ;
 : cell+ 2+ ;

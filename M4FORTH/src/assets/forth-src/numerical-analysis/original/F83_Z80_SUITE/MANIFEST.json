@@ -1,0 +1,186 @@
+{
+  "suite": "Forth-83 Z80 microcomputer integer and fixed-point demos",
+  "programs": 20,
+  "support_files": [
+    "COMMON",
+    "LINCORE"
+  ],
+  "arithmetic": "signed 16-bit cells; fixed Q=1000; floored division; Forth-83 D+ and UM/MOD",
+  "host_execution": "Python constrained 16-bit Forth-83 semantic model (NOT a target compiler)",
+  "standard_audit": "source tokens restricted to original Forth-83 required words plus user definitions",
+  "results": "20/20 executed; 20/20 independent property oracles; 20/20 golden output checks",
+  "largest_declared_data_bytes": 1558,
+  "notes": "Declared data does not count compiled threaded-code dictionary, Forth kernel, stacks, block buffers, or runtime.",
+  "source": {
+    "COMMON": {
+      "bytes": 607,
+      "lines": 20,
+      "sha256": "f9baff5136fea8f632f135bb1b20ee369d1de7f1d455d7634d5b1cd5c391ee58"
+    },
+    "LINCORE": {
+      "bytes": 1128,
+      "lines": 44,
+      "sha256": "671119954f4ebf0dce394d53395574d0ab75b62ac382dd331aaf5066c2821fa0"
+    },
+    "WHETSTON": {
+      "bytes": 734,
+      "lines": 22,
+      "sha256": "91fa1e9fa78a84075cbed09bd941fa3342bd76a63a3ecd0f90daa32b70e96632",
+      "static_data_bytes": 28,
+      "vm_steps": 33183,
+      "peak_data_stack_cells": 4
+    },
+    "MACHAR": {
+      "bytes": 291,
+      "lines": 8,
+      "sha256": "bc0406284967b1c395e417817f9b41f3ae72b97ad18dd54a2138290ff83f4c6e",
+      "static_data_bytes": 10,
+      "vm_steps": 29,
+      "peak_data_stack_cells": 2
+    },
+    "LCGRAND": {
+      "bytes": 540,
+      "lines": 18,
+      "sha256": "4678f2ec2b9d04e071559a84c7e689c14821ecda231226bde1bed140e9d750e7",
+      "static_data_bytes": 22,
+      "vm_steps": 8803,
+      "peak_data_stack_cells": 3
+    },
+    "SQUARE": {
+      "bytes": 315,
+      "lines": 12,
+      "sha256": "0c5a017e20d2ee54f6dc3974a94e4995c355b08238d5d18c8162d234c1a80339",
+      "static_data_bytes": 18,
+      "vm_steps": 26761,
+      "peak_data_stack_cells": 3
+    },
+    "MINILIN": {
+      "bytes": 519,
+      "lines": 19,
+      "sha256": "2a714c4af336e7d6c97b78fdd920b9510ee1a915e8152fc63f524415931a8953",
+      "static_data_bytes": 564,
+      "vm_steps": 20381,
+      "peak_data_stack_cells": 5
+    },
+    "GEMM8BIT": {
+      "bytes": 647,
+      "lines": 21,
+      "sha256": "3483f784638acc8e4ee15114fc67ac36d45ab0b416368a7d40d53fbeb33d677c",
+      "static_data_bytes": 1558,
+      "vm_steps": 315387,
+      "peak_data_stack_cells": 5
+    },
+    "LUPIVOT": {
+      "bytes": 587,
+      "lines": 21,
+      "sha256": "3ddd3eb74713576f163288e5e4749f90ef602db9f3fe887d3ca73a1522a5fc5c",
+      "static_data_bytes": 564,
+      "vm_steps": 26288,
+      "peak_data_stack_cells": 5
+    },
+    "THOMASTR": {
+      "bytes": 889,
+      "lines": 29,
+      "sha256": "a3aef5121ce4e866430d92f05f73617d00a9a8dc84598a7e25b4a544aba3067e",
+      "static_data_bytes": 180,
+      "vm_steps": 7063,
+      "peak_data_stack_cells": 5
+    },
+    "CHOLESKY": {
+      "bytes": 1126,
+      "lines": 45,
+      "sha256": "a85be73ca41f2e06e802e5827402ea5cd03689cdf07a1724bf2b817e8b93193f",
+      "static_data_bytes": 408,
+      "vm_steps": 31525,
+      "peak_data_stack_cells": 5
+    },
+    "BRENTROT": {
+      "bytes": 848,
+      "lines": 29,
+      "sha256": "0789e6d06d51345c11f60bd5d5e0886d3d1a74bbd6ee600d34fb53b0574cc6e1",
+      "static_data_bytes": 26,
+      "vm_steps": 3028,
+      "peak_data_stack_cells": 4
+    },
+    "NEWTON": {
+      "bytes": 401,
+      "lines": 15,
+      "sha256": "aa7ddd74f4e716819b4b89e7bd5e5b74978da88318b0c9bf30a07aa549a532cd",
+      "static_data_bytes": 18,
+      "vm_steps": 853,
+      "peak_data_stack_cells": 4
+    },
+    "BISECT": {
+      "bytes": 483,
+      "lines": 15,
+      "sha256": "a97b64fb26ca0138d3f5b7bd740695f74b9d174948f5f279161bb7a581403956",
+      "static_data_bytes": 24,
+      "vm_steps": 1971,
+      "peak_data_stack_cells": 5
+    },
+    "ROMBERG": {
+      "bytes": 667,
+      "lines": 27,
+      "sha256": "a51b75604496e3581442b72700eedd94ceac86792821a8e48e9f579cffe1f003",
+      "static_data_bytes": 534,
+      "vm_steps": 5587,
+      "peak_data_stack_cells": 4
+    },
+    "SIMPSON": {
+      "bytes": 544,
+      "lines": 19,
+      "sha256": "11fb60551863e7d5f1ecd1f2fb9ccd4f75390f3b0c5adc94a38bff22e3efbad1",
+      "static_data_bytes": 22,
+      "vm_steps": 29299,
+      "peak_data_stack_cells": 5
+    },
+    "GAUSS1D": {
+      "bytes": 390,
+      "lines": 15,
+      "sha256": "86c29cbac7d45ead358fc796d14fa6995dbe5f70c2b7a254222c078ab99b68ef",
+      "static_data_bytes": 32,
+      "vm_steps": 1787,
+      "peak_data_stack_cells": 5
+    },
+    "RK4FIXED": {
+      "bytes": 598,
+      "lines": 19,
+      "sha256": "6211657080b2a781543e8fadeca67d50fbabf06cf9ae2d9d3531b9f1fb9c1576",
+      "static_data_bytes": 26,
+      "vm_steps": 3638,
+      "peak_data_stack_cells": 4
+    },
+    "EULERODE": {
+      "bytes": 280,
+      "lines": 10,
+      "sha256": "8023526d62c4c7deb9fba40bec2566884fe65cee0db9d481b4d18be6e8290d2f",
+      "static_data_bytes": 18,
+      "vm_steps": 459,
+      "peak_data_stack_cells": 4
+    },
+    "JACRELX": {
+      "bytes": 693,
+      "lines": 25,
+      "sha256": "fca2b02784be0a6836b8018ce4fbe9934ad6c12c0f11d3242a4c9ce636070c59",
+      "static_data_bytes": 1046,
+      "vm_steps": 1107567,
+      "peak_data_stack_cells": 5
+    },
+    "TINYFFT": {
+      "bytes": 2461,
+      "lines": 79,
+      "sha256": "35b7c1cee3520820e11775ce6ce44df100dc3d26c556ec8bf10d23d2b9fd709e",
+      "static_data_bytes": 436,
+      "vm_steps": 144111,
+      "peak_data_stack_cells": 5
+    },
+    "POLYFIT": {
+      "bytes": 1037,
+      "lines": 35,
+      "sha256": "9695f5b6a2ec723b11f8433385dc8d20407704a53dbf27a6e6e90d5deae9fa1a",
+      "static_data_bytes": 600,
+      "vm_steps": 25144,
+      "peak_data_stack_cells": 5
+    }
+  }
+}

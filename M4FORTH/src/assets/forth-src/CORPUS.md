@@ -13,6 +13,7 @@ sources are investigation material only; do not ship code from an entry marked
 | VolksForth samples | [cstrotm/VolksForth](https://github.com/cstrotm/VolksForth) `f4ccb36db7cde41671549e81622a0c2f7a01e26e` | VolksForth contributors | BSD-3-Clause | `research`: inspect each selected file before copying; current tree is platform-oriented. |
 | pForth benchmark | [philburk/pforth](https://github.com/philburk/pforth) `e5617638c3a397c644fe82c6301711867a0ca1bf`, `fth/bench.fth` | Phil Burk and contributors | ISC | `adopt`: portable `sum.cells` and `factorial` are in `portable/pfbench.fth`; host timing loops and other ANS-only benchmarks are excluded. |
 | pForth sieve | [philburk/pforth](https://github.com/philburk/pforth) `e5617638c3a397c644fe82c6301711867a0ca1bf`, `fth/siev.fth` | Phil Burk and contributors | ISC | `port`: algorithm is in `portable/pfsieve.fth`; the 8190-byte host benchmark table is reduced to 1024 bytes for the ZX-UX arena. |
+| F83 numerical-analysis suite | User-supplied `F83_Z80_20_DEMOS.zip`, SHA-256 `E004302C6CD3A3322F1C1FBB40450A25D771CD5F97AF1AB30949EE6C765C655D` | Project owner | Owner-confirmed; standalone notice pending if required | `adopt`: 20 fixed-point numerical-analysis demos are adapted into `numerical-analysis/*.fth`; support words are concatenated because rfc has no `INCLUDE`. |
 
 Every included program has a nearby README stating its source, licence, target
 behaviour, and the changes made for rfc.

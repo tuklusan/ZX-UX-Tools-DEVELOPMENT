@@ -1,0 +1,22 @@
+PASS: 20/20 Forth-83 required-word audits; 20/20 16-bit runs; 20/20 oracles; 20/20 golden comparisons
+Largest static declared data incl. shared libraries: 1558 bytes
+WHETSTON  data=  28 bytes, VM steps=  33183, stack=4 cells
+MACHAR    data=  10 bytes, VM steps=     29, stack=2 cells
+LCGRAND   data=  22 bytes, VM steps=   8803, stack=3 cells
+SQUARE    data=  18 bytes, VM steps=  26761, stack=3 cells
+MINILIN   data= 564 bytes, VM steps=  20381, stack=5 cells
+GEMM8BIT  data=1558 bytes, VM steps= 315387, stack=5 cells
+LUPIVOT   data= 564 bytes, VM steps=  26288, stack=5 cells
+THOMASTR  data= 180 bytes, VM steps=   7063, stack=5 cells
+CHOLESKY  data= 408 bytes, VM steps=  31525, stack=5 cells
+BRENTROT  data=  26 bytes, VM steps=   3028, stack=4 cells
+NEWTON    data=  18 bytes, VM steps=    853, stack=4 cells
+BISECT    data=  24 bytes, VM steps=   1971, stack=5 cells
+ROMBERG   data= 534 bytes, VM steps=   5587, stack=4 cells
+SIMPSON   data=  22 bytes, VM steps=  29299, stack=5 cells
+GAUSS1D   data=  32 bytes, VM steps=   1787, stack=5 cells
+RK4FIXED  data=  26 bytes, VM steps=   3638, stack=4 cells
+EULERODE  data=  18 bytes, VM steps=    459, stack=4 cells
+JACRELX   data=1046 bytes, VM steps=1107567, stack=5 cells
+TINYFFT   data= 436 bytes, VM steps= 144111, stack=5 cells
+POLYFIT   data= 600 bytes, VM steps=  25144, stack=5 cells

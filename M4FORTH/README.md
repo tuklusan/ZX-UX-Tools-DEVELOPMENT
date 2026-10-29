@@ -106,7 +106,7 @@ replace or modify the existing C48 compiler.  They share only the SDK tools
 
 ## Corpus manifest
 
-`assets/forth-src/` is intentionally split into four buckets:
+`assets/forth-src/` is intentionally split into five logical areas:
 
 ### `assets/forth-src/examples/`
 
@@ -161,6 +161,17 @@ Programs whose original device interface was replaced by a ZX-UX adapter:
 - `research/README.md` marks material that was investigated but is not shipped.
   F83 BASIC and VolksForth samples remain research entries because they need a
   resident interpreter, vocabularies, or platform-specific facilities.
+
+### `assets/forth-src/numerical-analysis/`
+
+This is the user-owned F83 Z80 numerical-analysis final-delivery corpus.  It
+contains twenty adapted `.fth` programs covering fixed-point arithmetic,
+matrix operations, root finding, quadrature, ODEs, relaxation, FFT, and
+polynomial fitting.  `original/` preserves the supplied archive and its
+expected-output fixtures; the lowercase files at the bucket root are the
+compiler inputs with `COMMON.F83` (and, where needed, `LINCORE.F83`)
+concatenated for rfc's batch model.  `src/tests/test_numerical_analysis.py`
+compiles and runs all twenty on `rvm` and checks `EXPECTED.csv`.
 
 ### Provenance and licenses
 
@@ -266,11 +277,13 @@ py -3 -B reference/ZX-UX/src/zx-ux-sdk/rvm.py `
   build/forth/ssx/hello.ssx
 ```
 
-The expected corpus build count is 18 programs.  The current test baseline is
-60 passing tests with one environment-dependent skip when run from the tracked
-delivery tree.  The deterministic portable programs and examples should exit
-normally on `rvm`; the Worms console test intentionally stops in its input loop
-after proving the board and controls are present.
+The expected corpus build count is 38 programs, including the twenty numerical
+analysis demos.  The original compiler/build baseline is 60 passing tests with
+one environment-dependent skip; the numerical-analysis integration adds one
+slow end-to-end test that runs all twenty demos.  The deterministic portable
+programs and examples should exit normally on `rvm`; the Worms console test
+intentionally stops in its input loop after proving the board and controls are
+present.
 
 To test the tracked delivery copy without a nested reference checkout:
 

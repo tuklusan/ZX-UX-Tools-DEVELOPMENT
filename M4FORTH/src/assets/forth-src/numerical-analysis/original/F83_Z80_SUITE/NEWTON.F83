@@ -1,0 +1,15 @@
+( TWO NEWTON SOLVES. )
+VARIABLE NX VARIABLE NF VARIABLE ND VARIABLE NM
+: NEWTON
+  3 1 DO I NM ! 1500 NX !
+    8 0 DO
+      NX @ DUP F* NF !
+      NM @ 1 = IF NF @ 2000 - NF ! NX @ 2 * ND !
+      ELSE NF @ NX @ F* NX @ - 2000 - NF !
+           NX @ DUP F* 3 * 1000 - ND ! THEN
+      ND @ 0= IF 1 ND ! THEN
+      NX @ NF @ ND @ F/ - NX !
+    LOOP
+    ." NEWTON " NM @ . NX @ . NF @ . CR
+  LOOP ;
+NEWTON

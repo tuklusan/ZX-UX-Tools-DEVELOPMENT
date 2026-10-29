@@ -1,0 +1,29 @@
+( IN-PLACE TRIDIAGONAL SOLVE; N=10/20. )
+CREATE TA 40 ALLOT CREATE TB 40 ALLOT
+CREATE TC 40 ALLOT CREATE TD 40 ALLOT
+VARIABLE TN VARIABLE TM VARIABLE TT VARIABLE TE VARIABLE TV
+: THOMAS
+  3 1 DO I TM ! I 10 * TN !
+    TN @ 0 DO
+      -1000 I TA A! 4000 I TB A! -1000 I TC A!
+      1000 I 25 * + TV !
+      TV @ 4 * I 0> IF 1000 I 1- 25 * + - THEN
+      I TN @ 1- < IF 1000 I 1+ 25 * + - THEN I TD A!
+    LOOP
+    TN @ 1 DO
+      I TA A@ I 1- TB A@ F/ TT !
+      I TB A@ TT @ I 1- TC A@ F* - I TB A!
+      I TD A@ TT @ I 1- TD A@ F* - I TD A!
+    LOOP
+    TN @ 1- DUP TD A@ SWAP TB A@ F/ TN @ 1- TD A!
+    TN @ 1- 0 DO
+      TN @ 2 - I - TE !
+      TE @ TD A@ TE @ TC A@ TE @ 1+ TD A@ F* -
+      TE @ TB A@ F/ TE @ TD A!
+    LOOP
+    0 TE ! TN @ 0 DO
+      I TD A@ 1000 I 25 * + - ABS TE @ MAX TE ! LOOP
+    ." THOMAS " TM @ . TN @ . TE @ .
+    0 TD A@ . TN @ 1- TD A@ . CR
+  LOOP ;
+THOMAS

@@ -1,0 +1,21 @@
+( 11X11 AND 15X15, COLUMN/ROW STRIDES. )
+CREATE GA 512 ALLOT CREATE GB 512 ALLOT CREATE GC 512 ALLOT
+VARIABLE GN VARIABLE GM VARIABLE GK VARIABLE GJ
+VARIABLE GT VARIABLE GS
+: GEMM
+  3 1 DO I GM ! I 4 * 7 + GN !
+    GN @ 0 DO GN @ 0 DO
+      I J - 20 * 100 + I J GA M!
+      I J + 10 * I J = IF DROP 1000 I 10 * + THEN I J GB M!
+      0 I J GC M!
+    LOOP LOOP
+    GN @ 0 DO I GJ ! GN @ 0 DO I GK !
+      GN @ 0 DO
+        I GJ @ GC M@ I GK @ GA M@
+        GK @ GJ @ GB M@ F* + I GJ @ GC M!
+      LOOP LOOP LOOP
+    0 GS ! GN @ 0 DO GS @ I I GC M@ + GS ! LOOP
+    ." GEMM " GM @ . GN @ . GS @ .
+    0 0 GC M@ . GN @ 1- DUP GC M@ . CR
+  LOOP ;
+GEMM

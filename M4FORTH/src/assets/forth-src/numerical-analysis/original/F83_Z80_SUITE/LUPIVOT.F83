@@ -1,0 +1,21 @@
+( TWO PARTIAL PIVOT GAUSSIAN ELIMINATION CASES. )
+VARIABLE UN VARIABLE UM VARIABLE UX VARIABLE UE
+: LU-PIVOT
+  3 1 DO I UM ! I 2 * 4 + UN !
+    UN @ 0 DO UN @ 0 DO
+      I J + 50 * I J = IF DROP 4000 THEN
+      J 0= I 0= AND IF DROP 0 THEN
+      J 0= I 1 = AND IF DROP 2000 THEN
+      I J LA M!
+    LOOP LOOP
+    UN @ 0 DO
+      0 UX ! UN @ 0 DO
+        J I LA M@ 200 I 100 * + F* UX @ + UX !
+      LOOP UX @ I LB A!
+    LOOP
+    UN @ LINSOLVE
+    0 UE ! UN @ 0 DO
+      I LB A@ 200 I 100 * + - ABS UE @ MAX UE ! LOOP
+    ." LUPIVOT " UM @ . UN @ . UE @ . 0 LB A@ . CR
+  LOOP ;
+LU-PIVOT

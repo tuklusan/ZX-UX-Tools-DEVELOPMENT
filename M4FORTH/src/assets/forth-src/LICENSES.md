@@ -76,3 +76,11 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+## F83 numerical-analysis suite — owner-confirmed
+
+The project owner supplied the `F83_Z80_20_DEMOS.zip` archive and confirmed
+ownership of its twenty numerical-analysis sources.  The archive contains no
+separate license text.  Preserve the owner/provenance confirmation and archive
+SHA-256 recorded in `numerical-analysis/README.md`; add the owner's chosen
+project-compatible notice if a public release requires a standalone notice.

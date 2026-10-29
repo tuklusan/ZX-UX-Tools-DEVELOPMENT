@@ -1,0 +1,19 @@
+( RK4 FOR DECAY AND LOGISTIC ODE. )
+VARIABLE RY VARIABLE RH VARIABLE RN VARIABLE RM
+VARIABLE RK1 VARIABLE RK2 VARIABLE RK3 VARIABLE RKFOUR
+: DERIV ( y -- dy )
+  RM @ 1 = IF -2 * ELSE DUP 1000 SWAP - F* THEN ;
+: RK4
+  3 1 DO I RM ! 10 I * RN ! 1000 RN @ / RH !
+    I 1 = IF 1000 ELSE 250 THEN RY !
+    RN @ 0 DO
+      RY @ DERIV RK1 !
+      RY @ RH @ RK1 @ F* 2 / + DERIV RK2 !
+      RY @ RH @ RK2 @ F* 2 / + DERIV RK3 !
+      RY @ RH @ RK3 @ F* + DERIV RKFOUR !
+      RK1 @ RK2 @ 2 * + RK3 @ 2 * + RKFOUR @ +
+      RH @ F* 6 / RY @ + RY !
+    LOOP
+    ." RK4 " RM @ . RN @ . RY @ . CR
+  LOOP ;
+RK4
