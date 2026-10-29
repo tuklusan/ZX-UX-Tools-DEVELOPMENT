@@ -1054,6 +1054,20 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(item=item), self.assertRaises(FortranError):
                 convert(parse(src, std='f77s'))
 
+    def test_specific_numeric_conversion_intrinsics(self):
+        src=(ROOT/'tests/fortran/f77s_numcv.f').read_text()
+        units=parse(src, std='f77s')
+        validate_source(src, units)
+        c=convert(units)
+        self.assertIn('f_abs_int(', c)
+        self.assertIn('f_nint_real(', c)
+        self.assertIn('((float)(F_J))', c)
+        for expr in ('SIN(1)', 'COS(2)', 'SQRT(3)', 'EXP(2)',
+                     'LOG(.TRUE.)', 'FLOAT(1.0)', 'NINT(2)', 'IABS(-2.0)'):
+            source='      PROGRAM BAD\n      REAL X\n      X='+expr+'\n      END\n'
+            with self.subTest(expr=expr), self.assertRaisesRegex(FortranError, 'argument'):
+                convert(parse(source, std='f77s'))
+
     def test_real_to_int_truncation_and_machine_guard(self):
         src=(ROOT/'tests/fortran/f77s_int.f').read_text()
         units=parse(src,std='f77s')

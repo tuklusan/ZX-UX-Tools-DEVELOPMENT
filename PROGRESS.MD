@@ -147,3 +147,9 @@
 - Added independent strict F77S `f77s_iord.f`: `READ(5,10) (A(I),I=1,3)`, `WRITE` of whole array plus final loop index, with input `001002003\n`. Gfortran and actual matched ZX-UX 48K RVM both produced `   1   2   3   4`. Native SSX: 1,977 bytes, exit 0, 224 frames/37 system calls.
 - Registered emulator keyboard input, frontend fixture, and host-vs-Z80 differential output; 117/117 strict frontend unit tests passed locally. GitHub Actions must pass on this exact commit before counting full frontend proof. This only expands P0 partial coverage; variable bounds and reversion are still open.
 - Next: complete P0 FORMAT reversion/variable implied-DO and permitted I/O, P1 remaining language constructs and P2 separate linkage. Full memory high-water and physical Spectrum remain unproven.
+
+## Milestone — typed numeric conversions and INTEGER ABS (2026-10-29)
+
+- Corrected typed `ABS(INTEGER)` to preserve INTEGER results with checked -32768 overflow; added specific `IABS`, `FLOAT`, `IFIX`, `AINT`, `NINT` and nearest-integer rounding, with REAL argument checks on SIN/COS/EXP/LOG/SQRT and negative mismatched-type tests. AINT and NINT currently use 16-bit bounded INT helper; they cannot yet cover full REAL magnitudes and remain partial F77S.
+- Actual ZX-UX Z80 native SSX `f77s_numcv.f` (2,869 bytes) exits 0 after 192 frames/29 syscalls. Its two screen records `   321    -3    -2` and `   321.00    -3.00     3.25` exactly match independent gfortran `-std=legacy`; test also guards eight wrong-type intrinsic calls. 118/118 focused frontend unit tests passed locally. Added fixture to native/differential/host matrices.
+- NEXT: full CI and current-source native regression suite; remaining specific intrinsics, wider REAL range/precision and all outstanding P0/P1/P2 still OPEN. Physical Spectrum and runtime peak RAM remain unproven.

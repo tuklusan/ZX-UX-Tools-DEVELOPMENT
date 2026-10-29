@@ -114,6 +114,7 @@ PROGRAMS = {
     'f77s_barefn': '    9.00',
     'f77s_iodo': '   2   4   6',
     'f77s_iord': '   1   2   3   4',
+    'f77s_numcv': '   321    -3    -2',
     'f77s_afmt': '    42',
 }
 NEGATIVE = {

@@ -544,15 +544,31 @@ class Expr:
                     # (truncation toward zero, not floor or rounding).
                     lhs = 'f_int_real(' + params[0] + ')'
                     result_type = 'INTEGER'
-                elif t == 'ABS' and len(params) == 1:
-                    lhs = 'f_abs_real(' + params[0] + ')'
+                elif t in ('ABS', 'IABS') and len(params) == 1:
+                    arg_type = self.expr_types[params[0]]
+                    if arg_type == 'INTEGER':
+                        lhs = 'f_abs_int(' + params[0] + ')'
+                        result_type = 'INTEGER'
+                    elif t == 'ABS' and arg_type == 'REAL':
+                        lhs = 'f_abs_real(' + params[0] + ')'
+                        result_type = 'REAL'
+                    else:
+                        raise FortranError(self.line, t + ' intrinsic argument type mismatch')
+                elif t in ('SQRT', 'SIN', 'COS', 'EXP', 'LOG') and len(params) == 1:
+                    if self.expr_types[params[0]] != 'REAL':
+                        raise FortranError(self.line, t + ' needs REAL argument')
+                    lhs = 'f_' + ('sqrt' if t == 'SQRT' else t.lower()) + '_real(' + params[0] + ')'
                     result_type = 'REAL'
-                elif t == 'SQRT' and len(params) == 1:
-                    lhs = 'f_sqrt_real(' + params[0] + ')'
-                    result_type = 'REAL'
-                elif t in ('SIN', 'COS', 'EXP', 'LOG') and len(params) == 1:
-                    lhs = 'f_' + t.lower() + '_real(' + params[0] + ')'
-                    result_type = 'REAL'
+                elif t in ('FLOAT', 'IFIX', 'AINT', 'NINT') and len(params) == 1:
+                    arg_type = self.expr_types[params[0]]
+                    if (t == 'FLOAT' and arg_type != 'INTEGER' or
+                        t != 'FLOAT' and arg_type != 'REAL'):
+                        raise FortranError(self.line, t + ' intrinsic argument type mismatch')
+                    lhs = ('((float)(' + params[0] + '))' if t == 'FLOAT' else
+                           'f_int_real(' + params[0] + ')' if t == 'IFIX' else
+                           '((float)f_int_real(' + params[0] + '))' if t == 'AINT' else
+                           'f_nint_real(' + params[0] + ')')
+                    result_type = 'INTEGER' if t in ('IFIX', 'NINT') else 'REAL'
                 elif t in self.unit.statement_functions:
                     if t in self.active_functions:
                         raise FortranError(self.line, 'recursive statement function: ' + t)
@@ -645,6 +661,15 @@ static int f_int_real(float x) {
 }
 /* F77S real absolute value (numeric generic typing remains partial). */
 static float f_abs_real(float x) { if (x < 0.0) return -x; return x; }
+static int f_abs_int(int x) {
+    if (x == -32768) exit(2);
+    if (x < 0) return -x;
+    return x;
+}
+static int f_nint_real(float x) {
+    if (x < 0.0) return f_int_real(x - 0.5);
+    return f_int_real(x + 0.5);
+}
 /* ANSI subset REAL SQRT, Newton iteration with domain check. */
 static float f_sqrt_real(float x) {
     float y;

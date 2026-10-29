@@ -32,6 +32,7 @@ CASES['f77s_fmtch'] = ['   42']
 CASES['f77s_barefn'] = ['    9.00']
 CASES['f77s_iodo'] = ['   2   4   6', '   2   4   6', '   4']
 CASES['f77s_iord'] = ['   1   2   3   4']
+CASES['f77s_numcv'] = ['   321    -3    -2', '   321.00    -3.00     3.25']
 CASES['f77s_afmt'] = ['  42', '    42']
 
 
