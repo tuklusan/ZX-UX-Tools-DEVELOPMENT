@@ -1,0 +1,1212 @@
+{
+  "cases": [
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n"
+      },
+      "expected_lines": [
+        "  42"
+      ],
+      "name": "f77s_fmt",
+      "passed": true,
+      "sha256": "524a525fd8d6c58adf4f20003d28ec83a5dd9addc0c7a65140dee899d8810f58"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  9\n  2\n"
+      },
+      "expected_lines": [
+        "  9",
+        "  2"
+      ],
+      "name": "f77s_data",
+      "passed": true,
+      "sha256": "bae5482e2dfbc239effb6eee312083eb6e82aba278027cb5ab88f10ebdb67980"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  3\n  7\n"
+      },
+      "expected_lines": [
+        "  3",
+        "  7"
+      ],
+      "name": "f77s_implicit",
+      "passed": true,
+      "sha256": "601961e5444aaefb71a5cce1828281c2607cdfad232544d5572d03bad34dea8c"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  2\n"
+      },
+      "expected_lines": [
+        "  2"
+      ],
+      "name": "f77s_real",
+      "passed": true,
+      "sha256": "a4dc02568ac1138d93b5ca06e78b18345b54a0a58123ad8a6375d05a7dee75ff"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  43\n"
+      },
+      "expected_lines": [
+        "  43"
+      ],
+      "name": "f77s_2d",
+      "passed": true,
+      "sha256": "e7b5e6fc7a49c24257d5471d2327663c0cb68b5d3e07b8cb2b8f55f24123310c"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": " 11\n"
+      },
+      "expected_lines": [
+        " 11"
+      ],
+      "name": "f77s_3d",
+      "passed": true,
+      "sha256": "6556b770e6d13672d936896cf3110a8c99d7e9fdb9c1d2b400270f8df2a05d6a"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  49\n"
+      },
+      "expected_lines": [
+        "  49"
+      ],
+      "name": "f77s_read",
+      "passed": true,
+      "sha256": "856e2853c54f008525601e5cb71cc0f2ca7512852524e30a01c6ba533aa220ad"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  3   5  10   18\n"
+      },
+      "expected_lines": [
+        "  3   5  10   18"
+      ],
+      "name": "f77s_repeat",
+      "passed": true,
+      "sha256": "84b323f4fb1272e314d74e782e484fe0ed21dc387e5d78eb918b7eb98be8bc53"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n"
+      },
+      "expected_lines": [
+        "  42"
+      ],
+      "name": "f77s_dim",
+      "passed": true,
+      "sha256": "c2e73c925644799af8f3aabe38db02a4e9e8335dffe5a5be1c8e89688da12647"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n"
+      },
+      "expected_lines": [
+        "  42"
+      ],
+      "name": "f77s_common",
+      "passed": true,
+      "sha256": "eff157fbeee8a7355ab4085dd31a42c85851386180dd75b9d12c1939ef868b12"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  43\n"
+      },
+      "expected_lines": [
+        "  43"
+      ],
+      "name": "f77s_comarr",
+      "passed": true,
+      "sha256": "0ccd4208a4ee0e8a746deed70fd522d33e6b77e66d609d778b5088325328ff8d"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n"
+      },
+      "expected_lines": [
+        "  42"
+      ],
+      "name": "f77s_blank",
+      "passed": true,
+      "sha256": "17fbf930da8043263824a73c448adf7caf33cd358527562718f8505f3f1791ba"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n"
+      },
+      "expected_lines": [
+        "  42"
+      ],
+      "name": "f77s_fc3",
+      "passed": true,
+      "sha256": "e9af623e4b749abc5ad3add18def922df8f16d5f6e058daaaf7aae2cc393f75c"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n"
+      },
+      "expected_lines": [
+        "  42"
+      ],
+      "name": "f77s_fc4",
+      "passed": true,
+      "sha256": "2807a3f7ed5c458495657991cd8a47b4669c9129a0d1e94b8f8d8d34cf31ea8e"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "7\n  42\n***\n"
+      },
+      "expected_lines": [
+        "7",
+        "  42",
+        "***"
+      ],
+      "name": "f77s_fc5",
+      "passed": true,
+      "sha256": "1b0111af49fa836146c46968924dd8c70cdf5f89846944a4d16f2ee581b42aba"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42  42  11  42\n"
+      },
+      "expected_lines": [
+        "  42  42  11  42"
+      ],
+      "name": "f77s_equiv",
+      "passed": true,
+      "sha256": "c6e9f75c54615f48d727ed1be827d66588d1ac30b7f16b0611adbc3d6e22502b"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n"
+      },
+      "expected_lines": [
+        "  42"
+      ],
+      "name": "f77s_save",
+      "passed": true,
+      "sha256": "f5351bfd8071d73580db0182e1158f2af210d09313fdda96ddcee14545aec32c"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ">  HI   <\n>ABC<\n"
+      },
+      "expected_lines": [
+        ">  HI   <",
+        ">ABC<"
+      ],
+      "name": "f77s_char",
+      "passed": true,
+      "sha256": "57c3c4050a0d17041d1efc208373514076fea50222a0fc8d7fc7904475443f86"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ">XYZ  <\n"
+      },
+      "expected_lines": [
+        ">XYZ  <"
+      ],
+      "name": "f77s_charread",
+      "passed": true,
+      "sha256": "cc66b2d8973d68f986d17d284a5ccb0233603a269546103e6ccd7746915b9bfc"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "   4\n  25\n"
+      },
+      "expected_lines": [
+        "   4",
+        "  25"
+      ],
+      "name": "f77s_burkprime",
+      "passed": true,
+      "sha256": "89cabd8e6b4118863332b9c0010291f313cdda1605b8a514db2801825a20a036"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  40\n"
+      },
+      "expected_lines": [
+        "  40"
+      ],
+      "name": "f77s_dmarr",
+      "passed": true,
+      "sha256": "c1ca2326f029fe6cb6efb3326066470d3c9b46363ac7397d0d8c6a93ad0c5960"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  30\n"
+      },
+      "expected_lines": [
+        "  30"
+      ],
+      "name": "f77s_dmchain",
+      "passed": true,
+      "sha256": "9828bb5c877055c6be0141090bfc902d6786366ed7cf1eb1bf7450df05166d4c"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n"
+      },
+      "expected_lines": [
+        "  42"
+      ],
+      "name": "f77s_dmreal",
+      "passed": true,
+      "sha256": "f110984adc7e5b923af3b5c6383e7969af47620d5548c63ecf5d5e1d45df2cdc"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  15  13  11\n  65\n"
+      },
+      "expected_lines": [
+        "  15  13  11",
+        "  65"
+      ],
+      "name": "f77s_burkvec",
+      "passed": true,
+      "sha256": "d9f4843e959cbbe9a14f593423900eecde38b52d12ad6468e26e33d254637641"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "   1   5   9\n   7\n  -1\n"
+      },
+      "expected_lines": [
+        "   1   5   9",
+        "   7",
+        "  -1"
+      ],
+      "name": "f77s_burksort",
+      "passed": true,
+      "sha256": "2b105baace10e9b4d507bd6f4e914d35e55e06e340e55039ae52fe8b7ac58aea"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n"
+      },
+      "expected_lines": [
+        "  42"
+      ],
+      "name": "f77s_dmseq",
+      "passed": true,
+      "sha256": "3c0fa8de8f71a115af08aa808c90dcfccd009018e3641043220db3fa0a3bf2c6"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n"
+      },
+      "expected_lines": [
+        "  42"
+      ],
+      "name": "f77s_dmidx",
+      "passed": true,
+      "sha256": "27142506842b4598977be932e528b4805b8f58ccc4447bea0ee754c7154da7eb"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n"
+      },
+      "expected_lines": [
+        "  42"
+      ],
+      "name": "f77s_dmadj",
+      "passed": true,
+      "sha256": "c539b8eb410f721e4164f6dfc30b8d591776714f645d8d3c2f823acc517e700b"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  38\n"
+      },
+      "expected_lines": [
+        "  38"
+      ],
+      "name": "f77s_dmstar",
+      "passed": true,
+      "sha256": "2bcf3de3438833129faec8d307961baa82f3ac5ae6300d3a569426ad8b4eb1e8"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "   9\n"
+      },
+      "expected_lines": [
+        "   9"
+      ],
+      "name": "f77s_dmalt",
+      "passed": true,
+      "sha256": "b656296dc0936a29b90a8cbeb9798504d086f3a7fc177a3654d6b04916c747bc"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "   5   1  15\n  28\n"
+      },
+      "expected_lines": [
+        "   5   1  15",
+        "  28"
+      ],
+      "name": "f77s_burkadj",
+      "passed": true,
+      "sha256": "313a44dcd3be2eaac4acff90c81830d239107765cfe29fb0b61ea639c8288390"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n"
+      },
+      "expected_lines": [
+        "  42"
+      ],
+      "name": "f77s_dm2ad",
+      "passed": true,
+      "sha256": "3de5fa81de10d1254ce8c639930fe1675f7e8d818bb6d0246cb1a53d0a913364"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n"
+      },
+      "expected_lines": [
+        "  42"
+      ],
+      "name": "f77s_dm3ad",
+      "passed": true,
+      "sha256": "09dd904bb29f071c413585c2e62bc25d6f4353e6706b6ec50d8b34a11b8dca07"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n"
+      },
+      "expected_lines": [
+        "  42"
+      ],
+      "name": "f77s_dm2st",
+      "passed": true,
+      "sha256": "87a62772cfafe85adfe5e0569519409d6d3c6add4d7f641a85fc4bdabaa68a3f"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n"
+      },
+      "expected_lines": [
+        "  42"
+      ],
+      "name": "f77s_dm3st",
+      "passed": true,
+      "sha256": "0c2a2951b4ccd0593aa9ef5c74a7c362ca470dfe1f834810821d69eb5163145f"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "    7   22   23\n    7\n"
+      },
+      "expected_lines": [
+        "    7   22   23",
+        "    7"
+      ],
+      "name": "f77s_burkmm",
+      "passed": true,
+      "sha256": "7c22e979376a0a5311f52f18e46fb9e53a055151b5159b5ace807dd7759ec481"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "   6   5   2   1\n   1   6\n"
+      },
+      "expected_lines": [
+        "   6   5   2   1",
+        "   1   6"
+      ],
+      "name": "f77s_burkflip",
+      "passed": true,
+      "sha256": "ea9497a82225e34ddfb76ca9c4e322acb1e3b5ffa780f8dc8dd280e4beecd305"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42   5\n"
+      },
+      "expected_lines": [
+        "  42   5"
+      ],
+      "name": "f77s_dm2el",
+      "passed": true,
+      "sha256": "28d210b4414aa6027847f684a8b491fc1a4bf6475d2bbf366754de91e768939a"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42  10   8\n"
+      },
+      "expected_lines": [
+        "  42  10   8"
+      ],
+      "name": "f77s_dm3el",
+      "passed": true,
+      "sha256": "e25712e60258a368f709cd09033929735ce72da0a5d54bc2ad802ee50212fa28"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n  42\n"
+      },
+      "expected_lines": [
+        "  42",
+        "  42"
+      ],
+      "name": "f77s_subdata",
+      "passed": true,
+      "sha256": "b98481c754dc404ca741d95b15bfbddd1d68e057539bd48b8249d3ed536003e2"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "   6\n   6\n"
+      },
+      "expected_lines": [
+        "   6",
+        "   6"
+      ],
+      "name": "f77s_subarr",
+      "passed": true,
+      "sha256": "05a0b34ef784b17e8d8874a78923c6c0f3ae17ee3206f1ee10daced4c039188a"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "   3   6   9  -2   5\n   6  -1   4\n"
+      },
+      "expected_lines": [
+        "   3   6   9  -2   5",
+        "   6  -1   4"
+      ],
+      "name": "f77s_burkcum",
+      "passed": true,
+      "sha256": "e4f0662516baf199e9a17d177c217ca690f1f272e28812e47a666de899101642"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  35\n  30\n"
+      },
+      "expected_lines": [
+        "  35",
+        "  30"
+      ],
+      "name": "f77s_burkdot",
+      "passed": true,
+      "sha256": "bb7d69df462d7fdb4df303f99ceea5c62bed26a7200a94d6f3423934e9db275a"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "   2\n   6\n  14\n"
+      },
+      "expected_lines": [
+        "   2",
+        "   6",
+        "  14"
+      ],
+      "name": "f77s_burkgcd",
+      "passed": true,
+      "sha256": "305fb33777677db42dc853cc82b173cd07d6eddda540d61478f862dd219cc1fa"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "A/B  \nAB \nXY \n"
+      },
+      "expected_lines": [
+        "A/B",
+        "AB",
+        "XY"
+      ],
+      "name": "f77s_chdata",
+      "passed": true,
+      "sha256": "4ccb5b8acbe7d045a2f9bde0ee170a761a9e10606660d71a635231dba7769a92"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "A/B  \n"
+      },
+      "expected_lines": [
+        "A/B"
+      ],
+      "name": "f77s_imchar",
+      "passed": true,
+      "sha256": "de2f38f3e03679fb79d1f3178f07e04d8e7623a2b5aee77ab0c1136fdec27d5e"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "HI   \n"
+      },
+      "expected_lines": [
+        "HI"
+      ],
+      "name": "f77s_charg",
+      "passed": true,
+      "sha256": "733f97fcd83346c2ac15d22bc8f2a4ae0e2cfac4daed74ba30a7752af47a523c"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "AB C  \nXY OK \nABCD\nABEF\n"
+      },
+      "expected_lines": [
+        "AB C",
+        "XY OK",
+        "ABCD",
+        "ABEF"
+      ],
+      "name": "f77s_charray",
+      "passed": true,
+      "sha256": "d7377c61b11654059faf36b1997686d89e70a67b80992d6b298a97d70c476026"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "XY CC HI \nEE \n"
+      },
+      "expected_lines": [
+        "XY CC HI",
+        "EE"
+      ],
+      "name": "f77s_chdummy",
+      "passed": true,
+      "sha256": "efaacb65049a6ee7ee706f34b2555dec31a6f65973e3906a7b86d8b422424f10"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "NO XYZ\n"
+      },
+      "expected_lines": [
+        "NO XYZ"
+      ],
+      "name": "f77s_arrread",
+      "passed": true,
+      "sha256": "48363e7eecbba4195c9e244fe579fbf482338bf47eaaa42e6d39e76d5b998b82"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "42GG\n"
+      },
+      "expected_lines": [
+        "42GG"
+      ],
+      "name": "f77s_chr3d",
+      "passed": true,
+      "sha256": "f81846b27eb2336493a5ab579221818ffc048dbb71cac4ca503b440db2ac23f6"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "   12.50\n   -3.25\n    0.25   -1.75\n   12.34\n"
+      },
+      "expected_lines": [
+        "   12.50",
+        "   -3.25",
+        "    0.25   -1.75",
+        "   12.34"
+      ],
+      "name": "f77s_realio",
+      "passed": true,
+      "sha256": "639b33702a1f117e7946afed43c657dbd5b9fcf226eb97027a429fcc830d5a5a"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "    2.50\n    0.00\n"
+      },
+      "expected_lines": [
+        "    2.50",
+        "    0.00"
+      ],
+      "name": "f77s_burkmean",
+      "passed": true,
+      "sha256": "65ba63bb34be190569fd32f0b973d70acdcb0a7fb4f3f1d86e751b95239e7a33"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "   -3.25    4.00\n   -2.50    3.75\n"
+      },
+      "expected_lines": [
+        "   -3.25    4.00",
+        "   -2.50    3.75"
+      ],
+      "name": "f77s_burkmin",
+      "passed": true,
+      "sha256": "5234e82c785a1bcc1e942c67609b715ce5cb2aae5900bc5573e17812de3dd7fd"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "   27.50\n   27.00\n"
+      },
+      "expected_lines": [
+        "   27.50",
+        "   27.00"
+      ],
+      "name": "f77s_burkreal",
+      "passed": true,
+      "sha256": "cb56a64278b6ca9aa1ea7df76bc5948dcb2dbabba25d19ce7f0a43e8d476b8e1"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "   12.00\n    7.50\n"
+      },
+      "expected_lines": [
+        "   12.00",
+        "    7.50"
+      ],
+      "name": "f77s_burkl1",
+      "passed": true,
+      "sha256": "620cf88954d7ae600e67c48b4108118088a3d2a049fb948356c5a2ba35787917"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "   T   F\n   F   T\n"
+      },
+      "expected_lines": [
+        "   T   F",
+        "   F   T"
+      ],
+      "name": "f77s_logio",
+      "passed": true,
+      "sha256": "a730fa0e8ca2da5191072317ef5ce921e10b1cdf8eefd58c20923972d7c4530a"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "    2.50\n    1.00\n    0.00\n"
+      },
+      "expected_lines": [
+        "    2.50",
+        "    1.00",
+        "    0.00"
+      ],
+      "name": "f77s_burkvar",
+      "passed": true,
+      "sha256": "12d5573d1291ca1e71c5d52681b9656c9dcb45935788fa917c6c125c39c79a7e"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "    2.00   -4.00    6.00    8.00  -10.00\n    2.00    2.00   -3.00   -4.00  -10.00\n"
+      },
+      "expected_lines": [
+        "    2.00   -4.00    6.00    8.00  -10.00",
+        "    2.00    2.00   -3.00   -4.00  -10.00"
+      ],
+      "name": "f77s_burkscale",
+      "passed": true,
+      "sha256": "11e9ae308c477e23adf8b2ab804a276aae8d4b1e592d0a1c9f7cc40f26acee79"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "    5.00\n    4.00\n    3.00\n    1.41\n    0.50\n  100.00\n    0.01\n"
+      },
+      "expected_lines": [
+        "    5.00",
+        "    4.00",
+        "    3.00",
+        "    1.41",
+        "    0.50",
+        "  100.00",
+        "    0.01"
+      ],
+      "name": "f77s_burkl2",
+      "passed": true,
+      "sha256": "f1a67de23a034ed88ee52da13be201f21bb8dfe7d7eb4362a3d81b7dbaa2d429"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "   -2.00    3.25    4.00    0.00    0.00\n    1.00   -2.00    3.25    4.00   -5.00\n"
+      },
+      "expected_lines": [
+        "   -2.00    3.25    4.00    0.00    0.00",
+        "    1.00   -2.00    3.25    4.00   -5.00"
+      ],
+      "name": "f77s_burkcopy",
+      "passed": true,
+      "sha256": "b6b35dedd8bf773501299ac62676c1902648aab9c1096f30f6e642d8da56f17c"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "    3.00   -1.00    2.00    4.00    0.00\n   -1.00    0.00    2.00    3.00    4.00\n"
+      },
+      "expected_lines": [
+        "    3.00   -1.00    2.00    4.00    0.00",
+        "   -1.00    0.00    2.00    3.00    4.00"
+      ],
+      "name": "f77s_burkrsrt",
+      "passed": true,
+      "sha256": "50dc1aaec9abcc6bdf131dc80f46b6933916b5e26b14341c6ac87ac53bc4d031"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  0.123400E+02 -0.125000E-01\n  0.000000E+00\n  0.100000E+01\n  0.100000E+03\n -0.123000E-04\n"
+      },
+      "expected_lines": [
+        "  0.123400E+02 -0.125000E-01",
+        "  0.000000E+00",
+        "  0.100000E+01",
+        "  0.100000E+03",
+        " -0.123000E-04"
+      ],
+      "name": "f77s_expout",
+      "passed": true,
+      "sha256": "de03a0d03c24963005722f1e5db16057da3e9db47c85cc1feefa2c5873fcd19f"
+    },
+    {
+      "compile": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "execute": {
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": "  42\n"
+      },
+      "expected_lines": [
+        "  42"
+      ],
+      "name": "f77s_datado",
+      "passed": true,
+      "sha256": "8145a26bd127223c8af1f72c17119dea94002b55b9cce538a4cbfc97e22c5c0e"
+    }
+  ],
+  "gfortran_version": "GNU Fortran (Debian 14.2.0-19) 14.2.0",
+  "not_ansi_certification": true,
+  "not_zxux_execution": true,
+  "result": {
+    "passed": 64,
+    "total": 64
+  },
+  "schema": 1,
+  "scope": "host-only fixed-form reference outputs"
+}

@@ -1240,7 +1240,7 @@ def convert(units):
                 if NAME_RE.fullmatch(selector) and u.vars.get(selector) != ('INTEGER', None):
                     raise FortranError(line, 'computed GO TO selector must be INTEGER')
                 key = 'f_select_' + str(len(code))
-                decl('int ' + key + ';')
+                extra_decls.append('int ' + key + ';')
                 add([key + ' = ' + E(selector, line) + ';'])
                 for index, label in enumerate(targets, 1):
                     pc = add([])
@@ -1452,8 +1452,8 @@ def convert(units):
                 step = parts[2] if len(parts) == 3 else '1'
                 k = len(code)
                 endvar, stepvar = 'f_end_' + str(k), 'f_step_' + str(k)
-                decl('int ' + endvar + ';')
-                decl('int ' + stepvar + ';')
+                extra_decls.append('int ' + endvar + ';')
+                extra_decls.append('int ' + stepvar + ';')
                 add(['F_' + var + ' = ' + E(beg, st.line) + ';',
                      endvar + ' = ' + E(finish, st.line) + ';',
                      stepvar + ' = ' + E(step, st.line) + ';',
@@ -1483,7 +1483,7 @@ def convert(units):
                 arithmetic_labels = re.fullmatch(r'(\d{1,5})\s*,\s*(\d{1,5})\s*,\s*(\d{1,5})', tail)
                 if arithmetic_labels:
                     value = 'f_arth_' + str(len(code))
-                    decl('float ' + value + ';')
+                    extra_decls.append('float ' + value + ';')
                     add([value + ' = ' + E(raw_condition, st.line) + ';'])
                     neg_pc = add([])
                     zero_pc = add([])
@@ -1533,7 +1533,7 @@ def convert(units):
                 alternative = labels[other]
             update(n, ('cond', condition, labels[lab], alternative))
         for temp, ty in u.temps:
-            decl(ctype(ty) + ' ' + temp + ';')
+            extra_decls.append(ctype(ty) + ' ' + temp + ';')
         decl('f_pc = 0;')
         decl('while (1) {')
         for n, (operations, tail) in enumerate(code):

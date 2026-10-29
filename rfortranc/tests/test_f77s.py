@@ -815,4 +815,15 @@ class F77SChecks(unittest.TestCase):
                 with self.assertRaisesRegex(FortranError, 'E field'):
                     convert(parse(bad, std='f77s'))
 
+    def test_data_initialization_preceded_by_all_declarations(self):
+        src = (ROOT/'tests/fortran/f77s_datado.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        generated = convert(units)
+        data_pos = generated.index('F_A[0] = 3;')
+        for declaration in ('int f_end_', 'int f_step_',
+                            'int f_select_', 'float f_arth_'):
+            self.assertIn(declaration, generated)
+            self.assertLess(generated.index(declaration), data_pos)
+
 if __name__=='__main__': unittest.main()
