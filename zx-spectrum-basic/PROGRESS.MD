@@ -1,22 +1,28 @@
-# ZX Spectrum BASIC / F77S demo port — checkpoint
+# ZX Spectrum BASIC / F77S demo port — checkpoint 2026-10-28
 
+Repo: `tuklusan/ZX-UX-Tools-DEVELOPMENT`
 Branch: `zx-spectrum-basic-f77s-demos`
-Workstream: `zx-spectrum-basic/` only. Other developers' directories are untouched.
+Work area: `zx-spectrum-basic/` plus dedicated workflow `.github/workflows/zx-basic-fuse.yml`.
 
-## Completed locally
-- Hand-ported all twenty original `F77S_Z80_20_DEMOS.zip` Fortran demos to Sinclair ZX Spectrum 48K BASIC, not via Forth.
-- Each program has built-in data, original numerical algorithm, separate source, TAP and TZX, plus ROM-LLIST-logical ASCII text.
-- Source generator checks single-letter FOR variables, tape block XOR checksums, ROM keyword and numerical cache reconstruction and all 20 tape/source round-trips.
-- Independent Python host-model numerical checks: 20/20 passing, compared with original Fortran benchmark values.
-- Each program starts with ROM `LLIST` and echoes results to `LPRINT`; autostarts at line 1.
+## Completed, recoverable on GitHub
+- Original Fortran benchmarks, not Forth conversions: 20 hand-ported ZX Spectrum 48K BASIC programs.
+- Portable exact ASCII text sources: `zx-spectrum-basic/bas_only.tar.xz` (20 files under `build/source/`; SHA256 51fbef97b897c20175caa04808799d79011bf45fab4cdb949899d7653f69a5fe).
+- Fuse runner script: `zx-spectrum-basic/ci_fuse.py`.
+- GitHub Actions matrix: `.github/workflows/zx-basic-fuse.yml` for all 20 source files, independently tokenized using zmakebas, then run in Fuse with actual 48K ROM; requires completed code to print `DONE NAME` through ZX Printer via ROM LPRINT. `LLIST` line 1 executes before tests.
+- GitHub Actions run `40803484516`: https://github.com/tuklusan/ZX-UX-Tools-DEVELOPMENT/actions/runs/40803484516 (in progress at checkpoint, not a proven pass).
+- Source generators and model numerical tests, separate from emulator: 20/20 PASS; tape checksum and ROM LLIST logical listing round-trips 20/20 PASS.
+- Locally created `/mnt/data/F77S_ZXBASIC_20_DEMOS.zip`: 114 files, 20 individual TZX/TAP pairs, ASCII source and ROM-listed ASCII, original Fortran, Python tests, expected output, README, checksums.
+- Locally created `/mnt/data/F77S_ZXBASIC_20.tzx`: 20 independently loadable BASIC programs in one TZX.
 
-## Still to do
-- Publish generated files and Fuse GitHub Actions job on this branch.
-- Run real 48K Sinclair ROM in Fuse on a GitHub Actions runner; inspect ZX Printer text capture and numerical results.
-- Do not state Fuse verification passed until actual runner logs confirm it.
-- Do not claim exact 12 KB peak RAM fit until measured on ROM; tokenized BASIC images are each below 2 KB, arrays are small.
+## Actual Fuse CI status
+See run above. **Do not claim Fuse passed** until actual GitHub job logs confirm. If Fuse fails, inspect failure logs and update the workflow or BASIC sources as appropriate, without touching other directories or overwriting concurrent work.
 
-## Recoverable inputs
-User uploads: `F77S_Z80_20_DEMOS.zip`, `minizxuxport.zip`. The former contains 20 `.FOR` originals and mathematical reference checks. The latter contains `build/tools/zx-tzx2bas.py` (ROM LLIST formatter) and the exact 48K Sinclair ROM at `dist/sdk/bin/py/rom/48.rom` (SHA256 d55daa439b673b0e3f5897f99ac37ecb45f974d1862b4dadb85dec34af99cb42).
+## Next steps for fresh chat
+1. Fetch GitHub Actions jobs for run ID `40803484516`, inspect failing job steps and logs.
+2. Fix any package install, Sinclair ROM, zmakebas syntax, or Sinclair BASIC runtime failures in this branch only.
+3. Push every milestone to this checkpoint; preserve other developers' work.
+4. Confirm 20/20 Fuse ROM execution and ZX Printer LLIST / LPRINT outputs; then download runner test artifacts if supported.
+5. Only then claim emulator-tested, and refresh ZIP with corrected files if required.
 
-Current local working copies in this chat: `programs.py`, `make_suite.py`, `execute_model.py`, `verify_numeric.py`, `zx_tzx2bas.py` under `/mnt/data/zxbas_work/`; these are *ephemeral*, so commit portable sources before stopping.
+## Recovery of local source before chat expires
+User archive `F77S_Z80_20_DEMOS.zip` has original Fortran source. The source listings on GitHub are permanent in `bas_only.tar.xz`. Reconstruct build/tapes and standalone TZX via zmakebas or a ROM-correct tokenizer. Local ephemeral script paths `/mnt/data/zxbas_work/{programs.py,make_suite.py,execute_model.py,verify_numeric.py,package_suite.py,zx_tzx2bas.py}` are in the downloadable ZIP under `tools/` (do not rely on /mnt/data persisting). Main branch unrelated code is never modified by this branch.
