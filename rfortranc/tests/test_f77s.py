@@ -1108,6 +1108,24 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaisesRegex(FortranError,'nested FORMAT reversion'):
             convert(parse(grouped,std='f77s'))
 
+    def test_scalar_and_array_character_common_cross_unit(self):
+        for file, declaration in (('f77s_chcommon.f','static char f_com_TEXT_0[5];'),
+                                  ('f77s_chcomarr.f','static char f_com_TXT_0[8];')):
+            src=(ROOT/'tests/fortran'/file).read_text()
+            with self.subTest(file=file):
+                units=parse(src,std='f77s')
+                validate_source(src,units)
+                merged=convert(units)
+                self.assertIn(declaration,merged)
+                main=convert(units,emit_units={units[0].name})
+                sub=convert(units,emit_units={units[1].name})
+                self.assertIn(declaration.replace('static ',''),main)
+                self.assertIn(declaration.replace('static ','extern '),sub)
+        src=(ROOT/'tests/fortran/f77s_chcommon.f').read_text()
+        bad=src.replace('CHARACTER*4 C','CHARACTER*3 C')
+        with self.assertRaisesRegex(FortranError, 'COMMON block .*mismatch'):
+            convert(parse(bad,std='f77s'))
+
     def test_sparse_runtime_keeps_math_format_dependencies(self):
         folder = ROOT/'tests/fortran/separate'
         src = (folder/'math_main.f').read_text()+(folder/'math_sub.f').read_text()

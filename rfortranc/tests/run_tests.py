@@ -49,6 +49,8 @@ PROGRAMS = {
     'f77s_comarr': '  43',
     'f77s_blank': '  42',
     'f77s_blankvary': '   5  42   7',
+    'f77s_chcommon': 'HI',
+    'f77s_chcomarr': 'AB  CD',
     'f77s_fc3': '  42',
     'f77s_fc4': '  42',
     'f77s_fc5': '***',

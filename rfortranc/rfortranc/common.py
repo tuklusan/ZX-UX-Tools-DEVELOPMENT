@@ -42,8 +42,8 @@ def layout(units):
                     from .implicit import mapping
                     unit.vars[name] = (mapping(unit.statements)[name[0]], None)
                     spec = unit.vars[name]
-                if spec[0] not in ('INTEGER', 'REAL', 'LOGICAL'):
-                    raise FortranError(st.line, 'COMMON requires INTEGER, REAL or LOGICAL: ' + name)
+                if spec[0] not in ('INTEGER', 'REAL', 'LOGICAL') and not spec[0].startswith('CHARACTER*'):
+                    raise FortranError(st.line, 'COMMON requires numeric/LOGICAL/CHARACTER variable: ' + name)
                 if spec[1] is None:
                     length, is_array = 1, False
                 else:
@@ -112,8 +112,12 @@ def layout(units):
     result=[]
     for block in sorted(blocks):
         for slot, (ty, count, is_array) in enumerate(blocks[block]):
-            result.append('static ' + ('float' if ty == 'REAL' else 'int') + ' f_com_' + block + '_' + str(slot)
-                          + ('[' + str(count) + ']' if is_array else '') + ';')
+            if ty.startswith('CHARACTER*'):
+                byte_count = count * (int(ty.split('*')[1]) + 1)
+                result.append('static char f_com_' + block + '_' + str(slot) + '[' + str(byte_count) + '];')
+            else:
+                result.append('static ' + ('float' if ty == 'REAL' else 'int') + ' f_com_' + block + '_' + str(slot)
+                              + ('[' + str(count) + ']' if is_array else '') + ';')
     return result, uses
 
 
