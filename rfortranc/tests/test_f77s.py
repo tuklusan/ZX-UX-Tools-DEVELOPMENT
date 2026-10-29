@@ -147,6 +147,19 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(source=source), self.assertRaisesRegex(FortranError, 'F77S .* operand'):
                 convert(parse(source, std='f77s'))
 
+    def test_e9_format_extended_precision(self):
+        source = (ROOT/'tests/fortran/f77s_e9.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        generated = convert(units)
+        self.assertIn('f_outexp(F_A, 17, 9)', generated)
+        self.assertIn('f_fmt_ereal(17, 9)', generated)
+        self.assertIn('f_outexpw(F_B, 18, 9, 3)', generated)
+        from rfortranc.translator import subset_format
+        for bad in ('E17.10', 'E18.10E3', 'E14.9', 'E15.9E3'):
+            with self.subTest(bad=bad), self.assertRaises(FortranError):
+                subset_format(bad, 7)
+
     def test_f9_format_extended_precision(self):
         source = (ROOT/'tests/fortran/f77s_f9.f').read_text()
         units = parse(source, std='f77s')
@@ -1149,7 +1162,7 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_outexpw(F_A, 16, 6, 3);', generated)
         self.assertIn('f_outexpw(F_B, 16, 6, 3);', generated)
         self.assertIn('f_outexpw(F_C, 16, 6, 3);', generated)
-        for fmt in ('E8.6E3', 'E14.7E3', 'E300.3E3', 'E14.3E5'):
+        for fmt in ('E8.6E3', 'E14.10E3', 'E300.3E3', 'E14.3E5'):
             bad = ('      PROGRAM BAD\n      REAL X\n'
                    '      WRITE(6,10) X\n   10 FORMAT('+fmt+')\n      END\n')
             with self.subTest(fmt=fmt), self.assertRaises(FortranError):
@@ -1162,7 +1175,7 @@ class F77SChecks(unittest.TestCase):
         c = convert(units)
         self.assertIn('f_outexp(F_A, 14, 6);', c)
         self.assertIn('f_outexp(F_B, 14, 6);', c)
-        for fmt in ('E5.6', 'E14.7', 'E300.6'):
+        for fmt in ('E5.6', 'E14.10', 'E300.6'):
             bad = ("      PROGRAM BAD\n"
                    "      REAL X\n"
                    "      WRITE (6,10) X\n"

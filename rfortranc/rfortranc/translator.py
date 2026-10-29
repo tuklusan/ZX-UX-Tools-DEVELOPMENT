@@ -1440,7 +1440,7 @@ static void f_outrealw(float value, int width, int places) {
 static void f_outexpw(float value, int width, int places, int exponent_width) {
     int negative;
     int exponent;
-    int digs[7];
+    int digs[10];
     int i;
     int digit;
     int carry;
@@ -1852,7 +1852,7 @@ def subset_format(source, line):
             if exponent_digits:
                 repeat = int(exponent_digits.group(1) or 1)
                 width, places, expwidth = map(int, exponent_digits.groups()[1:])
-                if width > 255 or not (1 <= places <= 6) or not (1 <= expwidth <= 4) or width < places + 4 + expwidth:
+                if width > 255 or not (1 <= places <= 9) or not (1 <= expwidth <= 4) or width < places + 4 + expwidth:
                     raise FortranError(line, 'E field width/precision/exponent exceeds supported limits')
                 append(('realexpdigits', (width, places, expwidth)), repeat)
                 continue
@@ -1860,7 +1860,7 @@ def subset_format(source, line):
             if exponential:
                 repeat = int(exponential.group(1) or 1)
                 width, places = int(exponential.group(2)), int(exponential.group(3))
-                if width > 255 or not (1 <= places <= 6) or width < places + 6:
+                if width > 255 or not (1 <= places <= 9) or width < places + 6:
                     raise FortranError(line, 'E field width/precision exceeds supported limits')
                 append(('realexp', (width, places)), repeat)
                 continue

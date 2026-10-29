@@ -45,6 +45,7 @@ CASES['f77s_rpow'] = ['     8.00     3.00     4.00     0.25    -8.00   512.00']
 CASES['f77s_assgn'] = ['  42']
 CASES['f77s_ewdee'] = ['   0.123400E+003    0.125000E-001   -0.123000E-004']
 CASES['f77s_eread'] = ['   123.40     5.00']
+CASES['f77s_e9'] = ['  0.125000000E+00', '  0.312500000E-001']
 CASES['f77s_bnbz'] = ['  420   12']
 CASES['f77s_chlit'] = ['HELLO']
 CASES['f77s_fmtch'] = ['   42']
@@ -88,7 +89,7 @@ CASES['f77s_nestrevert'] = ['  1   2    3   4    5', '   6    7   8    9', '  10
 CASES['f77s_afmt'] = ['  42', '    42']
 
 
-INPUTS = {'f77s_unitvar':'  42\n', 'f77s_fmtchr':'  12  34\n', 'f77s_afread':'  12  34\n', 'f77s_vuniio':'001002\n003004\n005\n', 'f77s_varreal':'   1.25   2.50\n  -3.75   4.00\n', 'f77s_varlc':'  T  F\n  T\nABCDEF\nGHI\n', 'f77s_varexp':'   0.123400E+003\n   0.500000E+001\n', 'f77s_vario':'001002\n003004\n005\n', 'f77s_f6': '    1.234567   -0.000125    9.999999\n', 'f77s_f9': '     0.031250000\n', 'f77s_nestrevert':'  1   2    3   4    5\n   6    7   8    9\n  10\n', 'f77s_frevert': '001002\n003004\n005\n', 'f77s_pscale': '   12.30    1.23\n', 'f77s_iord': '001002003\n', 'f77s_bnbz': '  42  12  \n', 'f77s_eread': '   0.123400E+003   0.500000E+001\n', 'f77s_read': '0042 007\n', 'f77s_repeat': '003 005 010\n', 'f77s_charread': 'XYZ\n', 'f77s_arrread': 'XYZ\n', 'f77s_realio': '   -3.25\n  001234\n', 'f77s_logio': '   F   T\n'}
+INPUTS = {'f77s_unitvar':'  42\n', 'f77s_fmtchr':'  12  34\n', 'f77s_afread':'  12  34\n', 'f77s_vuniio':'001002\n003004\n005\n', 'f77s_varreal':'   1.25   2.50\n  -3.75   4.00\n', 'f77s_varlc':'  T  F\n  T\nABCDEF\nGHI\n', 'f77s_varexp':'   0.123400E+003\n   0.500000E+001\n', 'f77s_vario':'001002\n003004\n005\n', 'f77s_f6': '    1.234567   -0.000125    9.999999\n', 'f77s_f9': '     0.031250000\n', 'f77s_nestrevert':'  1   2    3   4    5\n   6    7   8    9\n  10\n', 'f77s_frevert': '001002\n003004\n005\n', 'f77s_pscale': '   12.30    1.23\n', 'f77s_iord': '001002003\n', 'f77s_bnbz': '  42  12  \n', 'f77s_eread': '   0.123400E+003   0.500000E+001\n', 'f77s_e9': '  0.312500000E-01\n', 'f77s_read': '0042 007\n', 'f77s_repeat': '003 005 010\n', 'f77s_charread': 'XYZ\n', 'f77s_arrread': 'XYZ\n', 'f77s_realio': '   -3.25\n  001234\n', 'f77s_logio': '   F   T\n'}
 
 def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()

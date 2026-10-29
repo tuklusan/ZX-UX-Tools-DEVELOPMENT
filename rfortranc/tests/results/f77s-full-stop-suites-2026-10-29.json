@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "tested_commit": "128d8273759fcdb95990294fcbe011280935c63e",
+  "scope": "Full exact STOP-revision native and independent host-vs-Z80 suites; NOT current F9/E9 translator",
+  "compiler_sha256": "94ac7024b67f70b84a5c0f32809b37ba39560413a2a2b89774ee722f59d3931f",
+  "matched_sdk_archive_sha256": "42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17",
+  "sets": [
+    {
+      "runner": "tests/run_tests.py",
+      "pass": 164,
+      "total": 164,
+      "full_local_json_sha256": "c32672118ee41edfc5e0eaccd384cbb778e22a64d3500f67700d45b91e56349e",
+      "contains_real_z80_ssx": true
+    },
+    {
+      "runner": "tests/compare_f77s.py",
+      "pass": 133,
+      "total": 133,
+      "full_local_json_sha256": "c9b7ef8a54bc894adeeb4de51b4880c1f37eca70d800c921ca071365d7ae51c3",
+      "independent_gfortran": true
+    }
+  ],
+  "physical_hardware": false,
+  "live_ram_peak": false,
+  "not_full_F77S_conformance": true
+}
