@@ -100,6 +100,7 @@ PROGRAMS = {
     'f77s_burkrsrt': '    3.00   -1.00',
     'f77s_expout': '  0.123400E+02',
     'f77s_datado': '  42',
+    'f77s_int': '     3    -3     0     0    -2',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',
