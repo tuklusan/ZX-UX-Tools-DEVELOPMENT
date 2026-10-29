@@ -147,6 +147,18 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(source=source), self.assertRaisesRegex(FortranError, 'F77S .* operand'):
                 convert(parse(source, std='f77s'))
 
+    def test_f9_format_extended_precision(self):
+        source = (ROOT/'tests/fortran/f77s_f9.f').read_text()
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        c = convert(units)
+        self.assertIn('f_outrealw(F_A, 16, 9)', c)
+        self.assertIn('f_fmt_real(16, 9)', c)
+        for descriptor in ('F16.10', 'F10.9', 'F256.9'):
+            from rfortranc.translator import subset_format
+            with self.subTest(descriptor=descriptor), self.assertRaises(FortranError):
+                subset_format(descriptor, 7)
+
     def test_arithmetic_and_logical_if_types(self):
         source = (ROOT/'tests/fortran/f77s_iftypes.f').read_text()
         units = parse(source, std='f77s')
@@ -834,12 +846,12 @@ class F77SChecks(unittest.TestCase):
         units = parse(source, std='f77s')
         validate_source(source, units)
         c = convert(units)
-        self.assertIn('int digs[7];', c)
+        self.assertIn('int digs[10];', c)
         self.assertIn('f_outrealw(F_A, 12, 6);', c)
         self.assertIn('F_A = f_fmt_real(12, 6);', c)
         with self.assertRaises(FortranError):
             from rfortranc.translator import subset_format
-            subset_format('F12.7', 2)
+            subset_format('F12.10', 2)
 
     def test_format_unsupported_or_excess_nesting(self):
         from rfortranc.translator import subset_format

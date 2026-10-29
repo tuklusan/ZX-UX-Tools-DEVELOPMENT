@@ -1369,7 +1369,7 @@ static void f_outrealw(float value, int width, int places) {
     int fraction;
     int scale;
     int divisor;
-    int digs[7];
+    int digs[10];
     int carry;
     float fpart;
     int digits;
@@ -1844,7 +1844,7 @@ def subset_format(source, line):
             if real:
                 repeat = int(real.group(1) or 1)
                 width, places = int(real.group(2)), int(real.group(3))
-                if width > 255 or places > 6 or width < places + 2:
+                if width > 255 or places > 9 or width < places + 2:
                     raise FortranError(line, 'F field size/decimal places exceed supported limits')
                 append(('real', (width, places)), repeat)
                 continue
