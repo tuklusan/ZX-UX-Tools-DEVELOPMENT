@@ -1019,6 +1019,42 @@ static void f_swritef(int unit, float value) {
     if (write(f_sh[unit], &length, 2) != 2) exit(2);
     if (write(f_sh[unit], &zero, 2) != 2) exit(2);
 }
+/* Processor-dependent fixed CHARACTER unformatted scratch record.
+   The record stores exactly length bytes (no C zero terminator). */
+static void f_swritec(int unit, char *src, int length) {
+    int zero;
+    if (length < 1 || length > 64) exit(2);
+    f_sopen(unit, 0);
+    if (tell(f_sh[unit]) > 32759 - length) exit(2);
+    zero = 0;
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+    if (write(f_sh[unit], &zero, 2) != 2) exit(2);
+    if (write(f_sh[unit], src, length) != length) exit(2);
+    if (write(f_sh[unit], &length, 2) != 2) exit(2);
+    if (write(f_sh[unit], &zero, 2) != 2) exit(2);
+}
+static int f_sreadcstat(int unit, char *dest, int length) {
+    int got, size, upper, tail, i;
+    char tmp[65];
+    if (length < 1 || length > 64) exit(2);
+    f_sopen(unit, 1);
+    got = read(f_sh[unit], &size, 2);
+    if (got == 0) return 0;
+    if (got != 2) exit(2);
+    if (read(f_sh[unit], &upper, 2) != 2) exit(2);
+    if (size == 0 && upper == 0) return 0;
+    if (size != length || upper != 0) exit(2);
+    if (read(f_sh[unit], tmp, length) != length) exit(2);
+    if (read(f_sh[unit], &tail, 2) != 2) exit(2);
+    if (read(f_sh[unit], &upper, 2) != 2) exit(2);
+    if (tail != length || upper != 0) exit(2);
+    for (i = 0; i < length; i++) dest[i] = tmp[i];
+    dest[length] = 0;
+    return 1;
+}
+static void f_sreadc(int unit, char *dest, int length) {
+    if (!f_sreadcstat(unit, dest, length)) exit(2);
+}
 static int f_sreadfstat(int unit, float *dest) {
     int length, upper, tail, got;
     float value;
@@ -1160,7 +1196,7 @@ static void f_sback(int unit) {
     if (seek(f_sh[unit], pos - 4) < 0) exit(2);
     if (read(f_sh[unit], &tail, 2) != 2) exit(2);
     if (read(f_sh[unit], &upper, 2) != 2) exit(2);
-    if ((tail != 5 && (tail < 4 || tail > 32 || tail % 4 != 0)) || upper != 0) exit(2);
+    if ((tail < 1 || tail > 64) || upper != 0) exit(2);
     if (pos < tail + 8) exit(2);
     if (seek(f_sh[unit], pos - tail - 8) < 0) exit(2);
 }
@@ -2408,11 +2444,15 @@ def convert(units, emit_units=None):
                 unit_no, controls, name = seqstat.groups()
                 status_var = re.search(r'IOSTAT\s*=\s*([A-Z][A-Z0-9_]*)', controls).group(1)
                 end_match = re.search(r'END\s*=\s*([0-9]{1,5})', controls)
-                if u.vars.get(name) not in (('INTEGER',None),('REAL',None)) or u.vars.get(status_var) != ('INTEGER', None):
+                if (u.vars.get(name) not in (('INTEGER',None),('REAL',None),('LOGICAL',None)) and not u.vars.get(name,('',None))[0].startswith('CHARACTER*')) or u.vars.get(status_var) != ('INTEGER', None):
                     raise FortranError(line, 'IOSTAT/END sequential READ requires numeric scalar and INTEGER IOSTAT')
                 flag = 'f_sok_' + str(len(code))
                 extra_decls.append('int ' + flag + ';')
-                ops = [flag + ' = ' + ('f_sreadfstat(' if u.vars[name][0] == 'REAL' else 'f_sreadstat(') + unit_no + ', &F_' + name + ');',
+                if u.vars[name][0].startswith('CHARACTER*'):
+                    reader = 'f_sreadcstat('+unit_no+', F_'+name+', '+u.vars[name][0].split('*')[1]+');'
+                else:
+                    reader = ('f_sreadfstat(' if u.vars[name][0] == 'REAL' else 'f_sreadstat(') + unit_no + ', &F_' + name + ');'
+                ops = [flag + ' = ' + reader,
                        'F_' + status_var + ' = 0;',
                        'if (!' + flag + ') F_' + status_var + ' = -1;']
                 pc = add(ops)
@@ -2424,11 +2464,14 @@ def convert(units, emit_units=None):
                 r'READ\s*\(\s*([1-9])\s*,\s*END\s*=\s*([0-9]{1,5})\s*\)\s*([A-Z][A-Z0-9_]*)', s)
             if seqend:
                 unit_no, target, name = seqend.groups()
-                if u.vars.get(name) not in (('INTEGER',None),('REAL',None)):
-                    raise FortranError(line, 'END= sequential READ needs one numeric scalar')
+                if u.vars.get(name) not in (('INTEGER',None),('REAL',None),('LOGICAL',None)) and not u.vars.get(name,('',None))[0].startswith('CHARACTER*'):
+                    raise FortranError(line, 'END= sequential READ needs scalar item')
                 temp = 'f_sok_' + str(len(code))
                 extra_decls.append('int ' + temp + ';')
-                pc = add([temp + ' = ' + ('f_sreadfstat(' if u.vars[name][0] == 'REAL' else 'f_sreadstat(') + unit_no + ', &F_' + name + ');'])
+                reader = ('f_sreadcstat('+unit_no+', F_'+name+', '+u.vars[name][0].split('*')[1]+');'
+                          if u.vars[name][0].startswith('CHARACTER*') else
+                          ('f_sreadfstat(' if u.vars[name][0] == 'REAL' else 'f_sreadstat(') + unit_no + ', &F_' + name + ');')
+                pc = add([temp + ' = ' + reader])
                 conditional_gotos.append((pc, '!' + temp, str(int(target)), pc + 1, line))
                 return
             seqtriple = re.fullmatch(
@@ -2456,9 +2499,17 @@ def convert(units, emit_units=None):
             seqio = re.fullmatch(r'(READ|WRITE)\s*\(\s*([1-9])\s*\)\s*([A-Z][A-Z0-9_]*)', s)
             if seqio:
                 kind, unit_no, name = seqio.groups()
-                if u.vars.get(name) not in (('INTEGER',None),('REAL',None)):
-                    raise FortranError(line, 'sequential scratch record needs INTEGER or REAL scalar')
-                if kind == 'WRITE':
+                if u.vars.get(name) not in (('INTEGER',None),('REAL',None),('LOGICAL',None)) and not u.vars.get(name,('',None))[0].startswith('CHARACTER*'):
+                    raise FortranError(line, 'sequential scratch record needs scalar item')
+                if u.vars[name][0].startswith('CHARACTER*'):
+                    if u.vars[name][1] is not None:
+                        raise FortranError(line,'whole CHARACTER array unformatted record unsupported')
+                    length=int(u.vars[name][0].split('*')[1])
+                    if length > 64:
+                        raise FortranError(line,'unformatted CHARACTER length exceeds target limit 64')
+                    call=('f_swritec' if kind=='WRITE' else 'f_sreadc')
+                    add([call+'('+unit_no+', F_'+name+', '+str(length)+');'])
+                elif kind == 'WRITE':
                     fn = 'f_swritef' if u.vars[name][0] == 'REAL' else 'f_swrite'
                     add([fn + '(' + unit_no + ', F_' + name + ');'])
                 else:

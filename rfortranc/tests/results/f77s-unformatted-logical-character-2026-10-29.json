@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "base_commit": "eba551a7898e811dc6e3a634600b9117c3c70fc9",
+  "scope": "F77S scalar LOGICAL and fixed CHARACTER sequential unformatted scratch I/O with END/IOSTAT and BACKSPACE",
+  "translator_sha256": "ae746c08ccb65accf5b86edbc3fdb1a1d0817dbc8cc1e1b40c550d4f15f1680a",
+  "cases": [
+    {
+      "source": "f77s_seqlog.f",
+      "source_sha256": "d773e227a972ec8df8d887217a912df5e2c89c3a746d6a9da500b28d4174394e",
+      "ssx_bytes": 3125,
+      "ssx_sha256": "0e1d5f00b595e8fe7574363131107ec2c1a98a1ec634ba88f73000b5b89fb5b6",
+      "output": [
+        "  T",
+        "  F   0",
+        "  -1"
+      ],
+      "rvm_exit": 0,
+      "frames": 170,
+      "syscalls": 73,
+      "independent_gfortran_match": true
+    },
+    {
+      "source": "f77s_seqchar.f",
+      "source_sha256": "4862bfa318c8a21143a8dcae2a7c27d4000db20ccfe2359d61a409f091de13d5",
+      "ssx_bytes": 3661,
+      "ssx_sha256": "66f845f9165527153cc54cd44699ccddf8c7347d5c114cfc684faa66df0d4091",
+      "output": [
+        "WXYZ",
+        "AB     0",
+        "  -1"
+      ],
+      "rvm_exit": 0,
+      "frames": 180,
+      "syscalls": 65,
+      "independent_gfortran_match": true
+    }
+  ],
+  "frontend": {
+    "passed": 165,
+    "total": 165
+  },
+  "native_selected": {
+    "passed": 2,
+    "total": 2
+  },
+  "differential_selected": {
+    "passed": 2,
+    "total": 2
+  },
+  "limits": [
+    "fixed CHARACTER<=64",
+    "unformatted binary representation processor-dependent",
+    "full F77S",
+    "physical Spectrum",
+    "runtime peak RAM"
+  ]
+}

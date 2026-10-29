@@ -1342,6 +1342,25 @@ class F77SChecks(unittest.TestCase):
                 for handle in handles:
                     self.assertIn('static int '+handle+';', c)
 
+    def test_unformatted_logical_and_character_scalar_records(self):
+        for name,need in (('f77s_seqlog','f_sreadstat(7, &F_C)'),
+                          ('f77s_seqchar','f_sreadcstat(7, F_C, 4)')):
+            src=(ROOT/'tests/fortran'/(name+'.f')).read_text()
+            with self.subTest(name=name):
+                units=parse(src,std='f77s')
+                validate_source(src,units)
+                generated=convert(units)
+                self.assertIn(need,generated)
+                self.assertIn('F_S = -1;',generated)
+                if name == 'f77s_seqchar':
+                    self.assertIn('f_sback(7);',generated)
+        c=convert(parse((ROOT/'tests/fortran/f77s_seqchar.f').read_text(),std='f77s'))
+        self.assertIn('write(f_sh[unit], src, length)',c)
+        self.assertIn('dest[length] = 0;',c)
+        bad=(ROOT/'tests/fortran/f77s_seqchar.f').read_text().replace('CHARACTER*4 A,B,C','CHARACTER*65 A,B,C')
+        with self.assertRaisesRegex(FortranError,'length exceeds target limit'):
+            convert(parse(bad,std='f77s'))
+
     def test_sequential_unformatted_rom_real_record(self):
         src=(ROOT/'tests/fortran/f77s_seqreal.f').read_text()
         units=parse(src,std='f77s')
@@ -1352,7 +1371,7 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_sreadfstat(7, &F_C);',c)
         self.assertIn('tail != 5',c)
         self.assertIn('write(f_sh[unit], &value, 5)',c)
-        bad=src.replace('REAL A,B,C','REAL A,B,C\n      LOGICAL L').replace('WRITE(7) A','WRITE(7) L')
+        bad=src.replace('WRITE(7) A','WRITE(7) A(1)')
         with self.assertRaises(FortranError):
             convert(parse(bad,std='f77s'))
 
@@ -1363,7 +1382,7 @@ class F77SChecks(unittest.TestCase):
         c=convert(units)
         self.assertIn('f_swritev(7, 4,',c)
         self.assertIn('f_sreadv(7, 4,',c)
-        self.assertIn('tail > 32',c)
+        self.assertIn('tail > 64',c)
         self.assertIn('F_S = -1;',c)
         for bad in ('READ(7) W,X,Y,1','WRITE(7) A,B,C,2.5'):
             src=source.replace('READ(7) W,X,Y,Z' if bad.startswith('READ') else 'WRITE(7) A,B,C,D',bad)

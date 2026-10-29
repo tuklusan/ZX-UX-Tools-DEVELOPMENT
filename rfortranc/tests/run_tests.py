@@ -145,6 +145,8 @@ PROGRAMS = {
     'f77s_seqtri': '     -42       0   32767       0',
     'f77s_seqquad': '      42       0   32767     -17',
     'f77s_seqreal': '   -3.50',
+    'f77s_seqlog': '  T',
+    'f77s_seqchar': 'WXYZ',
     'f77s_seqpair': '  -42   17',
     'f77s_iostat': '   23   -1',
     'f77s_endgoto': '    7    7',
