@@ -55,6 +55,7 @@ PROGRAMS = {
     'f77s_fc4': '  42',
     'f77s_fc5': '***',
     'f77s_equiv': '  42  42  11  42',
+    'f77s_chequiv': 'BB  CC  CC  AA',
     'f77s_save': '  42',
     'f77s_char': '>  HI   <',
     'f77s_charread': '>XYZ  <',

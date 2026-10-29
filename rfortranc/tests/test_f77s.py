@@ -421,6 +421,24 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_eq_0[(f_index(3, 4))] =', c)
         self.assertIn('f_eq_0[1]', c)
 
+    def test_character_equivalence_total_storage_association(self):
+        src = (ROOT/'tests/fortran/f77s_chequiv.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        generated = convert(units)
+        self.assertIn('char f_eq_0[12];', generated)
+        self.assertIn('(f_eq_0 + 4)', generated)
+        self.assertIn('(f_eq_0 + 8)', generated)
+
+    def test_character_equivalence_requires_equal_element_length(self):
+        invalid = ("      PROGRAM BAD\n"
+                   "      CHARACTER*3 A\n"
+                   "      CHARACTER*4 B\n"
+                   "      EQUIVALENCE (A,B)\n"
+                   "      END\n")
+        with self.assertRaisesRegex(FortranError, 'mixed-type EQUIVALENCE'):
+            convert(parse(invalid, std='f77s'))
+
     def test_equivalence_rejects_invalid_constraints(self):
         bodies = [
             ['INTEGER A(2),B', 'EQUIVALENCE (A(3),B)'],

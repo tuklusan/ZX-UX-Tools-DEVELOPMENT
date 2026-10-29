@@ -1,9 +1,8 @@
 """Restricted F77S EQUIVALENCE storage association.
 
-Supported: local INTEGER/LOGICAL/REAL scalar and fixed size numeric arrays,
-constant array subscripts, overlapping groups, and transitive association.
-The implementation checks type equality (a stricter safe subset of ANSI F77S)
-and rejects association with COMMON, dummy arguments, or mixed-type storage.
+Same-type numeric and same-length CHARACTER scalar/fixed array storage;
+constant subscripts, overlapping groups, transitive association.
+Mixed types and COMMON-associated EQUIVALENCE remain unsupported.
 """
 from __future__ import annotations
 import re
@@ -44,7 +43,7 @@ def layout(unit, common_aliases):
                 if name in unit.args or name == unit.name or ('F_' + name) in common_aliases:
                     raise FortranError(st.line, 'EQUIVALENCE cannot alias dummy, function or COMMON: ' + name)
                 ty, dims = unit.vars[name]
-                if ty not in ('INTEGER', 'REAL', 'LOGICAL'):
+                if ty not in ('INTEGER', 'REAL', 'LOGICAL') and not ty.startswith('CHARACTER*'):
                     raise FortranError(st.line, 'unsupported EQUIVALENCE type: ' + ty)
                 if dims is None:
                     if subs is not None:
@@ -102,11 +101,24 @@ def layout(unit, common_aliases):
         if total > 32767:
             raise FortranError(unit.line, 'EQUIVALENCE storage exceeds memory limits')
         ident = 'f_eq_' + str(len(declarations))
-        declarations.append(('float' if 'REAL' in types else 'int') + ' ' + ident + '[' + str(total) + '];')
-        for name in base:
-            offset = base[name] - lowest
-            if unit.vars[name][1] is None:
-                aliases['F_' + name] = ident + '[' + str(offset) + ']'
-            else:
-                aliases['F_' + name] = ident if offset == 0 else '(&' + ident + '[' + str(offset) + '])'
+        ty = next(iter(types))
+        if ty.startswith('CHARACTER*'):
+            # Each character slot is length bytes plus a NUL terminator in
+            # the target C48 representation. Only same-width total association
+            # is allowed; a partial character overlap is forbidden by F77S.
+            stride = int(ty.split('*')[1]) + 1
+            if total * stride > 32767:
+                raise FortranError(unit.line, 'CHARACTER EQUIVALENCE byte extent exceeds 32767')
+            declarations.append('char ' + ident + '[' + str(total * stride) + '];')
+            for name in base:
+                offset = (base[name] - lowest) * stride
+                aliases['F_' + name] = ident if offset == 0 else '(' + ident + ' + ' + str(offset) + ')'
+        else:
+            declarations.append(('float' if ty == 'REAL' else 'int') + ' ' + ident + '[' + str(total) + '];')
+            for name in base:
+                offset = base[name] - lowest
+                if unit.vars[name][1] is None:
+                    aliases['F_' + name] = ident + '[' + str(offset) + ']'
+                else:
+                    aliases['F_' + name] = ident if offset == 0 else '(&' + ident + '[' + str(offset) + '])'
     return declarations, aliases

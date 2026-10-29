@@ -20,6 +20,7 @@ CASES['f77s_expout'] = ['  0.123400E+02 -0.125000E-01', '  0.000000E+00', '  0.1
 CASES['f77s_datado'] = ['  42']
 CASES['f77s_int'] = ['     3    -3     0     0    -2']
 CASES['f77s_datcom'] = ['  42  41']
+CASES['f77s_chequiv'] = ['BB  CC  CC  AA']
 CASES['f77s_invtrig'] = ['   0.5236   1.0472   0.4636   0.5463   2.0000']
 CASES['f77s_rmath'] = ['   2.3562  -2.3562   1.5000  -1.5000   1.5708']
 CASES['f77s_trig'] = ['     0.48     0.88     1.65     0.50    -0.48']
