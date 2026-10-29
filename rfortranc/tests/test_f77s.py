@@ -24,6 +24,27 @@ class F77SChecks(unittest.TestCase):
                 validate_source(source, units)
                 convert(units)
 
+    def test_continuation_line_cannot_have_label(self):
+        valid = ('      PROGRAM FIXED\n'
+                 '      INTEGER N\n'
+                 '      N=1+\n'
+                 '     1 1\n'
+                 '      END\n')
+        invalid = valid.replace('     1 1', '   201 1')
+        units = parse(valid, std='f77s')
+        with self.assertRaisesRegex(FortranError, 'continuation line may not carry'):
+            validate_source(invalid, units)
+
+    def test_valid_fixed_form_continuation_without_label(self):
+        source = ('      PROGRAM FIXED\n'
+                  '      INTEGER N\n'
+                  '      N=1+\n'
+                  '     1 1\n'
+                  '      END\n')
+        units = parse(source, std='f77s')
+        validate_source(source, units)
+        self.assertIn('F_N =', convert(units))
+
     def test_fixed_form_formatted_write(self):
         self.check(['INTEGER N','N=42','WRITE(6,10) N','   10 FORMAT(I4)'],True)
 

@@ -318,3 +318,9 @@
 - Strict `f77s_nestrevert.f` executes `FORMAT(I3,2(I4,I5))` with 10 values over three READ/WRITE records. Independent gfortran and the actual matched ZX-UX Z80 SSX (2,455 bytes, SHA256 `bd1269db735104cdf045a599b49f72b657d04185183e08c68a45e73d9bc1ebb2`) both output `  1   2    3   4    5`, `   6    7   8    9`, `  10`; RVM exits 0 at frame 477 / 77 system calls. 142/142 local frontend tests passed, 1/1 selected actual Z80 and 1/1 independent gfortran differential. Previously expected rejection of valid nested reversion changed to a positive test.
 - Source blob `143e585f6f4de38ed08a3ad8d1bdb5d9af267cba` matches locally tested translator; compact proof at `rfortranc/tests/results/f77s-nested-format-reversion-2026-10-29.json`. Previous `53e9a3c` CI passed; new CI pending.
 - NEXT: continue required I/O, EXTERNAL procedure dummies/actuals and remaining P0/P1/P2; full current-source native/differential/bounds/release, actual Spectrum and peak RAM remain OPEN. Not production ready.
+
+## Milestone — fixed-form labeled continuation rejection (2026-10-29)
+
+- Tightened the strict F77S source gate: a continuation card with nonblank statement-label columns 1–5 now fails explicitly rather than being treated as a legal continuation. The rule applies only in `--std f77s`; existing ZX-UX extension mode is unchanged.
+- Added positive/negative fixed-form continuation tests to `tests/test_f77s.py`. This is a frontend syntax safeguard, not new target runtime functionality; CI results need checking on the exact pushed commit.
+- NEXT: continue remaining P0/P1/P2, fully rerun actual matched ZX-UX Z80/native, differential, bounds, release and physical Spectrum/peak RAM tests. This is not a production-readiness claim.

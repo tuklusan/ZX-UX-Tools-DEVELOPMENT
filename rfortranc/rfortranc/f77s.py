@@ -34,6 +34,8 @@ def validate_source(source, units):
         if not re.fullmatch(r'[ 0-9]{5}', raw[:5]):
             raise FortranError(number, 'F77S requires a numeric label in columns 1-5')
         if raw[5] != ' ' and raw[5] != '0':
+            if raw[:5].strip():
+                raise FortranError(number, 'continuation line may not carry a statement label')
             if previous_comment:
                 raise FortranError(number, 'F77S prohibits comment immediately before continuation')
             continuation += 1
