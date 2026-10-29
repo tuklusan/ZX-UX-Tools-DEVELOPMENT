@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "kind": "verified native ZX-UX SSX1/RVM/TZX suite condensed checkpoint",
+  "not_full_case_report": true,
+  "not_physical_hardware": true,
+  "source_translator_sha256": "06c0b7a749012f55fe0fb56b628330414dd0e8a29b1f8e9e57ce4a56cee1be97",
+  "driver_sha256": "89f0304b5cb89c4b2e0a460e7bffc23775a26715dd274ddeae98cb9a01c72e5d",
+  "sdk_archive_sha256": "42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17",
+  "local_complete_json_sha256": "5988795b4fd13d027fbd65b262c026d07a3031227bb69faaeb3ef8a1f377bfb4",
+  "local_complete_json_bytes": 77587,
+  "command": "python tests/run_tests.py --sdk <source-sdk> --rvm <matching-rvm> --timeout 120 --rvm-frames 1000 --sdk-archive <minizxuxport.zip> --report tests/results/sdk-rvm-f77s-int-2026-10-28.json",
+  "counts": {
+    "positive_ssx1_rvm_exit0": 84,
+    "negative_compiler_diagnostics": 10,
+    "tzx_package": 1,
+    "passed": 95,
+    "total": 95,
+    "failed": 0
+  },
+  "new_positive": {
+    "name": "f77s_int",
+    "source_sha256": "bffdf8f0eba561b1a7d67726d558399e6d7125112032628485286a1c0e337eda",
+    "ssx_sha256": "d246b95120abe36e3196adc268b3dbf62c9c349b0a594ab2209b3265ece823cf",
+    "ssx_bytes": 2094,
+    "compiler_exit": 0,
+    "rvm_exit": 0,
+    "rvm_stderr": "rvm: f77s_int: exit 0 (exit) after 170 frames, 27 system calls, started from the cache\n",
+    "stdout_first_record": "     3    -3     0     0    -2"
+  }
+}
