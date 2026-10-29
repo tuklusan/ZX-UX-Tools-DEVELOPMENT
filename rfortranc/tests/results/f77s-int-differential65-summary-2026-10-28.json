@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "scope": "Condensed evidence of native SSX1/RVM vs gfortran 65-case strict F77S suite",
+  "not_full_case_report": true,
+  "not_full_conformance": true,
+  "translator_sha256": "06c0b7a749012f55fe0fb56b628330414dd0e8a29b1f8e9e57ce4a56cee1be97",
+  "differential_harness_sha256": "f981382b501052d0f32e4ff538bbf9aabfe0877628b4c5acc4f96d472e5ce9ec",
+  "rvm_sha256": "e7cfb59b6c76e49faf4a0876520e44d3fcb34a5d9bce45831ae0d25242cc7830",
+  "sdk_archive_sha256": "42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17",
+  "gfortran": "GNU Fortran (Debian 14.2.0-19) 14.2.0",
+  "full_local_json_sha256": "0881dae5154cb8e25bafe01d50616709b398ed6764c744a86eea74c5e256dd3a",
+  "full_local_json_bytes": 121240,
+  "command": "python tests/compare_f77s.py --sdk <source-sdk> --rvm <matching-rvm> --timeout 180 --sdk-archive <minizxuxport.zip> --out tests/results/f77s-differential-int-2026-10-28.json",
+  "result": {
+    "passed": 65,
+    "total": 65,
+    "failed": 0
+  },
+  "new_test": {
+    "name": "f77s_int",
+    "source_sha256": "bffdf8f0eba561b1a7d67726d558399e6d7125112032628485286a1c0e337eda",
+    "ssx_sha256": "d246b95120abe36e3196adc268b3dbf62c9c349b0a594ab2209b3265ece823cf",
+    "ssx_bytes": 2094,
+    "expected_lines": [
+      "     3    -3     0     0    -2"
+    ],
+    "host_lines": [
+      "     3    -3     0     0    -2"
+    ],
+    "zxux_lines": [
+      "     3    -3     0     0    -2"
+    ],
+    "both_exit0": true
+  }
+}
