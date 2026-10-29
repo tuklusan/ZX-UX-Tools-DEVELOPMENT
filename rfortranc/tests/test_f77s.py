@@ -1298,6 +1298,19 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_iend_',lowered)
         self.assertIn('f_fmt_int(3);',lowered)
 
+    def test_character_and_assigned_format_read(self):
+        for name in ('f77s_fmtchr', 'f77s_afread'):
+            source=(ROOT/'tests/fortran'/(name+'.f')).read_text()
+            with self.subTest(name=name):
+                units=parse(source,std='f77s')
+                validate_source(source,units)
+                generated=convert(units)
+                self.assertIn('f_fmt_int(4);', generated)
+                self.assertIn('f_outintw(F_A, 5);', generated)
+                self.assertIn('f_outintw(F_B, 5);', generated)
+                if name == 'f77s_afread':
+                    self.assertIn('if (F_K == 10)',generated)
+
     def test_integer_variable_console_units(self):
         src = (ROOT/'tests/fortran/f77s_unitvar.f').read_text()
         units = parse(src, std='f77s')
