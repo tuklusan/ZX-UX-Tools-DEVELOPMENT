@@ -171,3 +171,9 @@
 - Added `PAUSE` without code, with 1–5-digit stop code and CHARACTER message to the F77S control-flow lowering, displaying a message on ZX-UX and consuming one keyboard character before resuming. Reject malformed numeric or expression pause codes. Operator resume protocol still differs from gfortran (gfortran requires `go`, ZX-UX accepts one key), so P1 control-flow remains partial.
 - Native `f77s_pause.f` 1,310-byte SSX prints `PAUSE 99`, then after `go\n` keyboard input prints `  42`; RVM exit 0 at 169 frames/29 syscalls. Independent gfortran prints `  42` on stdout and `PAUSE 99` to stderr, with `go` required. 121/121 focused frontend tests passed locally. Repeatable `tests/check_pause.py` added for both toolchains, with JSON proof schema.
 - NEXT: run complete regressions; finish remaining P0/P1/P2 and hardware verification. No physical Spectrum validation or total RAM high-water yet.
+
+## Milestone — declared EXTERNAL/INTRINSIC functions and caller type checks (2026-10-29)
+
+- Added parsing and strict checking of `EXTERNAL` and implemented specific `INTRINSIC` declarations (1–6-character name, duplicate/shadow and dummy/array conflict diagnostics). Fixed implicit typing scan so procedure declaration keywords are not fabricated as variables. Added caller result-type check against actual function unit. Procedure arguments and separate declaration-only external resolution remain **missing**.
+- Strict `f77s_exintr.f` declares `REAL DOUBLE`, `EXTERNAL DOUBLE`, `INTRINSIC SIN`, invokes both; independent gfortran and matched SDK native ZX-UX Z80 SSX (3,011 bytes) both output `     1.48`, RVM exit 0 after 193 frames/29 syscalls. 122/122 focused frontend tests passed locally, including declaration/typing rejects. Fixture added to host/native suite.
+- NEXT: complete procedure argument ABI/separate linkage and outstanding P0/P1/P2. Physical Spectrum, total RAM peak and full native suite for this SHA remain unproven.

@@ -35,6 +35,8 @@ class Unit:
     unprefixed: bool = False
     result_explicit: bool = False
     std: str = 'zxux'
+    externals: set[str] = field(default_factory=set)
+    intrinsics: set[str] = field(default_factory=set)
 
 
 NAME = r'[A-Z][A-Z0-9_]*'
@@ -348,6 +350,28 @@ def parse(source, std='zxux'):
                     raise FortranError(u.line, 'non-numeric unprefixed FUNCTION return unsupported')
                 u.type = resolved
                 u.vars[u.name] = (resolved, None)
+    for u in units:
+        for st in u.statements:
+            decl = re.fullmatch(r'(EXTERNAL|INTRINSIC)\s+(.+)', st.text)
+            if not decl:
+                continue
+            kind, listing = decl.groups()
+            for name in split_items(listing):
+                if not re.fullmatch(r'[A-Z][A-Z0-9]{0,5}', name):
+                    raise FortranError(st.line, 'F77S procedure declaration name must be 1..6 chars')
+                if name in u.externals or name in u.intrinsics:
+                    raise FortranError(st.line, 'duplicate EXTERNAL/INTRINSIC procedure name: ' + name)
+                if name in u.args or u.vars.get(name, (None, None))[1] is not None:
+                    raise FortranError(st.line, 'EXTERNAL/INTRINSIC name conflicts with dummy/array')
+                if kind == 'INTRINSIC':
+                    if name not in ('ABS','IABS','INT','IFIX','FLOAT','AINT','NINT',
+                                    'SQRT','SIN','COS','EXP','LOG','MOD'):
+                        raise FortranError(st.line, 'INTRINSIC specific not yet supported: ' + name)
+                    u.intrinsics.add(name)
+                else:
+                    if name in ('SIN','COS','EXP','LOG','ABS','IABS','INT','MOD'):
+                        raise FortranError(st.line, 'external intrinsic-name shadowing not yet supported')
+                    u.externals.add(name)
     # Statement functions have specification scope, before DATA/executables.
     # An explicit array declaration distinguishes F(I)=... array assignment
     # from a statement-function definition F(X)=....
@@ -590,6 +614,10 @@ class Expr:
                     lhs = '((' + params[0] + ') % (' + params[1] + '))'
                     result_type = 'INTEGER'
                 elif t in self.known and self.known[t].kind == 'function':
+                    target = self.known[t]
+                    caller = self.unit.vars.get(t)
+                    if caller and caller[0] != target.type:
+                        raise FortranError(self.line, 'external function result type mismatch: ' + t)
                     if len(params) != len(self.known[t].args):
                         raise FortranError(self.line, 'wrong number of function arguments: ' + t)
                     target = self.known[t]
@@ -599,6 +627,8 @@ class Expr:
                     result_type = target.type
                 else:
                     raise FortranError(self.line, 'unknown function: ' + t)
+            elif t in self.unit.externals or t in self.unit.intrinsics:
+                raise FortranError(self.line, 'procedure name cannot be used as scalar: ' + t)
             elif t in self.substitutions:
                 lhs = '(' + self.substitutions[t] + ')'
                 result_type = self.unit.vars.get(t, ('REAL', None))[0]
@@ -1425,7 +1455,7 @@ def convert(units, emit_units=None):
         def decl(text):
             output.append('    ' + text)
         for var, (ty, n) in u.vars.items():
-            if var not in u.args and var not in u.statement_functions and ('F_' + var) not in aliases:
+            if var not in u.args and var not in u.statement_functions and var not in u.externals and var not in u.intrinsics and ('F_' + var) not in aliases:
                 from .arrays import size as total_extent
                 if ty.startswith('CHARACTER*'):
                     count = total_extent(n) if n is not None else 1
@@ -1534,6 +1564,8 @@ def convert(units, emit_units=None):
                 return  # initialized once for subprogram DATA
             if re.match(r'^SAVE\b', s):
                 return  # checked by common.layout; storage is already global/static
+            if re.match(r'^(EXTERNAL|INTRINSIC)\b', s):
+                return  # declaration checked in parse()
             assigned = re.fullmatch(r'ASSIGN\s+(\d{1,5})\s+TO\s+(' + NAME + r')', s)
             if assigned:
                 label, var = assigned.groups()

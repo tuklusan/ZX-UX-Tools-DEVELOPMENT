@@ -1054,6 +1054,23 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(item=item), self.assertRaises(FortranError):
                 convert(parse(src, std='f77s'))
 
+    def test_external_and_intrinsic_declarations(self):
+        src=(ROOT/'tests/fortran/f77s_exintr.f').read_text()
+        units=parse(src,std='f77s')
+        validate_source(src,units)
+        c=convert(units)
+        self.assertIn('f_DOUBLE(', c)
+        self.assertIn('f_sin_real(', c)
+        self.assertIn('float f_DOUBLE(float *F_X)', c)
+        bad=src.replace('REAL X,Y,DOUBLE','INTEGER DOUBLE\n      REAL X,Y')
+        with self.assertRaisesRegex(FortranError, 'result type mismatch'):
+            convert(parse(bad,std='f77s'))
+        for decl in ('INTRINSIC UNKNOWN','EXTERNAL SIN','EXTERNAL AAAAAAA',
+                     'INTRINSIC SIN,SIN'):
+            bad='      PROGRAM BAD\n      '+decl+'\n      END\n'
+            with self.subTest(decl=decl),self.assertRaises(FortranError):
+                convert(parse(bad,std='f77s'))
+
     def test_pause_waits_for_key_and_rejects_expressions(self):
         src=(ROOT/'tests/fortran/f77s_pause.f').read_text()
         units=parse(src, std='f77s')

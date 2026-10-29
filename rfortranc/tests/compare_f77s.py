@@ -35,6 +35,7 @@ CASES['f77s_iord'] = ['   1   2   3   4']
 CASES['f77s_numcv'] = ['   321    -3    -2', '   321.00    -3.00     3.25']
 CASES['f77s_idxexpr'] = ['  20']
 CASES['f77s_pscale'] = ['   12.30    1.23', '    1.23    1.23']
+CASES['f77s_exintr'] = ['     1.48']
 CASES['f77s_afmt'] = ['  42', '    42']
 
 

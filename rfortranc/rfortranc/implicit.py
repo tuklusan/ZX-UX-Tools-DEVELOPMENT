@@ -10,7 +10,7 @@ from .translator import FortranError, NAME
 
 DEFAULT = {chr(n): 'INTEGER' if 'I' <= chr(n) <= 'N' else 'REAL'
            for n in range(ord('A'), ord('Z') + 1)}
-KEYWORDS = set('PROGRAM END INTEGER REAL LOGICAL IMPLICIT DIMENSION COMMON SAVE EQUIVALENCE CHARACTER FUNCTION SUBROUTINE DO IF THEN ELSE ENDIF GO TO GOTO ASSIGN PAUSE CALL READ WRITE PRINT FORMAT CONTINUE STOP RETURN MOD AND OR NOT EQ NE LT LE GT GE TRUE FALSE'.split())
+KEYWORDS = set('PROGRAM END INTEGER REAL LOGICAL IMPLICIT DIMENSION COMMON SAVE EQUIVALENCE CHARACTER FUNCTION SUBROUTINE EXTERNAL INTRINSIC DO IF THEN ELSE ENDIF GO TO GOTO ASSIGN PAUSE CALL READ WRITE PRINT FORMAT CONTINUE STOP RETURN MOD AND OR NOT EQ NE LT LE GT GE TRUE FALSE'.split())
 LITERALS = re.compile(r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"")
 NUMBERS = re.compile(r'(?<![A-Z0-9_])(?:\d+\.?\d*|\.\d+)(?:[ED][+-]?\d+)?')
 
@@ -73,7 +73,8 @@ def infer(u, known):
         s = st.text.strip()
         if (re.match(r'^(INTEGER|REAL|LOGICAL|IMPLICIT|DIMENSION|COMMON)\s+', s)
                 or re.match(r'^CHARACTER(?:\*|\s)', s)
-                or re.match(r'^FORMAT\s*\(', s) or re.match(r'^SAVE\b', s)):
+                or re.match(r'^FORMAT\s*\(', s) or re.match(r'^SAVE\b', s)
+                or re.match(r'^(EXTERNAL|INTRINSIC)\b', s)):
             continue
         s = LITERALS.sub(' ', s)
         s = re.sub(r'\.[A-Z]+\.', ' ', s)

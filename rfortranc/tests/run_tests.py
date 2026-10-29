@@ -118,6 +118,7 @@ PROGRAMS = {
     'f77s_idxexpr': '  20',
     'f77s_pscale': '   12.30    1.23',
     'f77s_pause': '  42',
+    'f77s_exintr': '     1.48',
     'f77s_afmt': '    42',
 }
 NEGATIVE = {
