@@ -26,3 +26,8 @@ See run above. **Do not claim Fuse passed** until actual GitHub job logs confirm
 
 ## Recovery of local source before chat expires
 User archive `F77S_Z80_20_DEMOS.zip` has original Fortran source. The source listings on GitHub are permanent in `bas_only.tar.xz`. Reconstruct build/tapes and standalone TZX via zmakebas or a ROM-correct tokenizer. Local ephemeral script paths `/mnt/data/zxbas_work/{programs.py,make_suite.py,execute_model.py,verify_numeric.py,package_suite.py,zx_tzx2bas.py}` are in the downloadable ZIP under `tools/` (do not rely on /mnt/data persisting). Main branch unrelated code is never modified by this branch.
+
+## Fuse runner correction milestone
+- GitHub Actions run 40803484516: 20 independent zmakebas/ROM-install jobs passed setup, but Fuse printer text stayed empty. CLI --tape only mounted tape; runner failed to type LOAD. Treat those emulator checks as FAILED, not passed.
+- CI runner now uses xvfb-run + xdotool to type J, Ctrl+P, Ctrl+P, Return into 48K ROM prompt, loading the tape using ROM LOAD.
+- Run a 2-program canary matrix (BISECT, EULER_ODE) before restoring 20. Verify printer log and numerical output. Current status: not yet proven.

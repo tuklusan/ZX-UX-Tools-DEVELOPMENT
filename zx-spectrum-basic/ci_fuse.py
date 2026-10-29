@@ -12,7 +12,7 @@ images=work/'printer.pbm'
 log=work/'fuse.log'
 rom=os.environ.get('FUSE_ROM','')
 assert pathlib.Path(rom).is_file(),f'No 48K ROM file: {rom!r}'
-cmd=['xvfb-run','-a','fuse','--machine','48','--rom-48',rom,'--auto-load','--accelerate-loader','--speed','1000','--zxprinter','--textfile',str(printer),'--graphicsfile',str(images),'--no-confirm-actions','--tape',str(tape)]
+cmd=['fuse','--machine','48','--rom-48',rom,'--auto-load','--accelerate-loader','--speed','1000','--zxprinter','--textfile',str(printer),'--graphicsfile',str(images),'--no-confirm-actions','--tape',str(tape)]
 print('Launching Fuse:', ' '.join(cmd),flush=True)
 expected=f'DONE {name[:10]}'
 passed=False
@@ -20,6 +20,14 @@ last=''
 with log.open('wb') as fp:
     proc=subprocess.Popen(cmd,stdout=fp,stderr=subprocess.STDOUT,env={**os.environ,'SDL_AUDIODRIVER':'dummy'})
     try:
+        time.sleep(3)
+        windows=subprocess.run(['xdotool','search','--name','Fuse'],capture_output=True,text=True).stdout.split()
+        assert windows, 'Fuse SDL window not found'
+        subprocess.run(['xdotool','windowfocus','--sync',windows[-1]],check=True)
+        for keys in (['j'],['ctrl+p'],['ctrl+p'],['Return']):
+            subprocess.run(['xdotool','key','--clearmodifiers',*keys],check=True)
+            time.sleep(.22)
+        print('Typed LOAD "" at the 48K ROM prompt',flush=True)
         deadline=time.monotonic()+int(os.environ.get('FUSE_TIMEOUT','250'))
         while time.monotonic()<deadline:
             if printer.exists():
