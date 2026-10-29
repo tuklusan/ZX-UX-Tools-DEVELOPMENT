@@ -1054,6 +1054,19 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(item=item), self.assertRaises(FortranError):
                 convert(parse(src, std='f77s'))
 
+    def test_integer_subscript_expression_types(self):
+        src=(ROOT/'tests/fortran/f77s_idxexpr.f').read_text()
+        units=parse(src, std='f77s')
+        validate_source(src, units)
+        c=convert(units)
+        self.assertIn('F_A[(f_index(((F_I) + (1)), 3))]', c)
+        for sub in ('R', 'I+R', 'A(I)', 'F(I)'):
+            bad=('      PROGRAM BAD\n      INTEGER A(3),I\n'
+                 '      REAL R\n      I=1\n      R=1.0\n'
+                 '      A('+sub+')=3\n      END\n')
+            with self.subTest(subscript=sub), self.assertRaises(FortranError):
+                convert(parse(bad, std='f77s'))
+
     def test_specific_numeric_conversion_intrinsics(self):
         src=(ROOT/'tests/fortran/f77s_numcv.f').read_text()
         units=parse(src, std='f77s')

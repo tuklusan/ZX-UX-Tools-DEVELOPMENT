@@ -537,6 +537,12 @@ class Expr:
                 if t in self.unit.vars and self.unit.vars[t][1] is not None:
                     if self.unit.vars[t][0].startswith('CHARACTER*'):
                         raise FortranError(self.line, 'CHARACTER array element requires character assignment/comparison or A FORMAT')
+                    if any(self.expr_types[p] != 'INTEGER' for p in params):
+                        raise FortranError(self.line, 'array subscript expression must have INTEGER type')
+                    if self.unit.std == 'f77s' and any(
+                            re.search(r'\bf_[a-z][a-z0-9_]*\s*\(|\bF_[A-Z][A-Z0-9_]*\s*\[', p)
+                            for p in params):
+                        raise FortranError(self.line, 'F77S subscript cannot contain function/array-element references')
                     lhs = 'F_' + t + '[' + array_subscript(params, t, self.unit, self.line) + ']'
                     result_type = self.unit.vars[t][0]
                 elif t == 'INT' and len(params) == 1:

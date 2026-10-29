@@ -153,3 +153,9 @@
 - Corrected typed `ABS(INTEGER)` to preserve INTEGER results with checked -32768 overflow; added specific `IABS`, `FLOAT`, `IFIX`, `AINT`, `NINT` and nearest-integer rounding, with REAL argument checks on SIN/COS/EXP/LOG/SQRT and negative mismatched-type tests. AINT and NINT currently use 16-bit bounded INT helper; they cannot yet cover full REAL magnitudes and remain partial F77S.
 - Actual ZX-UX Z80 native SSX `f77s_numcv.f` (2,869 bytes) exits 0 after 192 frames/29 syscalls. Its two screen records `   321    -3    -2` and `   321.00    -3.00     3.25` exactly match independent gfortran `-std=legacy`; test also guards eight wrong-type intrinsic calls. 118/118 focused frontend unit tests passed locally. Added fixture to native/differential/host matrices.
 - NEXT: full CI and current-source native regression suite; remaining specific intrinsics, wider REAL range/precision and all outstanding P0/P1/P2 still OPEN. Physical Spectrum and runtime peak RAM remain unproven.
+
+## Milestone — INTEGER-only strict array subscript type checking (2026-10-29)
+
+- F77S expression lowering now rejects REAL/LOGICAL subscripts and forbidden nested function or array-element references in array subscripts, instead of silently coercing to Z80 16-bit index. Integer scalar arithmetic subscripts remain accepted. Added four negative types/forms and positive strict fixture.
+- Independent gfortran and actual ZX-UX Z80 RVM executed `f77s_idxexpr.f`: input `I=1`, expression `X=A(I+1)`, exact output `  20`, native SSX 1,282 bytes, exited 0 after 167 frames/29 syscalls. 119/119 strict frontend unit tests passed locally. Registered host/native fixture and differential harness.
+- Still partial F77S: further subscript grammar/source limit and dummy association proof needed. Current complete emulator regression, hardware validation and peak RAM remain OPEN.

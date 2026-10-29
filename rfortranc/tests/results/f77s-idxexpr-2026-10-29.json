@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "scope": "F77S numeric expression subscript integer-only type gate and actual Z80 proof",
+  "source": "f77s_idxexpr.f",
+  "gfortran_output": [
+    "  20"
+  ],
+  "zxux_rvm_output": [
+    "  20"
+  ],
+  "zxux_ssx_bytes": 1282,
+  "z80_exit": 0,
+  "frames": 167,
+  "system_calls": 29,
+  "negative_subscript_probes": [
+    "R",
+    "I+R",
+    "A(I)",
+    "F(I)"
+  ],
+  "frontend_unittest": {
+    "passed": 119,
+    "total": 119
+  },
+  "hardware_unproven": true
+}
