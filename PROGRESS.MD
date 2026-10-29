@@ -159,3 +159,9 @@
 - F77S expression lowering now rejects REAL/LOGICAL subscripts and forbidden nested function or array-element references in array subscripts, instead of silently coercing to Z80 16-bit index. Integer scalar arithmetic subscripts remain accepted. Added four negative types/forms and positive strict fixture.
 - Independent gfortran and actual ZX-UX Z80 RVM executed `f77s_idxexpr.f`: input `I=1`, expression `X=A(I+1)`, exact output `  20`, native SSX 1,282 bytes, exited 0 after 167 frames/29 syscalls. 119/119 strict frontend unit tests passed locally. Registered host/native fixture and differential harness.
 - Still partial F77S: further subscript grammar/source limit and dummy association proof needed. Current complete emulator regression, hardware validation and peak RAM remain OPEN.
+
+## Milestone — bounded F-format P scale input/output (2026-10-29)
+
+- Implemented `kP` FORMAT scale edit parsing (-4..4) and F-format scaling for both formatted READ and WRITE, including `0P` reset and chained edits. Explicit E-format with nonzero P is rejected, not miscompiled; its support remains OPEN, as do unrestricted standard scale factors and formats.
+- New strict `f77s_pscale.f`, keyboard input `   12.30    1.23\n`, independently compiled by gfortran and matched SDK to a 3,157-byte SSX. Both native RVM (exit 0, 288 frames/49 syscalls) and host output `   12.30    1.23` followed by `    1.23    1.23`. 120/120 strict frontend tests passed locally, including negative scale limit.
+- Still P0 partial, full variable-bound implied DO, E-scale, reversion, non-5/6 units, direct/unformatted/internal file I/O, and complete P1/P2 remain; physical Spectrum and runtime peak memory untested.

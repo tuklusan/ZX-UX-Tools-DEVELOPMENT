@@ -1054,6 +1054,18 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(item=item), self.assertRaises(FortranError):
                 convert(parse(src, std='f77s'))
 
+    def test_f_format_p_scale_input_output(self):
+        src = (ROOT/'tests/fortran/f77s_pscale.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        c = convert(units)
+        self.assertIn('f_outrealw(f_scale_real(F_A, 1), 8, 2)', c)
+        self.assertIn('F_A = f_scale_real(f_fmt_real(8, 2), -1);', c)
+        bad = ('      PROGRAM BAD\n      REAL A\n'
+               '      WRITE(6,10) A\n   10 FORMAT(5P,F8.2)\n      END\n')
+        with self.assertRaisesRegex(FortranError, 'P scale factor'):
+            convert(parse(bad, std='f77s'))
+
     def test_integer_subscript_expression_types(self):
         src=(ROOT/'tests/fortran/f77s_idxexpr.f').read_text()
         units=parse(src, std='f77s')

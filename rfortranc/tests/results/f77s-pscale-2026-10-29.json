@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "scope": "Bounded F edit descriptor P scale, F77S subset",
+  "fixture": "f77s_pscale.f",
+  "input": "   12.30    1.23\n",
+  "expected": [
+    "   12.30    1.23",
+    "    1.23    1.23"
+  ],
+  "gfortran_match": true,
+  "ssx_bytes": 3157,
+  "exit": 0,
+  "rvm_frames": 288,
+  "syscalls": 49,
+  "strict_frontend_tests": {
+    "passed": 120,
+    "total": 120
+  },
+  "not_verified": [
+    "P with E descriptor",
+    "unrestricted scaling",
+    "real Spectrum hardware",
+    "peak RAM"
+  ]
+}

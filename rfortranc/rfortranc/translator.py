@@ -676,6 +676,11 @@ static int f_nint_real(float x) {
     if (x < 0.0) return f_int_real(x - 0.5);
     return f_int_real(x + 0.5);
 }
+static float f_scale_real(float value, int factor) {
+    while (factor > 0) { value = value * 10.0; factor--; }
+    while (factor < 0) { value = value / 10.0; factor++; }
+    return value;
+}
 /* ANSI subset REAL SQRT, Newton iteration with domain check. */
 static float f_sqrt_real(float x) {
     float y;
@@ -1186,6 +1191,13 @@ def subset_format(source, line):
                     raise FortranError(line, 'FORMAT expands beyond 255 operations')
                 operations.extend(pattern * (repeat - 1))
                 continue
+            scale = re.fullmatch(r'([+-]?[0-9]+)P', token)
+            if scale:
+                multiplier = int(scale.group(1))
+                if not -4 <= multiplier <= 4:
+                    raise FortranError(line, 'P scale factor exceeds target supported range -4..4')
+                append(('scale', multiplier))
+                continue
             if token in ('BN', 'BZ'):
                 append(('blank', 0 if token == 'BN' else 1))
                 continue
@@ -1546,7 +1558,11 @@ def convert(units, emit_units=None):
                     index_updates = []
                 operations = []
                 pos = 0
+                scale_factor = 0
                 for mode, item in format_ops:
+                    if mode == 'scale':
+                        scale_factor = item
+                        continue
                     if mode == 'blank':
                         continue  # BN/BZ affect numeric input conversion, not output
                     if mode == 'literal':
@@ -1583,10 +1599,15 @@ def convert(units, emit_units=None):
                         info = u.vars.get(m.group(1)) if m else None
                         if not info or info[0] != 'REAL' or (info[1] is None) != (m.group(2) is None):
                             raise FortranError(line, 'FORMAT F/E needs REAL variable/element')
+                        if mode != 'real' and scale_factor:
+                            raise FortranError(line, 'P scale for E output not yet supported')
+                        value = E(name, line)
+                        if mode == 'real' and scale_factor:
+                            value = 'f_scale_real(' + value + ', ' + str(scale_factor) + ')'
                         if mode == 'realexpdigits':
-                            operations.append('f_outexpw(' + E(name, line) + ', ' + str(item[0]) + ', ' + str(item[1]) + ', ' + str(item[2]) + ');')
+                            operations.append('f_outexpw(' + value + ', ' + str(item[0]) + ', ' + str(item[1]) + ', ' + str(item[2]) + ');')
                         else:
-                            operations.append(('f_outrealw(' if mode == 'real' else 'f_outexp(') + E(name, line) + ', ' + str(item[0]) + ', ' + str(item[1]) + ');')
+                            operations.append(('f_outrealw(' if mode == 'real' else 'f_outexp(') + value + ', ' + str(item[0]) + ', ' + str(item[1]) + ');')
                         pos += 1
                     elif mode == 'integer':
                         if pos == len(values):
@@ -1616,7 +1637,11 @@ def convert(units, emit_units=None):
                     index_updates = []
                 operations = ['f_fmt_bzero = 0;']
                 pos = 0
+                scale_factor = 0
                 for mode, item in format_ops:
+                    if mode == 'scale':
+                        scale_factor = item
+                        continue
                     if mode == 'blank':
                         operations.append('f_fmt_bzero = ' + str(item) + ';')
                     elif mode == 'space':
@@ -1652,7 +1677,12 @@ def convert(units, emit_units=None):
                         if not info or info[0] != 'REAL' or (info[1] is None) != (m.group(2) is None):
                             raise FortranError(line, 'FORMAT F needs REAL variable/element')
                         reader = 'f_fmt_real' if mode == 'real' else 'f_fmt_ereal'
-                        operations.append(E(name, line) + ' = ' + reader + '(' + str(item[0]) + ', ' + str(item[1]) + ');')
+                        value = reader + '(' + str(item[0]) + ', ' + str(item[1]) + ')'
+                        if scale_factor:
+                            if mode != 'real':
+                                raise FortranError(line, 'P scale for E input not yet supported')
+                            value = 'f_scale_real(' + value + ', ' + str(-scale_factor) + ')'
+                        operations.append(E(name, line) + ' = ' + value + ';')
                         pos += 1
                     elif mode == 'integer':
                         if pos == len(values):
