@@ -394,3 +394,9 @@
 ### Correction — strict gate duplicate tail (2026-10-29)
 
 - Second GitHub CI (`8d3818c`, run `40898795168`) exposed duplicate trailing source after the intended F77S validator's final comment, producing an unexpected unindented fragment at line 88. Removed the entire duplicated suffix. The repaired validator is 87 lines long and keeps the original punctuation check using ASCII dollar `chr(36)` plus the new underscore rejection. Verify exact revision through GitHub frontend+host CI before claiming success.
+
+## Milestone — exact HEAD 3/3 native, 3/3 differential, 3/3 static RAM (2026-10-29)
+
+- GitHub Actions `40899013504` on compiler revision `70276e659df0cb049d340c9f628374cff65b70c8` completed successfully, including frontend/host gates. Unpacked that exact GitHub source artifact; **152/152 F77S frontend unit tests pass** locally.
+- Ran actual matched ZX-UX SDK and Z80 RVM native `f77s_unitvar`, `f77s_afread`, and `f77s_vuniio`: **3/3 native PASS**. Compiled independently with gfortran: **3/3 host-vs-Z80 PASS**. Native SSX bytes 1,828 / 1,826 / 2,772. Static image+BSS+declared stack/heap 2,020 / 2,018 / 2,852 bytes; **3/3 below 12,288 bytes**. Report full JSON SHA256 hashes `57dccc89154d54a950a9a03059477456e8bf77c68ecbbe22e1777e0b24e14980`, `64423746d59c98f90d19e4f3b5e72dee5561461f60ea5146ecc862dcf7086f1e`, and `f6409430bbb5d0c528011261af160fd59d3966db9505fb49c6dc4e7e3890c719` saved in compact manifest `rfortranc/tests/results/f77s-70276e-current-native-diff-memory.json`.
+- This proof covers three selected cases, not the full source corpus or full production gate. Live peak RAM including kernel/loader and physical Spectrum/cassette still untested. Continue closing remaining P0/P1/P2.
