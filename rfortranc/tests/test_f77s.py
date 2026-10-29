@@ -1028,6 +1028,23 @@ class F77SChecks(unittest.TestCase):
                 with self.assertRaises(FortranError):
                     convert(parse(source, std='f77s'))
 
+    def test_fixed_implied_do_and_whole_array_io(self):
+        src = (ROOT/'tests/fortran/f77s_iodo.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        c = convert(units)
+        self.assertIn('f_outintw(F_A[(f_index(1, 3))], 4);', c)
+        self.assertIn('f_outintw(F_A[(f_index(3, 3))], 4);', c)
+        self.assertIn('F_I = 4;', c)
+
+    def test_io_implied_do_rejects_bad_controls_and_expressions(self):
+        for item in ('(A(I),I=1,N)', '(A(I),I=1,3,0)', '(A(I),I=1,3,1+1)', 'A(1+1)', 'A(1)+1'):
+            src = ('      PROGRAM BAD\n      INTEGER A(3),I,N\n'
+                   '      WRITE(6,10) ' + item + '\n'
+                   '   10 FORMAT(3I4)\n      END\n')
+            with self.subTest(item=item), self.assertRaises(FortranError):
+                convert(parse(src, std='f77s'))
+
     def test_real_to_int_truncation_and_machine_guard(self):
         src=(ROOT/'tests/fortran/f77s_int.f').read_text()
         units=parse(src,std='f77s')

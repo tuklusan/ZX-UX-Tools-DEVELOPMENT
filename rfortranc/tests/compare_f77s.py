@@ -30,6 +30,7 @@ CASES['f77s_bnbz'] = ['  420   12']
 CASES['f77s_chlit'] = ['HELLO']
 CASES['f77s_fmtch'] = ['   42']
 CASES['f77s_barefn'] = ['    9.00']
+CASES['f77s_iodo'] = ['   2   4   6', '   2   4   6', '   4']
 CASES['f77s_afmt'] = ['  42', '    42']
 
 

@@ -74,10 +74,6 @@ def validate_source(source, units):
             m = re.fullmatch(r'GO\s*TO\s*\([^()]*\)\s*,?\s*(.*)', s)
             if m and not re.fullmatch(_WORD, m.group(1)):
                 raise FortranError(st.line, 'F77S computed GO TO selector must be an INTEGER variable')
-            m = re.fullmatch(r'WRITE\s*\(\s*([^,]*)\s*,\s*(\d+)\s*\)\s*(.*)', s)
-            if m:
-                for item in split_items(m.group(3)) if m.group(3).strip() else []:
-                    if not re.fullmatch(_WORD + r'(?:\s*\(\s*[^()]*\s*\))?', item):
-                        raise FortranError(st.line, 'F77S WRITE items must be variables or array names/elements')
-                    if len(re.match(_WORD, item).group()) > 6:
-                        raise FortranError(st.line, 'F77S names have at most six letters/digits')
+            # F77S I/O data items are checked during compiler lowering.
+            # The shared expander handles fixed whole arrays, implied DO,
+            # restrictions on subscripts and named-variable items.

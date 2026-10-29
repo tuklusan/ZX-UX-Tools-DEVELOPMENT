@@ -112,6 +112,7 @@ PROGRAMS = {
     'f77s_chlit': 'HELLO',
     'f77s_fmtch': '   42',
     'f77s_barefn': '    9.00',
+    'f77s_iodo': '   2   4   6',
     'f77s_afmt': '    42',
 }
 NEGATIVE = {

@@ -34,6 +34,7 @@ class Unit:
     statement_functions: dict[str, tuple[list[str], str]] = field(default_factory=dict)
     unprefixed: bool = False
     result_explicit: bool = False
+    std: str = 'zxux'
 
 
 NAME = r'[A-Z][A-Z0-9_]*'
@@ -171,6 +172,68 @@ def split_items(s):
     return parts
 
 
+def expand_static_io_items(values, unit, line):
+    """Expand fixed whole arrays and literal-control I/O implied-DO.
+
+    General variable control bounds require runtime FORMAT reversion; reject
+    unsupported bounds rather than silently producing the wrong record.
+    """
+    from .arrays import size as total_extent
+    out = []
+    final_indices = []
+    def emit(item, depth):
+        if depth > 3 or len(out) > 255:
+            raise FortranError(line, 'I/O implied-DO nesting/list exceeds target limits')
+        item = item.strip()
+        if item.startswith('(') and item.endswith(')'):
+            parts = split_items(item[1:-1])
+            control_at = next((i for i in range(len(parts))
+                               if re.fullmatch(NAME + r'\s*=\s*[+-]?\d+', parts[i])), None)
+            if control_at is not None and control_at > 0:
+                control = parts[control_at]
+                var, start = [x.strip() for x in control.split('=', 1)]
+                if unit.vars.get(var) != ('INTEGER', None):
+                    raise FortranError(line, 'implied-DO index must be INTEGER scalar')
+                bounds = parts[control_at+1:]
+                if len(bounds) not in (1, 2) or any(not re.fullmatch(r'[+-]?\d+', x) for x in bounds):
+                    raise FortranError(line, 'runtime implied-DO bounds are not yet implemented')
+                first, last = int(start), int(bounds[0])
+                stride = int(bounds[1]) if len(bounds) == 2 else 1
+                if stride == 0:
+                    raise FortranError(line, 'implied-DO step must be nonzero')
+                iters = list(range(first, last + (1 if stride > 0 else -1), stride))
+                if len(iters) * control_at + len(out) > 255:
+                    raise FortranError(line, 'I/O implied-DO expansion exceeds 255 items')
+                for n in iters:
+                    for obj in parts[:control_at]:
+                        emit(re.sub(r'\b' + re.escape(var) + r'\b', str(n), obj), depth+1)
+                final_indices.append((var, iters[-1] + stride if iters else first))
+                return
+        if re.fullmatch(NAME, item) and item in unit.vars and unit.vars[item][1] is not None:
+            _ty, dims = unit.vars[item]
+            if dynamic_extent(dims):
+                raise FortranError(line, 'runtime whole-array I/O extent not yet implemented')
+            total = total_extent(dims)
+            if total + len(out) > 255:
+                raise FortranError(line, 'whole-array I/O exceeds 255 elements')
+            for linear in range(total):
+                offset = linear
+                subs = []
+                for bound in ((dims,) if isinstance(dims, int) else dims):
+                    subs.append(str(offset % bound + 1))
+                    offset //= bound
+                out.append(item + '(' + ','.join(subs) + ')')
+            return
+        if not re.fullmatch(NAME + r'(?:\s*\(\s*[+-]?\d+(?:\s*,\s*[+-]?\d+){0,2}\s*\))?', item):
+            raise FortranError(line, 'F77S I/O item must be scalar or simple array element: ' + item)
+        if len(out) >= 255:
+            raise FortranError(line, 'I/O list exceeds 255 items')
+        out.append(item)
+    for val in values:
+        emit(val, 0)
+    return out, final_indices
+
+
 def parse(source, std='zxux'):
     units = []
     unit = None
@@ -195,7 +258,7 @@ def parse(source, std='zxux'):
             args = [] if not arg.strip() else [a.strip() for a in split_items(arg)]
             if any(not NAME_RE.fullmatch(a) for a in args) or len(args) != len(set(args)):
                 raise FortranError(st.line, 'invalid or duplicate dummy arguments')
-            unit = Unit(name, kind, st.line, args, ty, unprefixed=bool(bare))
+            unit = Unit(name, kind, st.line, args, ty, unprefixed=bool(bare), std=std)
             continue
         if s == 'END':
             if unit is None:
@@ -205,7 +268,7 @@ def parse(source, std='zxux'):
         if unit is None:
             if not units and not s.startswith(('FUNCTION', 'SUBROUTINE')):
                 # FORTRAN permits an unnamed main program.
-                unit = Unit('MAIN', 'program', st.line)
+                unit = Unit('MAIN', 'program', st.line, std=std)
             else:
                 raise FortranError(st.line, 'statement outside program unit')
         unit.statements.append(st)
@@ -1446,6 +1509,10 @@ def convert(units, emit_units=None):
                     return
                 format_ops = resolve_format(format_label, line)
                 values = split_items(arguments) if arguments.strip() else []
+                if u.std == 'f77s':
+                    values, index_updates = expand_static_io_items(values, u, line)
+                else:
+                    index_updates = []
                 operations = []
                 pos = 0
                 for mode, item in format_ops:
@@ -1501,6 +1568,7 @@ def convert(units, emit_units=None):
                 if pos != len(values):
                     raise FortranError(line, 'WRITE has more items than FORMAT')
                 operations.append('putchar(10);')
+                operations.extend('F_' + var + ' = ' + str(value) + ';' for var, value in index_updates)
                 add(operations)
                 return
             fm = re.fullmatch(r'READ\s*\(\s*(5|\*)\s*,\s*' + fmt_ident + r'\s*\)\s*(.*)', s)
@@ -1511,6 +1579,10 @@ def convert(units, emit_units=None):
                     return
                 format_ops = resolve_format(format_label, line)
                 values = split_items(arguments) if arguments.strip() else []
+                if u.std == 'f77s':
+                    values, index_updates = expand_static_io_items(values, u, line)
+                else:
+                    index_updates = []
                 operations = ['f_fmt_bzero = 0;']
                 pos = 0
                 for mode, item in format_ops:
@@ -1569,6 +1641,7 @@ def convert(units, emit_units=None):
                 if pos != len(values):
                     raise FortranError(line, 'READ has more items than FORMAT')
                 operations.append('f_fmt_end();')
+                operations.extend('F_' + var + ' = ' + str(value) + ';' for var, value in index_updates)
                 add(operations)
                 return
             if s.startswith(UNSUPPORTED):
