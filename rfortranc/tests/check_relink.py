@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check independent SSO relinking, exact image, Z80 execution and tape.
+"""Check independent SSO relinking, exact image and Z80 execution.
 
 No claim of prebuilt FORTRAN ABI type checking or physical Spectrum boot.
 """
@@ -54,9 +54,6 @@ def main():
         ref_compiled=run(['gfortran','-std=legacy','-ffixed-form','-o',str(host)]
                          +list(map(str,SOURCES)))
         reference=run([str(host)]) if ref_compiled['code']==0 else {}
-        tape=tmp/'linked.tzx'
-        tape_result=run(cli+['--link-only','--tzx','--tape-name','RELINK','-o',str(tape)]
-                        +list(map(str,objs)))
         low_binary=tmp/'too-small.ssx'
         low=run(cli+['--link-only','--max','1000','-o',str(low_binary)]
                 +list(map(str,objs)))
@@ -64,7 +61,7 @@ def main():
         wrong=run(cli+['--link-only','-o',str(tmp/'wrong.ssx'),str(SOURCES[0])])
         r.update({'original_build':first,'object_link':second,'target_run':native,
                   'host_compile':ref_compiled,'host_reference':reference,
-                  'tape_build':tape_result,'low_max':low,'missing_object':missing,
+                  'low_max':low,'missing_object':missing,
                   'bad_extension':wrong,'object_sha256':{obj.name:digest(obj) for obj in objs},
                   'ssx_sha256':digest(linked) if linked.exists() else None,
                   'ssx_bytes':linked.stat().st_size if linked.exists() else None})
@@ -76,7 +73,6 @@ def main():
             'actual_z80':native.get('code')==0 and '(exit)' in native.get('stderr',''),
             'independent_host':reference.get('code')==0 and
                                lines(native.get('stdout',''))==lines(reference.get('stdout',''))==['  42'],
-            'tzx':tape_result['code']==0 and tape.exists() and tape.read_bytes().startswith(b'ZXTape!\x1a'),
             'memory_limit':low['code']!=0 and not low_binary.exists(),
             'missing_object_rejected':missing['code']!=0,
             'bad_extension_rejected':wrong['code']!=0

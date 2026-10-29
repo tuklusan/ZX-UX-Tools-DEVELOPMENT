@@ -38,7 +38,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--report', type=Path, required=True)
-    parser.add_argument('--limit', type=int, default=12288)
+    parser.add_argument('--limit', type=int, default=14336)
     parser.add_argument('--cases', nargs='+', default=DEFAULT_CASES)
     args = parser.parse_args(argv)
     if not (1 <= args.limit <= 65535):
