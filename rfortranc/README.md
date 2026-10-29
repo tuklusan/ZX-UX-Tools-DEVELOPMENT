@@ -176,3 +176,13 @@ collision-safe cassette names, and exact real ZX-UX emulator output for a
 small LGPL numerical subset. It is **not** physical cassette load proof.
 
 Restricted ANSI subset REAL `Ew.d` formatted WRITE output (1..6 fractional digits, two-digit signed exponent, numeric padding/overflow handling) is exercised in `tests/fortran/f77s_expout.f`. Its native ZX-UX SSX1 runtime output is compared line-by-line with host gfortran. Reading E input, scale factors, full-range and exact IEEE formatting remain unsupported; this is not complete ANSI F77S conformance.
+
+Restricted `INT` on REAL expressions now truncates toward zero through a C48-native
+float-to-16-bit-INTEGER conversion. Values with results outside signed 16-bit
+range trigger a ZX-UX exit(2), rather than silently wrapping. The original
+user-supplied fixed-format `MACHAR.FOR` builds under `--std f77s --native`,
+with a machine-specific radix and precision fingerprint: gfortran results are
+not expected to equal ZX Spectrum ROM floating-point characteristics. See
+`tests/fortran/f77s_machar.f` and `tests/check_machar.py` for the independent
+native and host checks. Intrinsic argument typing and the other required
+numerical intrinsics remain incomplete; this does not prove full F77S.
