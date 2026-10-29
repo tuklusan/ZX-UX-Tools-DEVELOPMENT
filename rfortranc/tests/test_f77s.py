@@ -1331,6 +1331,15 @@ class F77SChecks(unittest.TestCase):
             with self.subTest(old=old,new=new), self.assertRaises(FortranError):
                 convert(parse(src.replace(old,new),std='f77s'))
 
+    def test_endfile_unformatted_scratch(self):
+        source=(ROOT/'tests/fortran/f77s_endfile.f').read_text()
+        units=parse(source,std='f77s')
+        validate_source(source,units)
+        c=convert(units)
+        self.assertIn('f_send(7);',c)
+        self.assertIn('f_srewind(7);',c)
+        self.assertIn('F_B = f_sread(7);',c)
+
     def test_sequential_unformatted_positioning(self):
         source=(ROOT/'tests/fortran/f77s_sequnio.f').read_text()
         units=parse(source,std='f77s')

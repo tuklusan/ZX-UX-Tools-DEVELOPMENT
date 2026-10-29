@@ -963,6 +963,14 @@ static void f_srewind(int unit) {
     f_sopen(unit, 1);
     if (seek(f_sh[unit], 0) < 0) exit(2);
 }
+static void f_send(int unit) {
+    int zero;
+    f_sopen(unit, 0);
+    if (tell(f_sh[unit]) > 32763) exit(2);
+    zero = 0;
+    if (write(f_sh[unit], &zero, 2) != 2) exit(2);
+    if (write(f_sh[unit], &zero, 2) != 2) exit(2);
+}
 static void f_sback(int unit) {
     int pos;
     int tail, upper;
@@ -2129,10 +2137,10 @@ def convert(units, emit_units=None):
                 gotos.append((None, label, line))  # validate target exists, including FORMAT
                 return
             # F77S unnamed sequential unformatted scratch unit 1..9.
-            seqpos = re.fullmatch(r'(REWIND|BACKSPACE)\s*(?:\(\s*([1-9])\s*\)|([1-9]))', s)
+            seqpos = re.fullmatch(r'(REWIND|BACKSPACE|ENDFILE)\s*(?:\(\s*([1-9])\s*\)|([1-9]))', s)
             if seqpos:
                 op, paren, plain = seqpos.groups()
-                add([('f_srewind' if op == 'REWIND' else 'f_sback') + '(' + (paren or plain) + ');'])
+                add([('f_srewind' if op == 'REWIND' else 'f_send' if op == 'ENDFILE' else 'f_sback') + '(' + (paren or plain) + ');'])
                 return
             seqio = re.fullmatch(r'(READ|WRITE)\s*\(\s*([1-9])\s*\)\s*([A-Z][A-Z0-9_]*)', s)
             if seqio:
