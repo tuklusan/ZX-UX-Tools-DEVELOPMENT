@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "scope": "F77S signed INTEGER addition/subtraction overflow-safe Z80",
+  "baseline_commit": "1b0fab51b8c7335ffcde297283fc7957792d66e0",
+  "case": "f77s_iaddsub.f",
+  "ssx_bytes": 1561,
+  "ssx_sha256": "2eb6ce54fe86f08c2551b67d02ab4abd3c8ccdd2ce00710837b7b720e00a3ea1",
+  "native_exit": 0,
+  "frames": 173,
+  "syscalls": 29,
+  "stdout": "  -32767   32766  -32768",
+  "host_gfortran_match": true,
+  "overflow_cases": [
+    {
+      "op": "32767+1",
+      "exit_code": 2
+    },
+    {
+      "op": "-32768+-1",
+      "exit_code": 2
+    },
+    {
+      "op": "32767-(-1)",
+      "exit_code": 2
+    },
+    {
+      "op": "-32768-1",
+      "exit_code": 2
+    }
+  ],
+  "frontend_unittests": {
+    "passed": 173,
+    "total": 173
+  },
+  "not_proven": [
+    "full subset conformance",
+    "full Z80 suite on new SHA",
+    "physical Spectrum",
+    "live RAM peak"
+  ]
+}

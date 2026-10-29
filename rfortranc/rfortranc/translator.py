@@ -594,7 +594,7 @@ class Expr:
                     if any(self.expr_types[p] != 'INTEGER' for p in params):
                         raise FortranError(self.line, 'array subscript expression must have INTEGER type')
                     if self.unit.std == 'f77s' and any(
-                            re.search(r'\bf_[a-z][a-z0-9_]*\s*\(|\bF_[A-Z][A-Z0-9_]*\s*\[', p)
+                            re.search(r'\bf_(?!iadd\b|isub\b)[a-z][a-z0-9_]*\s*\(|\bF_[A-Z][A-Z0-9_]*\s*\[', p)
                             for p in params):
                         raise FortranError(self.line, 'F77S subscript cannot contain function/array-element references')
                     lhs = 'F_' + t + '[' + array_subscript(params, t, self.unit, self.line) + ']'
@@ -733,6 +733,9 @@ class Expr:
             elif op == '/' and lt == rt == 'INTEGER':
                 lhs = 'f_idiv(' + lhs + ', ' + rhs + ')'
                 result_type = 'INTEGER'
+            elif op in ('+', '-') and lt == rt == 'INTEGER':
+                lhs = ('f_iadd' if op == '+' else 'f_isub') + '(' + lhs + ', ' + rhs + ')'
+                result_type = 'INTEGER'
             else:
                 lhs = '((' + lhs + ') ' + BIN.get(op, op) + ' (' + rhs + '))'
                 result_type = ('LOGICAL' if op.startswith('.') else
@@ -844,6 +847,17 @@ static int f_mod_int(int a, int b) {
 }
 /* Detect signed 16-bit multiplication overflow before executing it. */
 /* Signed INTEGER quotient truncates toward zero; avoid C48 faults. */
+/* Guard signed INTEGER overflow without overflowing guard arithmetic. */
+static int f_iadd(int a, int b) {
+    if (b > 0) { if (a > 32767 - b) exit(2); }
+    if (b < 0) { if (a < -32767 - (b + 1)) exit(2); }
+    return a + b;
+}
+static int f_isub(int a, int b) {
+    if (b < 0) { if (a > 32767 + b) exit(2); }
+    if (b > 0) { if (a < -32767 + (b - 1)) exit(2); }
+    return a - b;
+}
 static int f_idiv(int a, int b) {
     if (b == 0 || (a == -32768 && b == -1)) exit(2);
     return a / b;

@@ -534,3 +534,9 @@
 - Typed INTEGER/INTEGER quotient lowering now calls checked `f_idiv`, trapping divisor zero and 16-bit MININT/-1 overflow with ZX-UX exit 2. Signed valid quotients still truncate toward zero.
 - Actual ZX-UX Z80 `f77s_idiv.f` compiled to 1,448-byte SSX, SHA-256 `49dbebe4532b6bc328a889da7f2245102d237afc1a61ae6e1e781b5ae5be5fa8`. RVM exit 0 at frame 138/23 system calls; stdout `  -16384      -3      -2` exactly matched independent gfortran. Negative target binaries for `1/0` and `(-32768)/(-1)` exit 2. Focused Python tests 172/172 passed.
 - Added strict source and native/differential cases, plus checkpoint evidence. Previous multiplication commit CI must be checked, followed by the new head's frontend and host CI. Complete current-source native/differential/bounds/release proof, P0/P1/P2, real Spectrum hardware and peak RAM remain open.
+
+## Milestone — checked 16-bit INTEGER addition and subtraction (2026-10-29)
+
+- INTEGER+INTEGER and INTEGER-INTEGER expressions now use bounded C48 signed-16 helpers `f_iadd` and `f_isub`; avoid overflow in the guard expressions, including C48's troublesome -32768 constant folding. Adjusted the strict subscript-expression check to recognize generated arithmetic helpers while still rejecting user function references.
+- Native `f77s_iaddsub.f` produced 1,561-byte SSX (SHA256 `2eb6ce54fe86f08c2551b67d02ab4abd3c8ccdd2ce00710837b7b720e00a3ea1`), exits 0 at 173 RVM frames/29 syscalls with output `  -32767   32766  -32768`, exact independent gfortran match. Four signed overflow examples (+ at both extremes and - at both extremes) separately compiled to ZX-UX binaries and exited 2. Local frontend 173/173 passed.
+- Strict fixture, native/differential case maps and hash evidence committed; full new-head CI and four native suites still required. P0/P1/P2, physical 48K Spectrum, runtime peak memory and full production proof remain OPEN.
