@@ -1,4 +1,13 @@
 # PROGRESS.MD — rfortranc F77S compiler
+
+## TWO ACTIVE PARALLEL WORKSTREAMS — user clarification, 2026-10-28
+
+**PRIMARY, mandatory priority — F77S compiler on `main`:** Finish production-grade `rfortranc` for the **ANSI FORTRAN 77 SUBSET (F77S)**, not full F77. The controlling checklist is `rfortranc/docs/F77S-REMAINING.md`: close all **six P0 critical**, all **nine P1 major**, **P2 separate compilation/linkage**, and the **production-readiness proof** (real Z80 binaries, representative independent F77S numerical library, measured target RAM/runtime, actual Spectrum 48K/cassette validation if available). Rerun compiler tests for each code change and push this **root `PROGRESS.MD` on every compiler milestone**. Physical hardware remains an OPEN proof item until genuinely tested; never claim completed otherwise. The original note below prohibiting "separate demo-focused work" refers to **redirecting compiler development** away from F77S requirements; it **does not cancel or prohibit the independent parallel BASIC-port track**.
+
+**SECONDARY, independent parallel workstream — ZX Spectrum BASIC ports:** Port the **original** 20 F77S programs (not Forth conversions) into 48K Sinclair BASIC; deliver original generated TZX tapes and ASCII source produced by the **real 48K ROM's externally invoked `LLIST`** after each tape RUN/STOP, based on verified screen output. Never include LPRINT or LLIST in the BASIC programs. Its dedicated branch is `zx-spectrum-basic-f77s20`, with complete handover at `zx-spectrum-basic/PROGRESS.MD` there and a separate 20-Fuse parallel CI runner. This is **not** evidence that `rfortranc` itself is production-ready. On resumption, work on compiler primary independently; secondary work may continue concurrently without stealing the compiler's priority.
+
+**Branch/repository separation:** The root checkpoint on `main` is the primary/compiler resumption point. The BASIC branch's folder checkpoint is only for the secondary track. GitHub is shared: fetch current heads, use SHA-checked connector writes, never force push, never overwrite unrelated work. Keep both checkpoints current *in their respective branches*. The full earlier compiler history remains preserved byte-for-byte under `rfortranc/docs/PROGRESS-HISTORY-THROUGH-F77S-GAP-AUDIT-2026-10-28.md`; do not replace it.
+
 ## Mandatory fresh-chat starting point (2026-10-28)
 
 **USER'S LATEST DIRECTION OVERRIDES ALL EARLIER 'NEXT ACTION' IN THE HISTORY:**
