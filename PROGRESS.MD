@@ -256,3 +256,7 @@
 - Independent gfortran and actual ZX-UX Z80 RVM ran three fixed-form fixtures. Outputs: `    6   42`, `    6   99`, `    8   77`. Linked SSX sizes: 1862, 1885, 2071 bytes; each exited 0. Replacing N=2 with N=4 on a six-element actual correctly traps with Z80 exit 2.
 - Local frontend 135/135, selected native 6/6, independent native-vs-gfortran differential 1/1; remaining two new cases were separately compiled/executed in both systems with matching outputs. Full native/differential/bounds/release against this revision remains outstanding.
 - NEXT: fix any new GitHub Actions failures, expand COMMON-bound array extents and legal dummy associations; complete all remaining P0/P1/P2 and physical Spectrum plus peak RAM validation. **Not production ready.**
+
+### Regression correction — leading-bound milestone (2026-10-29)
+
+- First GitHub Actions run for `54fc873` failed **only** `test_adjustable_and_assumed_size_dummies/f77s_dmalt`: one older expected generated-expression substring remained unchanged because the remote test patch updated only its first occurrence. Compiler source and native proof unchanged. Updated the second assertion to accept the checked new form. Recheck full Actions frontend+gfortran against this new SHA before counting it; no overall regression pass for `54fc873`.
