@@ -1970,11 +1970,22 @@ static float f_atan2_real(float y, float x) {
 """,
     'AMOD': """
 static float f_amod_real(float x, float y) {
-    float quotient;
+    float remainder;
+    float divisor;
+    float step;
+    int negative;
     if (y == 0.0) exit(2);
-    quotient = x / y;
-    if (quotient >= 32768.0 || quotient <= -32769.0) exit(2);
-    return x - (float)((int)quotient) * y;
+    negative = x < 0.0;
+    remainder = negative ? -x : x;
+    divisor = y < 0.0 ? -y : y;
+    if (remainder < divisor) return x;
+    step = divisor;
+    while (step <= remainder / 2.0) step = step * 2.0;
+    while (step >= divisor) {
+        if (remainder >= step) remainder = remainder - step;
+        step = step / 2.0;
+    }
+    return negative ? -remainder : remainder;
 }
 """,
     'RIPOW': """
