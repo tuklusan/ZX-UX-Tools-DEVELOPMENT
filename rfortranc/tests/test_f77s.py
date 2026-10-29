@@ -1037,6 +1037,15 @@ class F77SChecks(unittest.TestCase):
         self.assertIn('f_outintw(F_A[(f_index(3, 3))], 4);', c)
         self.assertIn('F_I = 4;', c)
 
+    def test_implied_do_formatted_read(self):
+        src = (ROOT/'tests/fortran/f77s_iord.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        generated = convert(units)
+        self.assertIn('F_A[(f_index(1, 3))] = f_fmt_int(3);', generated)
+        self.assertIn('F_A[(f_index(3, 3))] = f_fmt_int(3);', generated)
+        self.assertIn('F_I = 4;', generated)
+
     def test_io_implied_do_rejects_bad_controls_and_expressions(self):
         for item in ('(A(I),I=1,N)', '(A(I),I=1,3,0)', '(A(I),I=1,3,1+1)', 'A(1+1)', 'A(1)+1'):
             src = ('      PROGRAM BAD\n      INTEGER A(3),I,N\n'
