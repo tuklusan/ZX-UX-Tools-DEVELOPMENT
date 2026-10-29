@@ -1142,3 +1142,57 @@ The `--rvm` binary must be the matching built/packaged emulator with the correct
 - Current-source evidence: verified native **95**, strict gfortran-vs-ZX-UX **65**, bad-capacity traps **13**, release builds **4**, targeted original MACHAR/INT **4**, all passing; summary JSON files on GitHub listed above. Host-only strict source output **65/65**; local unit tests **90/90** on source copy (not full latest remote CI test file). User original demo parse+codegen 12/20 accepted, remaining eight error messages pinned. Full unabridged 5-report tar locally SHA256 `43aff4609d7d92dd2193c2fe59b3328378c1ad732f32e9ef1dffc5f033ea8d74` but not on GitHub; reproduce from scripts rather than assume this local path exists.
 - Restore user-provided external source SDK zip `minizxuxport.zip` SHA256 `42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17`, extract `src/zx-ux-sdk` and paired `dist/sdk/bin/rvm`; install current `rfortranc/tools/install_into_sdk.py`. Original 20-demos zip SHA256 `36bc03bdb24678bdff2e15fb84a98df4ea7e4dcf38fa346c49da8f470b870cd0`. Do not rely on prior `/mnt/data` or in-flight processes.
 - **Next action:** Implement restricted accurate F77S REAL `SIN` (including proof of WHETSTONE), then `COS`, `EXP`, each with native SSX/RVM and gfortran numerical comparisons. The compiler's production goal remains many substantial independently ported numerical binaries on actual Z80, plus physical Spectrum proof—not frontend-only compliance.
+
+### LOSSLESS FRESH-CHAT HANDOVER — native F77S INT/MACHAR, five complete reports now on GitHub (2026-10-28 America/Detroit)
+
+**Start at this section in a fresh chat. It supersedes older NEXT ACTION notes and older warnings that the INT-era full reports exist only locally. All source and all five original unabridged execution reports now survive in GitHub.**
+
+**Shared repo and hard rules**
+- Repo: https://github.com/tuklusan/ZX-UX-Tools-DEVELOPMENT, branch `main`. All GitHub writes **MUST** use the connected GitHub connector, based on freshly fetched branch state, no force pushes. Only touch `rfortranc/**` and root `PROGRESS.MD` (or a narrowly scoped compiler workflow). Other developers work under `M4FORTH/**` and elsewhere; preserve all their changes. Their F83 numerical-analysis check-in `51d4ec14b4dd464fd9ada982b3f4b2b995ef1d7a` is intact.
+- Goal: production-grade `rfortranc` for **ANSI X3.9-1978 Subset FORTRAN (F77S)**, NOT full F77, generating ZX-UX Z80 SSX1 and TZX on 3.5-MHz Z80 with ~12 KB available. Production proof means substantial independently ported FORTRAN SUBSET numerical code that genuinely runs as Z80 binaries, plus eventual physical Spectrum 48K/tape-load tests.
+- Latest compiler implementation is `rfortranc/rfortranc/translator.py` SHA-256 `06c0b7a749012f55fe0fb56b628330414dd0e8a29b1f8e9e57ce4a56cee1be97`. Newest feature: REAL-to-signed-16-bit `INT`, truncating toward zero; out-of-range conversion exits 2 (introduced at commit `199cafc0a14f78702dde4423b5c451e642a11408`). Later commits were tests, evidence, docs and checkpoints only.
+
+**Latest-source actual binary proof**
+- Native: **95/95 PASS** (84 actual SSX1 positive executables run on matching ZX-UX RVM, 10 expected compiler rejections, 1 real TZX).
+- Differential: **65/65 PASS** (strict F77S fixed-form sources compiled independently by gfortran and native toolchain; actual RVM output matched host references exactly).
+- Runtime array safety: **13/13 PASS** (13 invalid adjustable dummy-array/storage extents all compiled to SSX1 and correctly exited real RVM code 2).
+- Native release: **4/4 PASS** (four numerical GNU LGPL Burkardt F77S ports emitted both SSX1 and TZX, manifest hashes, unique <=10-char tape names and matching ZX-UX emulator outputs verified).
+- Targeted INT/MACHAR: **4/4 PASS**. Signed INT fixture gives `3 -3 0 0 -2` on host and ZX-UX; positive `32768.0` and negative `-32769.0` INT traps exit 2. Original user `MACHAR.FOR` compiles and runs on ZX-UX; ZX-UX REAL fingerprint radix 2 and 33 precision digits, host gfortran radix 2 and 24 digits. These are **different machine properties**, so matching epsilon values is not the pass condition. Source and replay tool: `tests/fortran/f77s_machar.f`, `tests/fortran/f77s_int.f`, `tests/check_machar.py`.
+- Original 20 user numerical demos: **12/20 strict source code accept**, but NOT 12/20 host-identical outputs: 11 previous native demos numerically matched host, MACHAR separately verified with target-specific fingerprint. Eight source failures remain: `COS` (BRENT_ROOT, TINY_FFT), `EXP` (GAUSS_1D, RK4_FIXED, ROMBERG), `SIN` (WHETSTONE), statement function (NEWTON), unit-7 `WRITE` (EULER_ODE). Exact per-demo diagnostics in `rfortranc/tests/results/f77s-int-demo-syntax-2026-10-28.json`.
+
+**Full reports — NOW DURABLY PRESERVED ON GITHUB**
+- Lossless original five-report archive stored as a text base64 encoding in `rfortranc/tests/results/f77s-int-proof-2026-10-28.tar.xz.b64`, commit `96ea1f9154024032d485a91970903edc8da618ae`. GitHub `fetch_file` returned contents byte-for-byte identical to the original 25,800-character base64. Decode to a 19,348-byte `.tar.xz`, SHA-256 `43aff4609d7d92dd2193c2fe59b3328378c1ad732f32e9ef1dffc5f033ea8d74`. This is NOT a summary: it contains the actual full five run outputs with commands, diagnostics, hashes and per-case results. Earlier compact summary JSON files also remain on GitHub.
+- Recover from a fresh clone (the repository alone suffices; no old `/mnt/data` file required):
+
+```sh
+git clone https://github.com/tuklusan/ZX-UX-Tools-DEVELOPMENT.git
+cd ZX-UX-Tools-DEVELOPMENT
+base64 -d rfortranc/tests/results/f77s-int-proof-2026-10-28.tar.xz.b64 > /tmp/f77s-int-proof.tar.xz
+printf '%s  %s\n' '43aff4609d7d92dd2193c2fe59b3328378c1ad732f32e9ef1dffc5f033ea8d74' '/tmp/f77s-int-proof.tar.xz' | sha256sum -c -
+mkdir -p /tmp/f77s-int-reports
+tar -xJf /tmp/f77s-int-proof.tar.xz -C /tmp/f77s-int-reports
+ls -l /tmp/f77s-int-reports
+```
+
+- Exact five original unabridged report files (SHA-256 independently checked from the tar before writing this handover):
+  1. `sdk-rvm-f77s-int-2026-10-28.json`: **77,587 bytes**, SHA `5988795b4fd13d027fbd65b262c026d07a3031227bb69faaeb3ef8a1f377bfb4`.
+  2. `f77s-differential-int-2026-10-28.json`: **121,240 bytes**, SHA `0881dae5154cb8e25bafe01d50616709b398ed6764c744a86eea74c5e256dd3a`.
+  3. `f77s-bounds-int-2026-10-28.json`: **17,524 bytes**, SHA `284644571f8199a86fedd81cb45353513776b0223d28f9befb6a58cec19831dd`.
+  4. `f77s-release-int-2026-10-28.json`: **7,834 bytes**, SHA `17201252839515cfe7fff3fbc0845d01aa42f809f0ccd2d237d1bbae33e30431`.
+  5. `f77s-int-machar-2026-10-28.json`: **8,796 bytes**, SHA `f10be54bb85326312ae7f98f3bb98ba530003603d000c56f9689e99fc6c1cf80`.
+
+**Replay dependencies and commands**
+- User-provided `minizxuxport.zip`: SHA-256 `42116f97efe3acdd70534af783ca058169fb1ed3c40808c5cf9d1ce752990c17`; contains `src/zx-ux-sdk/` and matching packaged `dist/sdk/bin/rvm`. Install newest compiler into extracted SDK via `python rfortranc/tools/install_into_sdk.py <source-sdk>`. User-provided `F77S_Z80_20_DEMOS.zip`: SHA-256 `36bc03bdb24678bdff2e15fb84a98df4ea7e4dcf38fa346c49da8f470b870cd0`. These user archives are external and NOT committed; if fresh chat cannot see Project attachments, reacquire the exact ZIPs. Do not assume an old `/mnt/data` mount, and never substitute a mismatched kernel.
+- Source of truth for subset restrictions: `rfortranc/docs/F77S-MATRIX.md` and ANSI X3.9-1978 Appendix D. User also attached `F77-SUBSET-SPEC.txt`.
+- Run serially from checkout `rfortranc/` after installing the compiler into the matching SDK:
+
+```sh
+python -m unittest discover -s tests -p test_f77s.py -q
+python tests/run_tests.py --sdk <source-sdk> --rvm <matching-rvm> --timeout 120 --rvm-frames 1000 --sdk-archive <minizxuxport.zip> --report tests/results/sdk-rvm-f77s-int-recheck.json
+python tests/compare_f77s.py --sdk <source-sdk> --rvm <matching-rvm> --timeout 180 --sdk-archive <minizxuxport.zip> --out tests/results/f77s-differential-int-recheck.json
+python tests/check_adjustable_bounds.py --sdk <source-sdk> --rvm <matching-rvm> --sdk-archive <minizxuxport.zip> --report tests/results/f77s-bounds-int-recheck.json
+python tests/check_release.py --sdk <source-sdk> --rvm <matching-rvm> --sdk-archive <minizxuxport.zip> --report tests/results/f77s-release-int-recheck.json
+python tests/check_machar.py --sdk <source-sdk> --rvm <matching-rvm> --sdk-archive <minizxuxport.zip> --demo-archive <F77S_Z80_20_DEMOS.zip> --report tests/results/f77s-machar-recheck.json
+```
+
+**SINGLE NEXT CONCRETE ACTION:** Implement accurate supported-domain F77S REAL `SIN`. First inspect original user `WHETSTONE.FOR` for argument ranges, numerical accuracy and the 3.5-MHz Z80 runtime budget. Add strict positive, negative and boundary tests, compare host gfortran against actual SSX1 running under matching ZX-UX RVM and checkpoint sources, complete JSON results and root `PROGRESS.MD` **at the same milestone**. Then continue to `COS`, `EXP` with range-reduction/overflow behavior, and re-probe all 20 demos. Rerun the full 95+/65+/13/4 native, differential, traps and release suites on every changed compiler revision. Future results do not inherit earlier PASS status automatically. **Not yet proven:** full ANSI F77S conformance, 12 KB peak runtime memory including kernel/stack, physical ZX Spectrum 48K execution or cassette loading. Preserve others' work and do not drift into full F77.
