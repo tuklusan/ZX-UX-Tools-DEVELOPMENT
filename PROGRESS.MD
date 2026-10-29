@@ -20,6 +20,8 @@ Deliver the **user-scoped F77S-derived FORTRAN compiler** that produces working 
 **Hard rules:** Use the GitHub connector for all repository reads/writes; fetch fresh `main` before edits; never force-push; modify only `rfortranc/**` and root `PROGRESS.MD`; preserve other developers' work. No unnecessary files, dated evidence dumps, historical logs, elaborate documents, or bureaucratic process. Tests and concise restart checkpoints are essential, not paperwork. Local/container state is ephemeral; **push a recoverable root checkpoint at every step**.
 
 ## Current checkpoint
+- **P0 math in progress:** `39c649bd` replaces REAL AMOD 16-bit quotient cast with scaled subtraction; `b45e6300` adds large-quotient example; `aff3a8ca` registers it in `run_tests.py`. **Unverified:** frontend/native/RVM suites have not been executed on these revisions. P0 items remain incomplete. Next: execute frontend and ZX-UX native emulator tests, inspect AMOD numerics, then proceed through P0 1–6.
+
 
 - Branch: `main`. Compiler code last changed before this instruction rewrite at `62c9883d9288002a74d5b8ad2438d54bdc23e55a`; later commits cleaned the workspace and adjusted test runners. Fetch latest main, never assume the recorded head is still current.
 - **P0: 6 incomplete; P1: 8 incomplete; P2: 4 incomplete.** Existing compiler supports tested subsets of each area; re-evaluate each against the active checklist, don't reimplement working features.
