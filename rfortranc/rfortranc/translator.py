@@ -1685,11 +1685,31 @@ def convert(units):
                             if variable_actual:
                                 prelude.append('f_seqcheck(0, ' + capacity + ', ' + required + ');')
                     elif ty.startswith('CHARACTER*'):
-                        # Only writable same-width character variables/elements.
-                        item = character_item(actual, u, known, line)
-                        if item is None or item[1] != int(ty.split('*')[1]):
-                            raise FortranError(line, 'CHARACTER dummy requires same-length CHARACTER scalar actual: ' + actual)
-                        refs.append(item[0])
+                        length = int(ty.split('*')[1])
+                        lit = re.fullmatch(r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"", actual)
+                        if lit:
+                            quote = actual[0]
+                            chars = actual[1:-1].replace(quote + quote, quote)
+                            if len(chars) != length:
+                                raise FortranError(line, 'CHARACTER constant actual needs same length as dummy')
+                            # A constant actual must not be defined by the
+                            # callee; don't pass literals to writable dummies.
+                            callee = known[f]
+                            writing = any(
+                                re.match(r'^' + re.escape(dummy) + r'\s*(?:\([^)]*\))?\s*=', st.text)
+                                or (re.match(r'^READ\b', st.text) and
+                                    re.search(r'\b' + re.escape(dummy) + r'\b', st.text))
+                                or (re.match(r'^CALL\b', st.text) and
+                                    re.search(r'\b' + re.escape(dummy) + r'\b', st.text))
+                                for st in callee.statements)
+                            if writing:
+                                raise FortranError(line, 'CHARACTER constant actual cannot bind writable dummy')
+                            refs.append(c_string(actual))
+                        else:
+                            item = character_item(actual, u, known, line)
+                            if item is None or item[1] != length:
+                                raise FortranError(line, 'CHARACTER dummy requires same-length CHARACTER scalar actual: ' + actual)
+                            refs.append(item[0])
                     else:
                         refs.append(reference_actual(E(actual, line), u, ty))
                 add(prelude + ['f_' + f + '(' + ', '.join(refs + extra_capacity) + ');'])

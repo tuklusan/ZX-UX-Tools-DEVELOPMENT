@@ -98,3 +98,9 @@
 - Added `BN`/`BZ` edit descriptors, reset-to-BN per formatted READ, and zero-vs-ignore blank conversion for integer, F decimal and E exponential numeric input. WRITE treats BN/BZ as no-op descriptors. C48 helper name `f_fmt_bzero` respects 15-character identifier limit.
 - Strict source `f77s_bnbz.f` and negative/positive test: supplied input `  42  12  ` (two fixed I5 fields); both independent gfortran and actual ZX-UX SSX/RVM output `  420   12`. SSX 1,769 bytes, ZX-UX exited 0 after 226 frames/42 system calls; 107/107 frontend unit tests passed locally. Added to native/differential cases and keyboard input map.
 - Still partial FORMAT coverage: exponent ranges, P scale, reversion/record handling, internal I/O, assigned/character format IDs. Complete native regressions required for this new source; no physical Spectrum validation.
+
+## Milestone — CHARACTER constant actual arguments (2026-10-29)
+
+- Added F77S same-width scalar CHARACTER constant actuals for read-only dummy arguments. Reject literals passed to directly writable, READ-modified, or forwarded dummy arguments rather than generating writes into literal storage. Preserves existing negative fixture that passes a literal to a writing subroutine.
+- `f77s_chlit.f` strict source passes `'HELLO'` to `SUBROUTINE SHOWN` with `CHARACTER*5 S`, outputs `HELLO` under independent gfortran and matching ZX-UX Z80 SSX/RVM. Native SSX 840 bytes, exits 0 after 162 frames/29 system calls; 108/108 frontend tests passed on local candidate. Registered in native and differential runners.
+- Still missing full CHARACTER argument total association (different widths, adjustable array dummy, COMMON/EQUIVALENCE, internal/unformatted I/O). Current source still has broad P0/P1/P2 gaps and no physical hardware proof.

@@ -764,6 +764,14 @@ class F77SChecks(unittest.TestCase):
         with self.assertRaisesRegex(FortranError, 'CHARACTER dummy requires same-length'):
             convert(parse(source, std='f77s'))
 
+    def test_character_constant_actual_readonly(self):
+        src = (ROOT/'tests/fortran/f77s_chlit.f').read_text()
+        units = parse(src, std='f77s')
+        validate_source(src, units)
+        generated = convert(units)
+        self.assertIn('f_SHOWN("HELLO")', generated)
+        self.assertIn('f_outcharw(F_S, 5, 5)', generated)
+
     def test_character_dummy_non_variable_rejected(self):
         source = ("      PROGRAM BAD\n"
                   "      CALL CHSET('ABCDE')\n"
@@ -772,7 +780,7 @@ class F77SChecks(unittest.TestCase):
                   "      CHARACTER*5 C\n"
                   "      C='HI'\n"
                   "      END\n")
-        with self.assertRaisesRegex(FortranError, 'CHARACTER dummy requires same-length'):
+        with self.assertRaisesRegex(FortranError, 'CHARACTER constant actual cannot bind writable dummy'):
             convert(parse(source, std='f77s'))
 
     def test_burkardt_real_variance_sample_and_tails(self):

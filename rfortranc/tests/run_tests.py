@@ -109,6 +109,7 @@ PROGRAMS = {
     'f77s_ewdee': '   0.123400E+003    0.125000E-001   -0.123000E-004',
     'f77s_eread': '   123.40     5.00',
     'f77s_bnbz': '  420   12',
+    'f77s_chlit': 'HELLO',
 }
 NEGATIVE = {
     'undefined-label': 'PROGRAM A\nINTEGER N\nGOTO 70\nEND\n',

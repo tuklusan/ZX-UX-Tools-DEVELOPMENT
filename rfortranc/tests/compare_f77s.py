@@ -27,6 +27,7 @@ CASES['f77s_assgn'] = ['  42']
 CASES['f77s_ewdee'] = ['   0.123400E+003    0.125000E-001   -0.123000E-004']
 CASES['f77s_eread'] = ['   123.40     5.00']
 CASES['f77s_bnbz'] = ['  420   12']
+CASES['f77s_chlit'] = ['HELLO']
 
 
 INPUTS = {'f77s_bnbz': '  42  12  \n', 'f77s_eread': '   0.123400E+003   0.500000E+001\n', 'f77s_read': '0042 007\n', 'f77s_repeat': '003 005 010\n', 'f77s_charread': 'XYZ\n', 'f77s_arrread': 'XYZ\n', 'f77s_realio': '   -3.25\n  001234\n', 'f77s_logio': '   F   T\n'}
