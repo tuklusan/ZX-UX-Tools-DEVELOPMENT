@@ -11,6 +11,12 @@
         extern ApiStDir
         extern ApiWinRows
         extern ApiWinPrintIf
+        extern ApiStOpen
+        extern ApiStRead
+        extern ApiStWrite
+        extern ApiStClose
+        extern ApiStDelete
+        extern ApiOpenFile
 
 CMDPANEW equ 13
 CMDHEADY equ 12
@@ -185,8 +191,10 @@ CmdDevName:
 ; Original keyboard navigation, with filesystem actions handed to ZX-UX.
 CmdKey:
         ld (CmdKeyCh),a
+        call ApiStIdent
+        ld (CmdWasK),a
         ld a,(CmdKeyCh)
-        cp 8
+        cp 11
         jr nz,CmkNotU
         ld a,(CmdActive)
         ld (CmdPane),a
@@ -197,7 +205,7 @@ CmdKey:
         dec (hl)
         ret
 CmkNotU:
-        cp 9
+        cp 10
         jr nz,CmkNotD
         ld a,(CmdActive)
         call CmdCount
@@ -212,16 +220,172 @@ CmkNotU:
         ld (hl),a
         ret
 CmkNotD:
-        cp 10
+        cp 8
         jr nz,CmkNotL
         xor a
         ld (CmdActive),a
         ret
 CmkNotL:
-        cp 11
-        ret nz
+        cp 9
+        jr nz,CmkNotR
         ld a,1
         ld (CmdActive),a
+        ret
+CmkNotR:
+        cp 13
+        jp z,CmdOpen
+        cp 'C'
+        jr z,CmkCopy
+        cp 'c'
+        jr z,CmkCopy
+        cp 'D'
+        jr z,CmkDelete
+        cp 'd'
+        ret nz
+CmkDelete:
+        call CmdDelete
+        jr CmdRepaint
+CmkCopy:
+        call CmdCopy
+CmdRepaint:
+        ld a,(CmdWasK)
+        jp ApiStSelect
+
+; Original ZXDesk Commander file selection and operations (commander.inc).
+; Paths and handles are translated by the ZX-UX storage adapter.
+CmdPicked:
+        ld a,(CmdActive)
+        call CmdUse
+        call CmdSelAt
+        ld a,(hl)
+        call ApiStDir
+        ret c
+CmdNameCopy:
+        ld de,CmdWork
+        ld b,12
+CmpkCopy:
+        ld a,(hl)
+        ld (de),a
+        or a
+        jr z,CmpkDone
+        inc hl
+        inc de
+        djnz CmpkCopy
+        xor a
+        ld (de),a
+CmpkDone:
+        or a
+        ret
+CmdOpen:
+        call CmdPicked
+        ret c
+        call CmdNameCopy
+        ld hl,CmdWork
+        call ApiOpenFile
+        push af
+        ld a,(CmdWasK)
+        call ApiStSelect
+        pop af
+        ret
+CmdCopy:
+        call CmdPicked
+        ret c
+        call CmdNameCopy
+        ld a,(CmdActive)
+        call CmdUse
+        ld hl,CmdWork
+        ld b,0
+        call ApiStOpen
+        ret c
+        ld (CmdHandle),a
+        ld a,(CmdActive)
+        xor 1
+        call CmdUse
+        ld hl,CmdWork
+        ld b,1
+        call ApiStOpen
+        jr c,CmcNoRoom
+        ld (CmdOut),a
+CmcChunk:
+        ld a,(CmdActive)
+        call CmdUse
+        ld a,(CmdHandle)
+        ld hl,CmdBuf
+        ld bc,256
+        call ApiStRead
+        jr c,CmcReadFailed
+        ld (CmdGot),bc
+        ld a,(CmdActive)
+        xor 1
+        call CmdUse
+        ld bc,(CmdGot)
+        ld a,b
+        or c
+        jr z,CmcCopied
+        ld a,(CmdOut)
+        ld hl,CmdBuf
+        call ApiStWrite
+        jr c,CmcWriteFailed
+        ld hl,(CmdGot)
+        or a
+        sbc hl,bc
+        jr z,CmcChunk
+CmcWriteFailed:
+        ld a,(CmdOut)
+        call ApiStClose
+        jr CmcScrap
+CmcReadFailed:
+        ld a,(CmdActive)
+        xor 1
+        call CmdUse
+        jr CmcWriteFailed
+CmcCopied:
+        ld a,(CmdOut)
+        call ApiStClose
+        jr c,CmcScrap
+        call CmcSrcClose
+        or a
+        ret
+CmcNoRoom:
+        ; Closing the source remains mandatory when opening the
+        ; destination fails; no destination file was created.
+        call CmcSrcClose
+        scf
+        ret
+CmcScrap:
+        ld hl,CmdWork
+        call ApiStDelete
+        call CmcSrcClose
+        scf
+        ret
+CmcSrcClose:
+        ld a,(CmdActive)
+        call CmdUse
+        ld a,(CmdHandle)
+        jp ApiStClose
+CmdDelete:
+        call CmdPicked
+        ret c
+        call CmdNameCopy
+        ld a,(CmdActive)
+        call CmdUse
+        ld hl,CmdWork
+        call ApiStDelete
+        ret c
+        ld a,(CmdActive)
+        call CmdCount
+        ld b,a
+        ld a,(CmdActive)
+        ld (CmdPane),a
+        call CmdSelAt
+        ld a,(hl)
+        cp b
+        ret c
+        ld a,b
+        or a
+        ret z
+        dec a
+        ld (hl),a
         ret
 
         section data
@@ -240,6 +404,12 @@ CmdTop: db 0
 CmdName: dw 0
 CmdWasD: db 0
 CmdKeyCh: db 0
+CmdWasK: db 0
+CmdHandle: db 0
+CmdOut: db 0
+CmdGot: dw 0
+CmdWork: ds 13
+CmdBuf: ds 256
 TxtCmdRoot: db 'ROOT',0
 TxtCmdBin: db 'BIN',0
 TxtCmdBlank: db ' ',0

@@ -404,25 +404,25 @@ CalD7Done:
 
 ; Key vectors from original Calendar; ZX-UX raw cursor byte mapping.
 CalKey:
-        cp 10
+        cp 8
         jr nz,CkyNotL
         ld b,1
         ld c,0
         jp CalMoveB
 CkyNotL:
-        cp 11
+        cp 9
         jr nz,CkyNotR
         ld b,1
         ld c,1
         jp CalMoveB
 CkyNotR:
-        cp 8
+        cp 11
         jr nz,CkyNotU
         ld b,7
         ld c,0
         jp CalMoveB
 CkyNotU:
-        cp 9
+        cp 10
         jr nz,CkyNotD
         ld b,7
         ld c,1

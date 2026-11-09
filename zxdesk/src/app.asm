@@ -18,6 +18,7 @@
         extern NoteInit
         extern NoteDrawInterior
         extern NoteKey
+        extern NoteClose
         extern WdAbout
         extern ClkDraw
         extern ClkKey
@@ -125,7 +126,7 @@ AppTable:
 AppNote:
         dw 273,NoteState,NoteInit,NoteDrawInterior,NoteKey,TxtWinTitle
         db 8,48,18,72
-        dw 0,0,0,0
+        dw NoteClose,0,0,0
 AppAbout:
         dw 0,0,0,WdAbout,0,TxtAboutTitle
         db 14,92,15,52

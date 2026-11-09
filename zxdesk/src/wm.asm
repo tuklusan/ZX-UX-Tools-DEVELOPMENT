@@ -5,6 +5,7 @@
         global WndInit
         global WndOpen
         global WndClose
+        global WndCloseNow
         global WndSelect
         global WndRepaintAll
         global WndFocusTo
@@ -99,10 +100,9 @@ WoGot:
         ld a,c
         ld (WndCur),a
         ld b,a
+        or a
         ld a,1
-        or b
         jr z,WoBitReady
-        ld a,1
 WoBitLoop:
         add a,a
         djnz WoBitLoop
@@ -206,6 +206,10 @@ WndNoRoom:
         ret
 
 ; Original close-on-front / z-list shift (with process-local slot release).
+WndCloseNow:
+        ld a,1
+        ld (WndForce),a
+        jp WndClose
 WndClose:
         ld a,(WndCount)
         or a
@@ -213,6 +217,15 @@ WndClose:
         ld a,(WndZ)
         ld (WndClosing),a
         call WndSelect
+        ld a,(WndForce)
+        or a
+        jr nz,WcGo
+        ld c,16
+        call AppCall
+        ret c
+WcGo:
+        xor a
+        ld (WndForce),a
         ld a,(WndCount)
         dec a
         jr z,WcShifted
@@ -228,10 +241,9 @@ WcShift:
 WcShifted:
         ld a,(WndClosing)
         ld b,a
+        or a
         ld a,1
-        or b
         jr z,WcUnflag
-        ld a,1
 WcMaskLoop:
         add a,a
         djnz WcMaskLoop
@@ -315,6 +327,7 @@ WsNext:
 
         section data
 WndUsed: db 0
+WndForce: db 0
 WndWantKind: db 0
 WndClosing: db 0
 WndFocusSlot: db 0

@@ -8,6 +8,7 @@
         global ApiWinRows
         global ApiWinGrab
         global ApiWinAddr
+        global ApiOpenFile
         extern WinX
         extern WinY
         extern WinW
@@ -23,6 +24,10 @@
         extern FrPat
         extern WinGrab
         extern AddrAt
+        extern WndOpen
+        extern WndClose
+        extern WndRepaintAll
+        extern NoteLoadAs
 ApiWinPrint:
         xor a
         ld (PrintInv),a
@@ -78,5 +83,20 @@ ApiWinAddr:
         add a,10
         add a,b
         jp AddrAt
+ApiOpenFile:
+        push hl
+        xor a
+        call WndOpen
+        pop hl
+        ret c
+        call NoteLoadAs
+        jr c,OfBad
+        call WndRepaintAll
+        xor a
+        ret
+OfBad:
+        call WndClose
+        scf
+        ret
 ApiWinGrab:
         jp WinGrab

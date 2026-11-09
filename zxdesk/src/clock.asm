@@ -167,7 +167,7 @@ ClkP2T:
 
 ; Same ZXDesk field-switch and set controls; ZX-UX arrows are 8..11.
 ClkKey:
-        cp 10
+        cp 8
         jr nz,CkNotL
         ld a,(ClkField)
         or a
@@ -176,7 +176,7 @@ ClkKey:
         ld (ClkField),a
         ret
 CkNotL:
-        cp 11
+        cp 9
         jr nz,CkNotR
         ld a,(ClkField)
         cp 1
@@ -185,12 +185,12 @@ CkNotL:
         ld (ClkField),a
         ret
 CkNotR:
-        cp 8
+        cp 11
         jr nz,CkNotU
         ld c,1
         jp ClkAdjust
 CkNotU:
-        cp 9
+        cp 10
         ret nz
         ld c,0
         jp ClkAdjust

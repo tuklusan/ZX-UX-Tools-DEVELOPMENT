@@ -1,4 +1,4 @@
-phase=port-original-gui
+phase=adapters-and-final-menus
 tape=present
-next=Port original ZXDesk Settings and modal Dialog/Panel modules, complete Commander file-open/copy/delete and menu actions, and bridge mouse input when ZX-UX exposes a device interface.
-blocker=ZX-UX has no mouse syscall; full-window bitmap buffers exceed available SSX1 process memory, so windows recompose back-to-front.
+next=Port remaining original ZXDesk FILE panels (Save As, Print, menu Delete/Load) and VIEW Desktop action; replace the remaining ROM-font data dependency; connect mouse/pointer input only through a ZX-UX-owned device interface.
+blocker=ZX-UX exposes no mouse device or syscall; its kernel must retain hardware ownership, so direct Kempston port polling is not permitted in the SSX1 process.

@@ -8,9 +8,22 @@
         global NoteKey
         global NoteNew
         global NoteModified
+        global NoteSave
+        global NoteLoadAs
+        global NoteMenuSave
+        global NoteClose
         extern WinH
         extern ApiWinPrint
         extern ApiWinPrintInv
+        extern ApiStOpen
+        extern ApiStRead
+        extern ApiStWrite
+        extern ApiStClose
+        extern WinApp
+        extern AppNote
+        extern DlgSave3
+        extern DlgAlert
+        extern WndCloseNow
 
 NOTECOLS equ 14
 NOTELAST equ 13
@@ -476,22 +489,22 @@ NoteKey:
         xor a
         ld (NoteEdited),a
         ld a,(NoteChar)
-        cp 10
+        cp 8
         jr nz,NkNotL
         call NoteLeft
         jr NkView
 NkNotL:
-        cp 11
+        cp 9
         jr nz,NkNotR
         call NoteRight
         jr NkView
 NkNotR:
-        cp 8
+        cp 11
         jr nz,NkNotU
         call NoteUp
         jr NkView
 NkNotU:
-        cp 9
+        cp 10
         jr nz,NkNotD
         call NoteDown
         jr NkView
@@ -518,13 +531,157 @@ NkView:
         ld (NoteEdited),a
         ret
 
+; Original ZXDesk Note file interface (src/note.inc), calling the
+; process-local ZX-UX storage adapter. Each note remains 256 bytes.
+NoteSave:
+        ld hl,NoteName
+NoteSaveAs:
+        call NoteSetName
+        ld hl,NoteName
+        ld b,1
+        call ApiStOpen
+        ret c
+        ld (NoteHandle),a
+        ld hl,NoteBuf
+        ld bc,256
+        call ApiStWrite
+        ld (NoteGot),bc
+        ld a,(NoteHandle)
+        call ApiStClose
+        ret c
+        ld hl,(NoteGot)
+        ld de,256
+        or a
+        sbc hl,de
+        jr nz,NsShort
+        xor a
+        ld (NoteModified),a
+        or a
+        ret
+NsShort:
+        scf
+        ret
+NoteLoad:
+        ld hl,NoteName
+NoteLoadAs:
+        call NoteSetName
+        ld hl,NoteName
+        ld b,0
+        call ApiStOpen
+        jr c,NlFail
+        ld (NoteHandle),a
+        ld hl,NoteBuf
+        ld bc,256
+        call ApiStRead
+        ld (NoteGot),bc
+        ld a,(NoteHandle)
+        call ApiStClose
+        ld hl,(NoteGot)
+        ld de,256
+        or a
+        sbc hl,de
+        jr nz,NlFail
+        call NoteSanitise
+        xor a
+        ld (NoteCX),a
+        ld (NoteCY),a
+        ld (NoteTop),a
+        ld (NoteModified),a
+        ld a,1
+        ld (NoteDirty),a
+        or a
+        ret
+NlFail:
+        call NoteNew
+        scf
+        ret
+NoteSetName:
+        ld de,NoteName
+        ld b,10
+NsnLoop:
+        ld a,(hl)
+        ld (de),a
+        or a
+        ret z
+        inc hl
+        inc de
+        djnz NsnLoop
+        xor a
+        ld (de),a
+        ret
+NoteSanitise:
+        ld b,NOTEROWS
+        xor a
+        ld (NoteRowIx),a
+NsanRow:
+        push bc
+        ld a,(NoteRowIx)
+        call NoteRowAddr
+        ld b,NOTECOLS
+NsanCol:
+        ld a,(hl)
+        cp ' '
+        jr c,NsanBad
+        cp 128
+        jr c,NsanOk
+NsanBad:
+        ld (hl),' '
+NsanOk:
+        inc hl
+        djnz NsanCol
+        ld (hl),0
+        inc hl
+        ld (hl),0
+        ld a,(NoteRowIx)
+        inc a
+        ld (NoteRowIx),a
+        pop bc
+        djnz NsanRow
+        ret
+NoteMenuSave:
+        ld hl,(WinApp)
+        ld de,AppNote
+        or a
+        sbc hl,de
+        ret nz
+        jp NoteSave
+
+ ; Original ZXDesk NoteClose callback: do not lose modified work.
+NoteClose:
+        ld a,(NoteModified)
+        or a
+        ret z
+        ld hl,NoteName
+        ld de,TxtNoteLose
+        ld bc,NoteCloseAnswer
+        call DlgSave3
+        scf
+        ret
+NoteCloseAnswer:
+        or a
+        ret z
+        cp 2
+        jr z,NcaSave
+NcaGo:
+        jp WndCloseNow
+NcaSave:
+        call NoteSave
+        jr nc,NcaGo
+        ld hl,TxtNoteNoSave
+        ld de,0
+        jp DlgAlert
+
         section data
 TxtNoteName: db 'NOTE',0
+TxtNoteLose: db 'UNSAVED WORK',0
+TxtNoteNoSave: db 'COULD NOT SAVE',0
 NoteRowIx: db 0
 NoteRowDst: db 0
 NoteJoinAt: db 0
 NoteChar: db 0
 NoteLine: dw 0
+NoteHandle: db 0
+NoteGot: dw 0
 NoteCell: db ' ',0
         section bss
 NoteState:

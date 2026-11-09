@@ -13,6 +13,8 @@
         global MnY
         global MnW
         global MnH
+        global MenuAction
+        global MnLastMenu
         extern DevFillRect
         extern FrX
         extern FrY
@@ -23,6 +25,11 @@
         extern PxRow
         extern PrintInv
         extern PrintStrPx
+        extern WndOpen
+        extern NoteMenuSave
+        extern DlgOpen
+        extern WndCascade
+        extern WndTile
 MENUH equ 9
 SCRCOLS equ 32
 MNCOUNT equ 4
@@ -204,6 +211,55 @@ MpSkip:
         djnz MpItem
         ret
 
+; Original ZXDesk table-driven menu action dispatcher from menus.inc.
+; The unsupported OS-dependent actions are not advertised as complete.
+MenuAction:
+        ld c,a
+        ld a,(MnLastMenu)
+        ld b,a
+        ld hl,MnActions
+MnaLoop:
+        ld a,(hl)
+        cp $ff
+        ret z
+        cp b
+        jr nz,MnaNext
+        inc hl
+        ld a,(hl)
+        cp c
+        jr nz,MnaNext2
+        inc hl
+        ld e,(hl)
+        inc hl
+        ld d,(hl)
+        ex de,hl
+        jp (hl)
+MnaNext2:
+        dec hl
+MnaNext:
+        ld de,4
+        add hl,de
+        jr MnaLoop
+; Application opening uses the upstream ZXDesk indices (not menu IDs).
+NoteMenuNew:
+        xor a
+        jp WndOpen
+AboutOpen:
+        ld a,1
+        jp WndOpen
+ClockOpen:
+        ld a,2
+        jp WndOpen
+WndOpenCal:
+        ld a,3
+        jp WndOpen
+CmdOpenWin:
+        ld a,4
+        jp WndOpen
+KeysOpen:
+        ld a,5
+        jp WndOpen
+
         section data
 MenuDefs:
         db 1,8,10,2
@@ -223,6 +279,32 @@ MnItems3:
         db 'CLOCK',0,'CALENDAR',0,'CASCADE',0,'TILE',0,'DESKTOP',0
 MnItems4:
         db 'KEYS',0,'ABOUT',0
+; menu, item, routine. Original table format and supported actions.
+MnActions:
+        db 1,0
+        dw AboutOpen
+        db 1,1
+        dw DlgOpen
+        db 2,0
+        dw NoteMenuNew
+        db 2,1
+        dw CmdOpenWin
+        db 2,2
+        dw NoteMenuSave
+        db 3,0
+        dw ClockOpen
+        db 3,1
+        dw WndOpenCal
+        db 3,2
+        dw WndCascade
+        db 3,3
+        dw WndTile
+        db 4,0
+        dw KeysOpen
+        db 4,1
+        dw AboutOpen
+        db $ff
+MnLastMenu: db 0
 MenuOpen: db 0
 MnX: db 0
 MnY: db 0

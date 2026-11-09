@@ -9,6 +9,7 @@
         global ApiStRead
         global ApiStWrite
         global ApiStClose
+        global ApiStDelete
         extern zx_syscall
 ApiStSelect:
         cp 2
@@ -82,20 +83,69 @@ SdEnd:
         call zx_syscall
         scf
         ret
-; HL=name, B=mode, compatible with ZX-UX kernel open/create.
+; Translate a ZXDesk device/name into a ZX-UX absolute path. The
+; two Commander panes are / and /bin, not separate physical disk devices.
+; HL=basename (up to 8 bytes), return HL=process-local pathname.
+StPath:
+        push hl
+        ld de,StFilePath
+        ld a,(StBackend)
+        or a
+        jr z,StPathRoot
+        ld hl,StBinPrefix
+        ld bc,5
+        ldir
+        jr StPathCopy
+StPathRoot:
+        ld a,'/'
+        ld (de),a
+        inc de
+StPathCopy:
+        pop hl
+        ld b,8
+StPathLoop:
+        ld a,(hl)
+        or a
+        jr z,StPathEnd
+        ld (de),a
+        inc de
+        inc hl
+        djnz StPathLoop
+StPathEnd:
+        xor a
+        ld (de),a
+        ld hl,StFilePath
+        ret
+
+; ZXDesk's original file interface returns the descriptor in A;
+; ZX-UX returns it in HL. Carry retains the kernel's error status.
+; HL=name, B=0 read, B!=0 create/overwrite.
 ApiStOpen:
+        push bc
+        call StPath
+        pop bc
         ld a,b
         or a
         jr nz,StCreate
         ld de,0
         ld a,5
         call zx_syscall
+        ret c
+        ld a,l
+        or a
         ret
 StCreate:
         ld de,$01b6
         ld a,8
         call zx_syscall
+        ret c
+        ld a,l
+        or a
         ret
+ApiStDelete:
+        call StPath
+        ld a,10
+        jp zx_syscall
 ; A=fd, HL=buffer, BC=count; out BC=count (or carry).
 ApiStRead:
         ld e,l
@@ -129,5 +179,7 @@ StIx: db 0
 StFD: dw 0
 StRoot: db '/',0
 StBin: db '/bin',0
+StBinPrefix: db '/bin/'
+StFilePath: ds 15
 StEntry: ds 10
 StName: ds 9

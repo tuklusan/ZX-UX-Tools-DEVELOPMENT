@@ -26,6 +26,8 @@
         extern MenuOpenDrop
         extern MenuClose
         extern MenuPaint
+        extern MenuAction
+        extern MnLastMenu
         extern MnCount
         extern FillRowSolid
         extern PrintStrPx
@@ -35,6 +37,15 @@
         extern ApiStSelect
         extern ApiStIdent
         extern CalNextDay
+        extern SetDefaults
+        extern SetLoad
+        extern SetApply
+        extern SetLattice
+        extern DlgUp
+        extern DlgClose
+        extern DlgKey
+        extern DgEscape
+        extern RowAddr
 
 SCREEN equ $4000
 ATTRS equ $5800
@@ -61,6 +72,9 @@ start:
         or a
         jp nz,release
         call BuildScrTab
+        call SetDefaults
+        call SetLoad
+        call SetApply
         call DskInit
         call ClkInit
         call WndInit
@@ -85,6 +99,9 @@ mainloop:
         call EvNext
         cp 4
         jr nz,mainloop
+        ld a,(DlgUp)
+        or a
+        jp nz,modal_dispatch
         ld a,b
         cp 7
         jp z,close_key
@@ -154,6 +171,9 @@ next_window:
 close_key:
         call MenuClose
         call WndClose
+        ld a,(DlgUp)
+        or a
+        jp nz,mainloop
         jp repaint
 quit_key:
         ld a,(WndCount)
@@ -166,9 +186,9 @@ quit_key:
         jp repaint
 menu_dispatch:
         ld a,b
-        cp 8
+        cp 11
         jr z,menu_previous
-        cp 9
+        cp 10
         jr z,menu_next
         cp 13
         jr z,menu_choose
@@ -193,57 +213,23 @@ menu_next:
         jp repaint
 menu_choose:
         ld a,(MenuOpen)
-        ld b,a
+        ld (MnLastMenu),a
         ld a,(MenuSel)
-        ld c,a
+        push af
         call MenuClose
+        call WndRepaintAll
+        pop af
+        call MenuAction
+        jp mainloop
+modal_dispatch:
         ld a,b
-        cp 1
-        jr nz,McFile
-        ld a,c
-        or a
-        jp z,open_about
-        jp repaint
-McFile:
-        cp 2
-        jr nz,McView
-        ld a,c
-        or a
-        jp z,open_note
-        cp 1
-        jp z,open_files
-        jp repaint
-McView:
-        cp 3
-        jr nz,McHelp
-        ld a,c
-        or a
-        jp z,open_clock
-        cp 1
-        jp z,open_calendar
-        jp repaint
-McHelp:
-        ld a,c
-        or a
-        jp z,open_keys
-open_about:
-        ld a,1
-        jp open_key
-open_note:
-        xor a
-        jp open_key
-open_clock:
-        ld a,2
-        jp open_key
-open_calendar:
-        ld a,3
-        jp open_key
-open_files:
-        ld a,4
-        jp open_key
-open_keys:
-        ld a,5
-        jp open_key
+        cp 7
+        jr z,modal_close
+        call DlgKey
+        jp mainloop
+modal_close:
+        call DgEscape
+        jp mainloop
 menu_key:
         ld a,(MenuOpen)
         or a
@@ -304,6 +290,7 @@ DrawDesktop:
         ld bc,767
         ld (hl),$78
         ldir
+        call DrawLattice
         xor a
         ld (PrintInv),a
         ld a,1
@@ -322,10 +309,49 @@ DrawDesktop:
         ld hl,TxtStatus
         jp PrintStrPx
 
+ ; ZXDesk lattice: $88 on pixel rows modulo four 0 and $22 on 2.
+; Draw only after ZX-UX grants the process the screen.
+DrawLattice:
+        ld a,(SetLattice)
+        cp 1
+        ret nz
+        ld a,9
+LdRow:
+        ld (BgRow),a
+        and 3
+        ld c,0
+        jr z,LdDotA
+        cp 2
+        jr z,LdDotB
+        jr LdNext
+LdDotA:
+        ld c,$88
+        jr LdPaint
+LdDotB:
+        ld c,$22
+LdPaint:
+        ld a,(BgRow)
+        push bc
+        call RowAddr
+        pop bc
+        ld a,c
+        ld b,32
+LdFill:
+        ld (hl),a
+        inc hl
+        djnz LdFill
+LdNext:
+        ld a,(BgRow)
+        inc a
+        cp 183
+        jr c,LdRow
+        ret
+
         section data
 rawtty: db 0,0,0,0,$a0,0
 owned: db 0
 MenuSel: db 0
+BgRow: db 0
 key: db 0
 TxtMenu: db 'ZX DESK   FILE   VIEW   HELP',0
 TxtStatus: db 'ZX-UX / ZXDESK',0

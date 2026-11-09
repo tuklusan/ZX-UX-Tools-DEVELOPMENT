@@ -23,29 +23,37 @@ under `zxdesk/platform/`.
 
 ## Current integration
 
-- `src/events.asm`: original event queue.
-- `src/screen.asm`, `src/text.asm`: original ZXDesk screen addresses,
-  character and pixel-row text, row fills. The ROM glyph data read is
-  still a compatibility boundary; no ROM firmware is called.
-- `src/windows.asm`, `src/wm.asm`: original window descriptor, geometry,
-  title, chrome, focus, z-order, hit-testing and back-to-front repaint.
-  Window image buffering has been replaced by full recomposition: four
-  full bitmap buffers exceed the ZX-UX SSX1 process RAM available.
-- `src/app.asm`: original 24-byte application descriptors, callbacks and
-  per-instance state swap, with state allocated inside the SSX1 image.
-- `src/desktop.asm`, `src/hittest.asm`, `src/menus.asm`: original bitmap
-  desktop icons, control table, menu definitions and drop-down drawing.
-- `src/note.asm`, `src/calendar.asm`, `src/clock.asm`,
-  `src/commander.asm`, `src/keys.asm`: active original application editing,
-  calendar, clock, two-pane listing/navigation and shortcut routines.
-- `platform/entry.asm`, `api.asm`, `rect.asm`, `storage.asm`, `zxux.asm`:
-  ZX-UX entry/exit, TTY and screen claim, pixel drawing, application and
-  directory interfaces; no kernel/boot-tape changes.
+- Original ZXDesk `events.asm`, `screen.asm` and `text.asm` supply the event
+  ring, display addresses, pixel rows and character drawing. The glyphs
+  still read Spectrum ROM font *data*, not ROM firmware routines.
+- Original `windows.asm`, `wm.asm`, `hittest.asm` and `arrange.asm` provide
+  window records, focus, z-order, hit tests, title chrome, back-to-front
+  composition and Cascade/Tile. Multiwindow buffers are deliberately
+  replaced by full recomposition to fit the ZX-UX SSX1 memory limit.
+- Original `app.asm` provides application dispatch and independent per-window
+  app-state swaps. `desktop.asm` draws the original bitmap desktop icons;
+  `menus.asm` provides native drop-down drawing and table-driven actions.
+- Original `note.asm`, `calendar.asm`, `clock.asm`, `commander.asm` and
+  `keys.asm` run as application vectors. The Note editor retains its
+  original 256-byte document, file read/write and unsaved-work confirm.
+  Commander offers directory navigation, file open, copy and delete through
+  ZX-UX, rather than ZXDesk's private storage backends.
+- Original `panel.asm`, `settings.asm` and `dialog.asm` provide the native
+  settings panel and modal Confirm, Save/Discard/Cancel and Alert controls.
+  Settings use the original eight-byte record persisted through ZX-UX;
+  display background chooses plain or original dotted lattice. Pointer,
+  Y-axis and sound preferences are retained but cannot control hardware
+  until supported ZX-UX device services are available.
+- `platform/entry.asm`, `api.asm`, `rect.asm`, `storage.asm`, `zxux.asm`
+  own the SSX1 lifecycle, screen claim/release, TTY, keyboard mapping,
+  syscall-backed files and user-mode drawing. No kernel or ZX-UX boot
+  cassette changes.
 
-**Not complete:** original Settings and modal Dialog/Panel modules; the
-Commander file-open, copy and delete actions; fully wired menu actions;
-mouse/pointer events. The existing ZX-UX API exposes no mouse syscall.
-These are integration tasks, not permission to write another GUI.
+**Still incomplete:** mouse/pointer input (no ZX-UX mouse syscall or device),
+remaining upstream FILE panels (Save As, Print, menu Delete and Load) and
+VIEW Desktop action, and a process-local substitute for the ROM font data.
+Do not reinstate the lookalike, write direct mouse-port I/O into the SSX1
+process or claim unsupported menu functions work.
 
 ## SDK build (repository root)
 
@@ -54,12 +62,12 @@ mkdir -p zxdesk/build zxdesk/tzx
 for m in entry api storage rect zxux; do
   python3 sdk/bin/py/ras.py -o zxdesk/build/$m.sso zxdesk/platform/$m.asm
 done
-for m in app wm note calendar commander keys hittest events screen text windows desktop menus clock; do
+for m in app wm note calendar commander keys hittest events screen text windows desktop menus clock settings panel dialog arrange; do
   python3 sdk/bin/py/ras.py -o zxdesk/build/$m.sso zxdesk/src/$m.asm
 done
 python3 sdk/bin/py/rld.py --entry start --stack 384 --heap 0 \
   -o zxdesk/build/zxdesk.ssx \
-  $(for m in entry api storage rect zxux app wm note calendar commander keys hittest events screen text windows desktop menus clock; do printf 'zxdesk/build/%s.sso ' "$m"; done)
+  $(for m in entry api storage rect zxux app wm note calendar commander keys hittest events screen text windows desktop menus clock settings panel dialog arrange; do printf 'zxdesk/build/%s.sso ' "$m"; done)
 python3 sdk/bin/py/rtap.py -o zxdesk/tzx/ZXDESK.tzx \
   zxdesk/build/zxdesk.ssx=ZXDESK
 ```
