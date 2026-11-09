@@ -3,7 +3,7 @@ on:
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
   push:
-    branches: [main]
+    branches: ['**']
 permissions:
   contents: read
   statuses: write
@@ -11,45 +11,67 @@ jobs:
   checker-full-tree:
     name: checker-full-tree
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 60
     steps:
-      - name: Checkout trusted gate
+      - name: Checkout trusted gate from main
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          ref: main
           path: trusted
           persist-credentials: false
-      - name: Checkout PR source as data only
-        if: github.event_name == 'pull_request_target'
+      - name: Checkout candidate commits as data only
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           path: candidate
+          fetch-depth: 0
           persist-credentials: false
-      - name: Scan complete PR commit with trusted gate
-        if: github.event_name == 'pull_request_target'
-        id: scan_pr
+      - name: Scan every commit and its complete tracked tree
+        id: scan
         working-directory: candidate
         env:
           ZXUX_CHECKER_ZIP_B64: ${{ secrets.ZXUX_CHECKER_ZIP_B64 }}
-        run: python3 -B ../trusted/tools/checker_gate.py --ref HEAD --check-ref-message
-      - name: Scan complete main commit
-        if: github.event_name == 'push'
-        id: scan_main
-        working-directory: trusted
-        env:
-          ZXUX_CHECKER_ZIP_B64: ${{ secrets.ZXUX_CHECKER_ZIP_B64 }}
-        run: python3 -B tools/checker_gate.py --ref HEAD --check-ref-message
+          CHECK_EVENT: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          PUSH_BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [ -z "$ZXUX_CHECKER_ZIP_B64" ]; then
+            echo '::error::Missing repository secret ZXUX_CHECKER_ZIP_B64'
+            exit 1
+          fi
+          if [ "$CHECK_EVENT" = pull_request_target ]; then
+            range="$PR_BASE_SHA..HEAD"
+          elif [ "$PUSH_BRANCH" = "$DEFAULT_BRANCH" ]; then
+            if [ -n "$PUSH_BEFORE_SHA" ] && [ "$PUSH_BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+              range="$PUSH_BEFORE_SHA..HEAD"
+            else
+              range=HEAD
+            fi
+          else
+            base="$(git merge-base HEAD "origin/$DEFAULT_BRANCH")"
+            range="$base..HEAD"
+          fi
+          git rev-list --reverse "$range" > "$RUNNER_TEMP/checker-commits"
+          if [ ! -s "$RUNNER_TEMP/checker-commits" ]; then
+            git rev-parse HEAD > "$RUNNER_TEMP/checker-commits"
+          fi
+          while IFS= read -r commit; do
+            echo "Scanning full tracked tree and commit message for $commit"
+            python3 -B ../trusted/tools/checker_gate.py --ref "$commit" --check-ref-message
+          done < "$RUNNER_TEMP/checker-commits"
       - name: Publish required status on scanned commit
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
           TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-          SCAN_RESULT: ${{ github.event_name == 'pull_request_target' && steps.scan_pr.outcome || steps.scan_main.outcome }}
+          SCAN_RESULT: ${{ steps.scan.outcome }}
           REPOSITORY: ${{ github.repository }}
         run: |
           if [ "$SCAN_RESULT" = success ]; then state=success; else state=failure; fi
           gh api "repos/$REPOSITORY/statuses/$TARGET_SHA" \
             -f state="$state" \
             -f context='zxux/private-checker' \
-            -f description='Private checker full-tree gate'
+            -f description='Private checker: every commit tree and message'

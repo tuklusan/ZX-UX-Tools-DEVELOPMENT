@@ -46,6 +46,8 @@ def tracked_entries(ref):
             raise ValueError('Links, submodules, and other non-file entries are not supported')
         name = raw_name.decode('utf-8', 'strict')
         path = PurePosixPath(name)
+        if path.name.lower() in ('checker.zip', 'checker.zip.base64'):
+            raise ValueError('Private checker archive must stay outside the repository')
         if (not name or name.startswith('/') or '\\' in name or
                 any(part in ('', '.', '..') for part in name.split('/')) or
                 path.as_posix() != name or name in seen):
