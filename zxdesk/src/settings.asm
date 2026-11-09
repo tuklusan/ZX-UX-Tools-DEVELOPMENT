@@ -7,6 +7,7 @@
         global SetSave
         global SetApply
         global SetLattice
+        global SetJoyEnabled
         global DlgOpen
         global DlgClose
         global DlgKey
@@ -31,14 +32,14 @@
         extern PnlFocus
         extern WndRepaintAll
 SETMAGIC equ $5a
-SETVERSION equ 3
+SETVERSION equ 4
 SETSIZE equ 8
 DLGX equ 9
 DLGY equ 40
 DLGW equ 16
-DLGH equ 68
+DLGH equ 52
 DLGROW0 equ DLGY+10
-DLGLINES equ 7
+DLGLINES equ 5
 PT_ACTION equ 1
 PT_CYCLE equ 2
 SetDefaults:
@@ -50,8 +51,9 @@ SetDefaults:
         ld (SetSpeed),a
         ld (SetInvertY),a
         ld (SetLattice),a
-        ld (SetKeyPtr),a
         ld (SetSound),a
+        xor a                 ; joystick navigation is opt-in
+        ld (SetJoyEnabled),a
         xor a
         ld (SetRec+7),a
         ret
@@ -131,39 +133,28 @@ SetsFail:
         call ApiStSelect
         scf
         ret
-; Clamp the original preference record. Private acceleration, banking,
-; beeper and self-patching ULA hooks are not installed into ZX-UX.
+; Only UI settings with live functionality are applied. Bytes 2 and 3
+; remain reserved in the eight-byte record; no mouse settings are exposed.
 SetApply:
-        ld a,(SetSpeed)
-        cp 3
-        jr c,SetaSpeedOk
-        ld a,1
-        ld (SetSpeed),a
-SetaSpeedOk:
-        ld a,(SetInvertY)
-        cp 2
-        jr c,SetaInvOk
-        ld a,1
-        ld (SetInvertY),a
-SetaInvOk:
         ld a,(SetLattice)
         cp 2
         jr c,SetaDeskOk
         ld a,1
         ld (SetLattice),a
 SetaDeskOk:
-        ld a,(SetKeyPtr)
-        cp 3
-        jr c,SetaKeyOk
-        ld a,1
-        ld (SetKeyPtr),a
-SetaKeyOk:
+        ld a,(SetJoyEnabled)
+        cp 2
+        jr c,SetaJoyOk
+        xor a
+        ld (SetJoyEnabled),a
+SetaJoyOk:
         ld a,(SetSound)
         cp 2
         ret c
         ld a,1
         ld (SetSound),a
         ret
+
 DlgOpen:
         ld a,1
         ld (DlgUp),a
@@ -217,21 +208,13 @@ DlgsOk:
         section data
 DlgRows:
         db PT_CYCLE
-        dw TxtDlgSpeed,SetSpeed
-        db 3
-        dw NmSpeed
-        db PT_CYCLE
-        dw TxtDlgInv,SetInvertY
-        db 2
-        dw NmOffOn
-        db PT_CYCLE
         dw TxtDlgLat,SetLattice
         db 2
         dw NmDesk
         db PT_CYCLE
-        dw TxtDlgKeys,SetKeyPtr
-        db 3
-        dw NmKeys
+        dw TxtDlgJoy,SetJoyEnabled
+        db 2
+        dw NmOffOn
         db PT_CYCLE
         dw TxtDlgSnd,SetSound
         db 2
@@ -245,25 +228,16 @@ DlgRows:
         db 0
         dw 0
 TxtDlgTitle: db 'SETTINGS',0
-TxtDlgSpeed: db 'SPEED',0
-TxtDlgInv: db 'INVERT Y',0
 TxtDlgLat: db 'DESKTOP',0
-TxtDlgKeys: db 'KEY PTR',0
+TxtDlgJoy: db 'SINCLAIR',0
 TxtDlgSnd: db 'SOUND',0
 TxtDlgSave: db 'SAVE',0
 TxtDlgDone: db 'DONE',0
 TxtOff: db 'OFF',0
 TxtOn: db 'ON',0
-TxtSlow: db 'SLOW',0
-TxtMed: db 'MED',0
-TxtFast: db 'FAST',0
-TxtExt: db 'EXT',0
-TxtAll: db 'ALL',0
 TxtPlain: db 'PLAIN',0
 TxtDots: db 'DOTS',0
 NmOffOn: dw TxtOff,TxtOn
-NmSpeed: dw TxtSlow,TxtMed,TxtFast
-NmKeys: dw TxtOff,TxtExt,TxtAll
 NmDesk: dw TxtPlain,TxtDots
 DlgUp: db 0
 DlgResult: db 0
@@ -275,6 +249,6 @@ SetRec: db SETMAGIC,SETVERSION
 SetSpeed: db 1
 SetInvertY: db 1
 SetLattice: db 1
-SetKeyPtr: db 1
+SetJoyEnabled: db 0
 SetSound: db 1
         db 0

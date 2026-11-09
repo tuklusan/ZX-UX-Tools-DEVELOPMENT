@@ -1,4 +1,4 @@
-phase=adapters-and-final-menus
+phase=final-original-menus-and-font
 tape=present
-next=Port remaining original ZXDesk FILE panels (Save As, Print, menu Delete/Load) and VIEW Desktop action; replace the remaining ROM-font data dependency; connect mouse/pointer input only through a ZX-UX-owned device interface.
-blocker=ZX-UX exposes no mouse device or syscall; its kernel must retain hardware ownership, so direct Kempston port polling is not permitted in the SSX1 process.
+next=Port remaining original FILE panels (Save As, Print, menu Delete/Load) and VIEW Desktop action, and replace the ROM-font dependency; retain optional joystick keyboard navigation and built-in command console.
+blocker=ZX-UX has one shared TTY and SSX1 cannot fork, so the console intentionally runs only built-in syscall-backed commands; mouse support is excluded by design.

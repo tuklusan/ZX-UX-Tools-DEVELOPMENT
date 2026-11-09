@@ -282,6 +282,10 @@ PnaDone:
         ld a,(PnlIdx)
         jp (hl)
 PnlKey:
+        cp 8
+        jr z,PnkCycle
+        cp 9
+        jr z,PnkCycle
         cp 11
         jr z,PnkUp
         cp 10
@@ -289,6 +293,14 @@ PnlKey:
         cp 13
         jr z,PnkEnter
         ret
+PnkCycle:
+        ld a,(PnlFocus)
+        call PnlRowAddr
+        ld a,(hl)
+        cp PT_CYCLE
+        ret nz
+        ld a,(PnlFocus)
+        jp PnlActivate
 PnkUp:
         ld a,(PnlFocus)
         or a

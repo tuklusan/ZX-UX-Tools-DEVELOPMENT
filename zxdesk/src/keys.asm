@@ -40,6 +40,7 @@ KdSkip:
 KeyRow: db 0
 KeysText:
         db 'NEW NOTE',0
+        db 'VIEW: CONSOLE',0
         db 'FILES',0
         db 'SAVE',0
         db 'CLOSE',0

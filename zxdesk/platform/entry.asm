@@ -3,12 +3,18 @@
         section text
         global start
         global DrawDesktop
+        global MenuSel
         extern zx_syscall
         extern BuildScrTab
         extern EvPost
         extern EvNext
         extern DskInit
         extern DskPaintAll
+        extern DskSelected
+        extern AppNote
+        extern AppTerm
+        extern WinApp
+        extern SetJoyEnabled
         extern ClkInit
         extern ClkService
         extern WndInit
@@ -99,6 +105,7 @@ mainloop:
         call EvNext
         cp 4
         jr nz,mainloop
+        call JoyTranslate
         ld a,(DlgUp)
         or a
         jp nz,modal_dispatch
@@ -109,10 +116,28 @@ mainloop:
         jp z,quit_key
         cp 'Q'
         jp z,quit_key
-        cp 'm'
-        jp z,menu_key
         cp 'M'
         jp z,menu_key
+        cp 'm'
+        jr nz,normal_key
+        ; Lowercase m is text inside Note and Console. Uppercase M
+        ; remains the explicit menu shortcut when editing text.
+        ld a,(WndCount)
+        or a
+        jp z,menu_key
+        ld hl,(WinApp)
+        ld de,AppNote
+        or a
+        sbc hl,de
+        jr z,normal_key
+        ld hl,(WinApp)
+        ld de,AppTerm
+        or a
+        sbc hl,de
+        jr z,normal_key
+        jp menu_key
+normal_key:
+        ld a,b
         cp 6
         jp z,next_window
         ld b,a
@@ -129,6 +154,21 @@ mainloop:
         jp repaint
 
 desktop_key:
+        ld a,(SetJoyEnabled)
+        or a
+        jr z,desktop_keys
+        ld a,b
+        cp '0'
+        jp z,JoyActivate
+        cp '6'
+        jp z,JoyPrevious
+        cp '9'
+        jp z,JoyPrevious
+        cp '7'
+        jp z,JoyNext
+        cp '8'
+        jp z,JoyNext
+desktop_keys:
         ld a,b
         cp '1'
         jr nz,Dk2
@@ -156,11 +196,123 @@ Dk5:
         jp open_key
 Dk6:
         cp '6'
-        jp nz,mainloop
+        jr nz,Dk7
         ld a,5
+        jp open_key
+Dk7:
+        cp '7'
+        jp nz,mainloop
+        ld a,6
 open_key:
         call WndOpen
         jp repaint
+; Interface 2 joystick 1 electrically acts as the digit keys 6/7/8/9/0.
+; No direct port reads. Never translate digits when typing Note/Console.
+; Elsewhere: 6=left, 7=right, 8=down, 9=up, 0=enter.
+JoyTranslate:
+        ld a,(SetJoyEnabled)
+        or a
+        ret z
+        ld a,(WndCount)
+        or a
+        ret z                      ; desktop selection uses the raw digits
+        ld a,(DlgUp)
+        or a
+        jr nz,JtMap
+        ld a,(MenuOpen)
+        or a
+        jr nz,JtMap
+        ld hl,(WinApp)
+        ld de,AppNote
+        or a
+        sbc hl,de
+        ret z
+        ld hl,(WinApp)
+        ld de,AppTerm
+        or a
+        sbc hl,de
+        ret z
+JtMap:
+        ld a,b
+        cp '6'
+        jr z,JtLeft
+        cp '7'
+        jr z,JtRight
+        cp '8'
+        jr z,JtDown
+        cp '9'
+        jr z,JtUp
+        cp '0'
+        ret nz
+        ld b,13
+        ret
+JtLeft:
+        ld b,8
+        ret
+JtRight:
+        ld b,9
+        ret
+JtDown:
+        ld b,10
+        ret
+JtUp:
+        ld b,11
+        ret
+
+; Selected desktop icon has the original inverted-label focus marker.
+; Linear navigation is reliable even with the unequal icon positions.
+JoyPrevious:
+        ld a,(DskSelected)
+        or a
+        jr nz,JpDec
+        ld a,7
+JpDec:
+        dec a
+        ld (DskSelected),a
+        jp repaint
+JoyNext:
+        ld a,(DskSelected)
+        inc a
+        cp 7
+        jr c,JnSave
+        xor a
+JnSave:
+        ld (DskSelected),a
+        jp repaint
+JoyActivate:
+        ld a,(DskSelected)
+        cp 5
+        jr z,JoySettings
+        cp 6
+        jr z,JoyConsole
+        cp 4
+        jr z,JoyAbout
+        cp 3
+        jr z,JoyFiles
+        cp 2
+        jr z,JoyCalendar
+        cp 1
+        jr z,JoyClock
+        xor a
+        jp open_key
+JoyClock:
+        ld a,2
+        jp open_key
+JoyCalendar:
+        ld a,3
+        jp open_key
+JoyFiles:
+        ld a,4
+        jp open_key
+JoyAbout:
+        ld a,1
+        jp open_key
+JoyConsole:
+        ld a,6
+        jp open_key
+JoySettings:
+        call DlgOpen
+        jp mainloop
 next_window:
         ld a,(WndCount)
         cp 2
@@ -186,6 +338,10 @@ quit_key:
         jp repaint
 menu_dispatch:
         ld a,b
+        cp 8
+        jp z,menu_left_tab
+        cp 9
+        jp z,menu_right_tab
         cp 11
         jr z,menu_previous
         cp 10
@@ -193,6 +349,25 @@ menu_dispatch:
         cp 13
         jr z,menu_choose
         jp mainloop
+menu_left_tab:
+        ld a,(MenuOpen)
+        dec a
+        jr nz,menu_tab_set
+        ld a,4
+        jr menu_tab_set
+menu_right_tab:
+        ld a,(MenuOpen)
+        inc a
+        cp 5
+        jr c,menu_tab_set
+        ld a,1
+menu_tab_set:
+        push af
+        xor a
+        ld (MenuSel),a
+        pop af
+        call MenuOpenDrop
+        jp repaint
 menu_previous:
         ld a,(MenuSel)
         or a

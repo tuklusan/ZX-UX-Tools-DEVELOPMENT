@@ -40,20 +40,32 @@ under `zxdesk/platform/`.
   ZX-UX, rather than ZXDesk's private storage backends.
 - Original `panel.asm`, `settings.asm` and `dialog.asm` provide the native
   settings panel and modal Confirm, Save/Discard/Cancel and Alert controls.
-  Settings use the original eight-byte record persisted through ZX-UX;
-  display background chooses plain or original dotted lattice. Pointer,
-  Y-axis and sound preferences are retained but cannot control hardware
-  until supported ZX-UX device services are available.
+  Settings use the original eight-byte record (version 4), stored via ZX-UX;
+  it selects the desktop background, sound preference and an OFF-by-default
+  `SINCLAIR` joystick-navigation mode. Unused pointer-speed/Y-axis fields are
+  reserved but are not shown or applied. No mouse support is planned.
+- `terminal.asm` adds a small command-console application to the original
+  24-byte ZXDesk application descriptor model. Its live state (269 bytes)
+  fits an existing 273-byte window slot, giving each console its own path,
+  input and eight-line text history. Built-in `help`, `pwd`, `ls`, `cd`,
+  `cat`, `echo`, `rm`, `mkdir`, `clear` use ZX-UX filesystem calls where
+  applicable; it does not fork/exec, steal `/dev/tty`, or impersonate `/bin/sh`.
+- Sinclair Interface 2 joystick 1 uses ordinary ZX-UX keyboard input only:
+  `6` left, `7` right, `8` down, `9` up, `0` fire/Enter when enabled.
+  Desktop icons, menus, dialogs and non-text application controls navigate
+  by selection; Note and Console keep all digits as editable text. The five
+  digit keys cannot be distinguished from the physical joystick, so text
+  windows require the keyboard's `M` menu shortcut to switch UI focus.
 - `platform/entry.asm`, `api.asm`, `rect.asm`, `storage.asm`, `zxux.asm`
   own the SSX1 lifecycle, screen claim/release, TTY, keyboard mapping,
   syscall-backed files and user-mode drawing. No kernel or ZX-UX boot
   cassette changes.
 
-**Still incomplete:** mouse/pointer input (no ZX-UX mouse syscall or device),
-remaining upstream FILE panels (Save As, Print, menu Delete and Load) and
-VIEW Desktop action, and a process-local substitute for the ROM font data.
-Do not reinstate the lookalike, write direct mouse-port I/O into the SSX1
-process or claim unsupported menu functions work.
+**Still incomplete:** remaining upstream FILE panels (Save As, Print,
+menu Delete and Load), VIEW Desktop action, and a process-local substitute
+for the ROM font data. Mouse/pointer support is **intentionally excluded**;
+use Sinclair joystick keyboard emulation, never direct device-port I/O.
+Do not reinstate the lookalike or claim unsupported menu functions work.
 
 ## SDK build (repository root)
 
@@ -62,12 +74,12 @@ mkdir -p zxdesk/build zxdesk/tzx
 for m in entry api storage rect zxux; do
   python3 sdk/bin/py/ras.py -o zxdesk/build/$m.sso zxdesk/platform/$m.asm
 done
-for m in app wm note calendar commander keys hittest events screen text windows desktop menus clock settings panel dialog arrange; do
+for m in app wm note calendar commander keys hittest events screen text windows desktop menus clock settings panel dialog arrange terminal; do
   python3 sdk/bin/py/ras.py -o zxdesk/build/$m.sso zxdesk/src/$m.asm
 done
 python3 sdk/bin/py/rld.py --entry start --stack 384 --heap 0 \
   -o zxdesk/build/zxdesk.ssx \
-  $(for m in entry api storage rect zxux app wm note calendar commander keys hittest events screen text windows desktop menus clock settings panel dialog arrange; do printf 'zxdesk/build/%s.sso ' "$m"; done)
+  $(for m in entry api storage rect zxux app wm note calendar commander keys hittest events screen text windows desktop menus clock settings panel dialog arrange terminal; do printf 'zxdesk/build/%s.sso ' "$m"; done)
 python3 sdk/bin/py/rtap.py -o zxdesk/tzx/ZXDESK.tzx \
   zxdesk/build/zxdesk.ssx=ZXDESK
 ```

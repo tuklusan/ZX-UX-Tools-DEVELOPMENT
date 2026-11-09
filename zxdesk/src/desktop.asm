@@ -8,11 +8,13 @@
         global DskShapeAt
         global DskBlitShape
         global DskHit
+        global DskSelected
         extern AddrAt
         extern PrintStrPx
         extern PrintInv
         extern PxRow
-DSKMAX equ 6
+        extern SetJoyEnabled
+DSKMAX equ 7
 DSKENTSZ equ 8
 DSKBITMAP equ 7
 DSKLABEL equ 3
@@ -26,6 +28,8 @@ DskInit:
         ld de,DskTab
         ld bc,DSKMAX*DSKENTSZ
         ldir
+        xor a
+        ld (DskSelected),a
         ret
 
 DskEntry:
@@ -97,7 +101,20 @@ DskLabX:
         pop hl
         xor a
         ld (PrintInv),a
+        ld a,(SetJoyEnabled)
+        or a
+        jr z,DskPrintLabel
+        ld a,(DskIx)
+        ld b,a
+        ld a,(DskSelected)
+        cp b
+        jr nz,DskPrintLabel
+        ld a,1
+        ld (PrintInv),a
+DskPrintLabel:
         call PrintStrPx
+        xor a
+        ld (PrintInv),a
         pop hl
         ret
 DskStrLen:
@@ -214,12 +231,16 @@ DskDefault:
         db 1,4,144
         dw TxtDskSet,0
         db 0
+        db 1,9,16
+        dw TxtDskTerm,0
+        db 3
 TxtDskNote: db 'NOTE',0
 TxtDskClock: db 'CLOCK',0
 TxtDskCal: db 'CAL',0
 TxtDskFiles: db 'FILES',0
 TxtDskAbout: db 'ABOUT',0
 TxtDskSet: db 'SETUP',0
+TxtDskTerm: db 'CONSOLE',0
 DskShapes:
         db $FF,$FF,$80,$01,$80,$01,$BF,$FD
         db $80,$01,$80,$01,$BF,$FD,$80,$01
@@ -237,6 +258,7 @@ DskShapes:
         db $80,$01,$80,$01,$80,$01,$FF,$FF
         db $80,$01,$83,$C1,$80,$01,$80,$01
         db $80,$01,$80,$01,$80,$01,$FF,$FF
+DskSelected: db 0
 DskIx: db 0
 DskPx: db 0
 DskPy: db 0

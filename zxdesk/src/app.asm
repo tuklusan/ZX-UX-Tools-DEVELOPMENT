@@ -12,6 +12,7 @@
         global AppCal
         global AppCmd
         global AppKeys
+        global AppTerm
         extern WinApp
         extern WinStateP
         extern NoteState
@@ -31,6 +32,10 @@
         extern CmdDraw
         extern CmdKey
         extern KeysDraw
+        extern TermState
+        extern TermInit
+        extern TermDraw
+        extern TermKey
 
 APP_STSZ equ 0
 APP_LIVE equ 2
@@ -53,6 +58,7 @@ APP_CLOCK equ 2
 APP_CAL equ 3
 APP_CMD equ 4
 APP_KEYS equ 5
+APP_TERM equ 6
 
 ; Original ZXDesk AppAt / AppCall / state swapping routines.
 AppAt:
@@ -147,9 +153,14 @@ AppKeys:
         dw 0,0,0,KeysDraw,0,TxtKeysTitle
         db 14,20,17,100
         dw 0,0,0,0
+AppTerm:
+        dw 269,TermState,TermInit,TermDraw,TermKey,TxtTermTitle
+        db 1,32,30,96
+        dw 0,0,0,0
 TxtWinTitle: db 'NOTES',0
 TxtAboutTitle: db 'ABOUT',0
 TxtClockTitle: db 'CLOCK',0
 TxtCalTitle: db 'CALENDAR',0
 TxtCmdTitle: db 'FILES',0
 TxtKeysTitle: db 'KEYS',0
+TxtTermTitle: db 'CONSOLE',0

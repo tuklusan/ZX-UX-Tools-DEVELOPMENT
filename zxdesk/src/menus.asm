@@ -30,6 +30,7 @@
         extern DlgOpen
         extern WndCascade
         extern WndTile
+        extern MenuSel
 MENUH equ 9
 SCRCOLS equ 32
 MNCOUNT equ 4
@@ -187,6 +188,8 @@ MpEdge:
         inc a
         ld (PxRow),a
         ld hl,(MnItemPtr)
+        xor a
+        ld (MnPaintIndex),a
         ld a,(MnCount)
         ld b,a
 MpItem:
@@ -194,10 +197,20 @@ MpItem:
         push hl
         xor a
         ld (PrintInv),a
+        ld a,(MnPaintIndex)
+        ld c,a
+        ld a,(MenuSel)
+        cp c
+        jr nz,MpNotSelected
+        ld a,1
+        ld (PrintInv),a
+MpNotSelected:
         ld a,(MnX)
         inc a
         ld c,a
         call PrintStrPx
+        xor a
+        ld (PrintInv),a
         pop hl
 MpSkip:
         ld a,(hl)
@@ -207,6 +220,8 @@ MpSkip:
         ld a,(PxRow)
         add a,MNITEMH
         ld (PxRow),a
+        ld hl,MnPaintIndex
+        inc (hl)
         pop bc
         djnz MpItem
         ret
@@ -259,6 +274,9 @@ CmdOpenWin:
 KeysOpen:
         ld a,5
         jp WndOpen
+TermOpen:
+        ld a,6
+        jp WndOpen
 
         section data
 MenuDefs:
@@ -266,7 +284,7 @@ MenuDefs:
         dw MnItems1
         db 10,6,8,7
         dw MnItems2
-        db 17,6,10,5
+        db 17,6,10,6
         dw MnItems3
         db 24,6,8,2
         dw MnItems4
@@ -276,7 +294,7 @@ MnItems2:
         db 'NEW',0,'OPEN',0,'SAVE',0,'SAVE AS',0
         db 'PRINT',0,'DELETE',0,'LOAD',0
 MnItems3:
-        db 'CLOCK',0,'CALENDAR',0,'CASCADE',0,'TILE',0,'DESKTOP',0
+        db 'CLOCK',0,'CALENDAR',0,'CASCADE',0,'TILE',0,'DESKTOP',0,'CONSOLE',0
 MnItems4:
         db 'KEYS',0,'ABOUT',0
 ; menu, item, routine. Original table format and supported actions.
@@ -299,11 +317,14 @@ MnActions:
         dw WndCascade
         db 3,3
         dw WndTile
+        db 3,5
+        dw TermOpen
         db 4,0
         dw KeysOpen
         db 4,1
         dw AboutOpen
         db $ff
+MnPaintIndex: db 0
 MnLastMenu: db 0
 MenuOpen: db 0
 MnX: db 0

@@ -73,10 +73,10 @@ WndSelect:
 
 ; One window per slot. Values in the original WinRec fields are retained;
 ; the fixed process-local arenas replace ZXDesk's physical heap.
-; A = original application kind 0..5.
+; A = original application kind 0..6.
 WndOpen:
         ld (WndWantKind),a
-        cp 6
+        cp 7
         jp nc,WndNoRoom
         ld a,(WndCount)
         cp WNDMAX
