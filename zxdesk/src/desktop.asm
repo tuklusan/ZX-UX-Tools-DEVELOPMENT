@@ -71,6 +71,7 @@ DskPaintOne:
         ld de,DSKBITMAP
         add hl,de
         ld a,(hl)
+        ld (DskHy),a          ; reuse scratch: shape 5 overlays desktop dots
         call DskShapeAt
         ld a,(DskPx)
         ld c,a
@@ -177,9 +178,24 @@ DbsRow:
         inc hl
         ld (DskShp),hl
         ex de,hl
+        push af
+        ld a,(DskHy)
+        cp 5                  ; gear pixels only: keep lattice underneath
+        jr z,DbsOverlay
+        pop af
         ld (hl),a
         inc hl
         ld (hl),c
+        jr DbsDone
+DbsOverlay:
+        pop af
+        or (hl)
+        ld (hl),a
+        inc hl
+        ld a,c
+        or (hl)
+        ld (hl),a
+DbsDone:
         ld hl,DskRow
         inc (hl)
         pop bc

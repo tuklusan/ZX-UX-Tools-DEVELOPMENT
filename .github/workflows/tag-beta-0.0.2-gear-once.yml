@@ -1,0 +1,54 @@
+name: One-shot beta-0.0.2 gear fix
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/tag-beta-0.0.2-gear-once.yml
+permissions:
+  contents: write
+jobs:
+  rebuild-retag-cleanup:
+    if: github.event.head_commit.message == 'Apply transparent gear icon fix and temporary beta tag workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Build the standalone ZXDesk cassette
+        run: |
+          set -euo pipefail
+          mkdir -p zxdesk/build zxdesk/tzx
+          for m in entry api storage rect zxux; do
+            python3 sdk/bin/py/ras.py -o "zxdesk/build/$m.sso" "zxdesk/platform/$m.asm"
+          done
+          for m in app wm note calendar commander keys screen text windows desktop menus clock settings panel dialog arrange terminal; do
+            python3 sdk/bin/py/ras.py -o "zxdesk/build/$m.sso" "zxdesk/src/$m.asm"
+          done
+          modules='entry api storage rect zxux app wm note calendar commander keys screen text windows desktop menus clock settings panel dialog arrange terminal'
+          args=''
+          for m in $modules; do args="$args zxdesk/build/$m.sso"; done
+          python3 sdk/bin/py/rld.py --entry start --stack 384 --heap 0 -o zxdesk/build/zxdesk.ssx $args
+          python3 sdk/bin/py/rtap.py -o zxdesk/tzx/ZXDESK.tzx zxdesk/build/zxdesk.ssx=ZXDESK
+      - name: Commit cassette and remove disposable workflow
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add zxdesk/tzx/ZXDESK.tzx
+          git rm -- .github/workflows/tag-beta-0.0.2-gear-once.yml
+          git commit -m 'Build ZXDesk cassette, retag beta-0.0.2 and remove one-shot workflow'
+          git push origin HEAD:main
+      - name: Move beta tag to the clean fixed commit
+        env:
+          OLD_TAG_SHA: 588cf88c57057f0fb2771750b30076b7a3a005ac
+        run: |
+          set -euo pipefail
+          actual="$(git ls-remote origin refs/tags/beta-0.0.2 | awk '{print $1}')"
+          if [ "$actual" != "$OLD_TAG_SHA" ]; then
+            echo 'beta-0.0.2 moved unexpectedly; refusing replacement'
+            exit 1
+          fi
+          git tag -f beta-0.0.2 HEAD
+          git push origin --force-with-lease=refs/tags/beta-0.0.2:$OLD_TAG_SHA refs/tags/beta-0.0.2
