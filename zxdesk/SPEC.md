@@ -16,8 +16,16 @@ Incorporate the ZXDesk GUI as an **optional ZX-UX utility**: `zxdesk/tzx/ZXDESK.
    If the ZX-UX API has no equivalent, use a user-mode compatibility adapter
    or document the concrete blocker; do not invent kernel facilities.
 4. Link ported modules into one relocatable SSX1 and put it on the separate
-   ZXDESK cassette. Remove the temporary lookalike as each real module takes
-   ownership of its function. Never replace the ZX-UX boot tape.
+   ZXDESK cassette. **Do not add features, fixes or new GUI code to the
+   temporary lookalike.** When an original ZXDesk module takes over a
+   function, delete the corresponding imitation in the same commit. The
+   scaffold is solely a temporary integration harness, never a fallback.
+   **Delete `zxdesk/src/desk.asm` entirely** once the original desktop,
+   windows, events and applications own the GUI; move only the SSX1 entry,
+   lifecycle and ZX-UX adapter responsibilities into `zxdesk/platform/`.
+   The final cassette must contain original ZXDesk GUI code plus ZX-UX
+   compatibility glue, with no duplicate lookalike implementation.
+   Never replace the ZX-UX boot tape.
 5. Maintain only `STATE` for the current next step and blocker. No development
    diary, duplicate source copies, or emulator QA as a completion gate.
 
@@ -67,8 +75,10 @@ If split into modules, assemble each to `.sso` and link together. `zxdesk/build/
    screenshots. Replace current copies; do not retain stages or histories.
 3. Execute `STATE.next`: transplant original ZXDesk routines, preserve their
    behavior and interfaces, and route only ROM/hardware/OS dependencies
-   through ZX-UX adapters. Retire matching lookalike scaffold code as each
-   original function becomes active.
+   through ZX-UX adapters. Delete matching lookalike code in that same
+   commit; never extend or preserve it as a fallback. Finish by deleting
+   `zxdesk/src/desk.asm` after moving only its necessary ZX-UX lifecycle
+   glue into `zxdesk/platform/`.
 4. Assemble each module, link SSX1 and package `ZXDESK.tzx` with the SDK
    commands below. The repo also includes `sdk/bin/rvm` for an optional
    real screenshot; RVM runs in the container. Emulator QA is not a gate.
