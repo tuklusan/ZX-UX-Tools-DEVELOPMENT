@@ -30,6 +30,11 @@ PrintChar:
 ; A=character, C=screen byte column, PxRow=pixel row.
 ; PrintHalf=0 selects the high nibble, 1 selects the low nibble.
 PrintCharPx:
+        cp 127                  ; copyright marker used by About credits
+        jr nz,PcpRegular
+        ld de,CopyGlyph
+        jr PcpPointerReady
+PcpRegular:
         sub 32
         cp 96
         jr c,PcpValid
@@ -42,6 +47,7 @@ PcpValid:
         ld de,(FontBase)
         add hl,de
         ex de,hl
+PcpPointerReady:
         push de
         ld a,(PxRow)
         call AddrAt
@@ -135,6 +141,8 @@ PspLoop:
         jr PspLoop
 
         section data
+; Circle/C mark in 4x8 half-byte rows; ASCII 127 is private to About.
+CopyGlyph: db $69,$A8,$A9,$60
 FontBase: dw 0
 PrintInv: db 0
 PrintDim: db 0

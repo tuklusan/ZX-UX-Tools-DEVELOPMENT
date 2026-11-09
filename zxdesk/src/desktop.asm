@@ -186,10 +186,10 @@ DskDefault:
         db 3
         db 1,1,144
         dw TxtDskAbout,0
-        db 0
+        db 6
         db 1,6,144
         dw TxtDskSet,0
-        db 0
+        db 5
         db 1,9,16
         dw TxtDskTerm,0
         db 4
@@ -222,6 +222,15 @@ DskShapes:
         db $A8,$05,$A4,$05,$A8,$05,$A3,$C5
         db $A0,$05,$A0,$05,$BF,$FD,$80,$01
         db $7F,$FE,$01,$80,$07,$E0,$07,$E0
+; Gear icon and compact ZX-UX wordmark, each 16x16.
+        db $13,$00,$3F,$00,$3F,$E0,$FF,$E0
+        db $F9,$C0,$70,$C0,$70,$E0,$F9,$EC
+        db $7F,$FC,$1F,$FF,$19,$EE,$00,$C6
+        db $00,$EF,$01,$FF,$00,$3C,$00,$24
+        db $7F,$FE,$80,$01,$9C,$29,$84,$29
+        db $88,$11,$90,$29,$9C,$29,$80,$01
+        db $9F,$F9,$94,$29,$94,$29,$94,$11
+        db $94,$29,$9C,$29,$80,$01,$7F,$FE
 DskSelected: db 0
 DskIx: db 0
 DskPx: db 0

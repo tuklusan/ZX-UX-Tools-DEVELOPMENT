@@ -29,10 +29,10 @@ TermInit:
         jp TermSay
 
 TermDraw:
-        ld hl,TermRows
+        ld hl,TermRows+2*TERMWIDTH
         xor a
         ld (TermY),a
-        ld d,TERMROWS
+        ld d,6
 TdLoop:
         push de
         push hl
@@ -50,18 +50,18 @@ TdLoop:
         dec d
         jr nz,TdLoop
         ld hl,TextPrompt
-        ld b,64
+        ld b,48
         ld c,0
         call ApiWinPrint
         ld hl,TermInput
-        ld b,64
+        ld b,48
         ld c,2
         call ApiWinPrint
         ld hl,TextCaret
         ld a,(TermLen)
         add a,2
         ld c,a
-        ld b,64
+        ld b,48
         jp ApiWinPrintInv
 
 ; A complete command line is run only when ENTER arrives.

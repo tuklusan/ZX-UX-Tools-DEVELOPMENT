@@ -88,7 +88,7 @@ AppNote:
         dw NoteClose
 AppAbout:
         dw 0,WdAbout,0,TxtAboutTitle
-        db 14,92,15,52
+        db 10,44,21,92
         dw 0
 AppClock:
         dw 0,ClkDraw,ClkKey,TxtClockTitle
@@ -108,7 +108,7 @@ AppKeys:
         dw 0
 AppTerm:
         dw TermInit,TermDraw,TermKey,TxtTermTitle
-        db 1,32,30,96
+        db 11,48,20,72
         dw 0
 TxtWinTitle: db 'NOTES',0
 TxtAboutTitle: db 'ABOUT',0

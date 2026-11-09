@@ -28,7 +28,8 @@ under `zxdesk/platform/`.
   instead of retaining a 384-byte row table. ZX-UX delivers keyboard events
   directly; unused mouse hit testing and its event queue are omitted. The
   glyphs use ZX-UX's native 4x8 font64, read through the `_screen` return pointer.
-  No second font is stored in the ZXDesk SSX1 image.
+  No second font is stored in the ZXDesk SSX1 image; a four-byte
+  copyright glyph renders the About credits.
 - Original `windows.asm`, `wm.asm` and `arrange.asm` provide window
   records, focus, z-order, title chrome, back-to-front composition and
   Cascade/Tile. Up to four different application windows may be open;
@@ -41,19 +42,23 @@ under `zxdesk/platform/`.
   (including its 256-byte document), Console 269 bytes, Calendar 3 bytes,
   Commander 5 bytes; About, Clock and Keys need no per-window state.
   App-local scratch and the global clock service remain separate. There
-  are no 273-byte window-state slots or app-state copies. `desktop.asm` draws the original bitmap desktop icons;
+  are no 273-byte window-state slots or app-state copies. `desktop.asm` draws the original bitmap desktop icons, with compact
+  gear and ZX-UX wordmark icons for SETUP and ABOUT;
   `menus.asm` provides native drop-down drawing and table-driven actions.
   EDIT (CAPS SHIFT+1) cycles menus; EDIT followed by 1..7 launches or
   focuses applications even if windows cover desktop icons. EDIT then N
   cycles windows, EDIT then X closes the front window. BREAK is reserved
   by ZX-UX as a process interrupt, so it is never a GUI shortcut. Disabled items are dimmed and
   never dispatched. VIEW orders Calendar, Clock, Console, Cascade, Tile,
-  Desktop. Save needs Notes focus; arranging needs two windows.
+  Desktop. HELP contains KEYS and ABOUT. Save needs Notes focus;
+  arranging needs two windows.
 - Original `note.asm`, `calendar.asm`, `clock.asm`, `commander.asm` and
   `keys.asm` run as application vectors. The Note editor retains its
   original 256-byte document, file read/write and unsaved-work confirm.
   Commander offers directory navigation, file open, copy and delete through
   ZX-UX, rather than ZXDesk's private storage backends.
+- The ABOUT window displays ZX-Desk and ZX-UX author credits, with
+  two copyright marks and the requested attribution.
 - Original `panel.asm`, `settings.asm` and `dialog.asm` provide the native
   settings panel and modal Confirm, Save/Discard/Cancel and Alert controls.
   Settings use the original eight-byte record (version 4), stored via ZX-UX;
@@ -62,7 +67,9 @@ under `zxdesk/platform/`.
   reserved but are not shown or applied. No mouse support is planned.
 - `terminal.asm` adds a small command-console application using the
   ZXDesk application descriptor model. Its single 269-byte live state
-  contains a path, input and eight-line text history. Built-in `help`, `pwd`, `ls`, `cd`,
+  contains a path, input and eight-line text history. Its default window
+  is 20x72 at column 11, row 48 (half the former 30x96 area), showing
+  the newest six history rows without duplicating or reducing state. Built-in `help`, `pwd`, `ls`, `cd`,
   `cat`, `echo`, `rm`, `mkdir`, `clear` use ZX-UX filesystem calls where
   applicable; it does not fork/exec, steal `/dev/tty`, or impersonate `/bin/sh`.
 - Sinclair Interface 2 joystick 1 uses ordinary ZX-UX keyboard input only:
@@ -77,8 +84,8 @@ under `zxdesk/platform/`.
   small reusable transfer buffer; console filesystem scratch buffers share
   storage when their live ranges do not overlap. The assembly is optimized
   in source and builds without a separate optimizer dependency. No kernel
-  or ZX-UX boot cassette changes. Current resident size is 11,629 bytes
-  (10,827 image + 418 BSS + 384 stack); ZX-UX owns font storage.
+  or ZX-UX boot cassette changes. Current resident size is 11,765 bytes
+  (10,963 image + 418 BSS + 384 stack); ZX-UX owns font storage.
 
 **Still incomplete:** remaining upstream FILE panels (Save As, Print,
 menu Delete and Load), and VIEW Desktop action. Mouse/pointer support is **intentionally excluded**;

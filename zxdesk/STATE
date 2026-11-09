@@ -1,4 +1,4 @@
-phase=ui-edit-prefix-verified
+phase=ui-polish-verified
 tape=present
 next=Resume console mkdir by freeing ZX-UX shared arena RAM without changing the kernel or boot cassette. Afterwards finish remaining FILE and VIEW actions.
-blocker=Console mkdir returns ENOSPC when shared arena RAM is exhausted despite free filesystem inodes. ZXDesk currently occupies 11629 resident bytes (10827 image, 418 BSS, 384 stack).
+blocker=Console mkdir returns ENOSPC with exhausted shared arena RAM despite free inodes. ZXDesk resident is 11765 bytes (10963 image, 418 BSS, 384 stack).

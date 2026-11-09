@@ -300,11 +300,14 @@ WinOldX:       db      4
 WinOldY:       db      32
 WinMoved:      db      0
 CloseBox:       db      $FF,$81,$BD,$BD,$BD,$BD,$81,$FF
-AboutLines: dw TxtAb1, TxtAb2, TxtAb3, TxtAb4,0
-TxtAb1: db 'ZX DESK',0
-TxtAb2: db '48K, Z80',0
-TxtAb3: db 'MONOCHROME',0
-TxtAb4: db 'PIXEL EXACT',0
+AboutLines: dw TxtAb1,TxtAb2,TxtAb3,TxtAb4,TxtAb5,TxtAb6,TxtAb7,0
+TxtAb1: db 'ZX-Desk',0
+TxtAb2: db 127,'  2026 Damian Cooper',0
+TxtAb3: db 'Adapted for ZX-UX',0
+TxtAb4: db 0
+TxtAb5: db 'ZX-UX',0
+TxtAb6: db 127,' 2026 Supratim Sanyal',0
+TxtAb7: db 'SANYALnet Labs',0
 WndZ:           db      0,1,2,3
 WndCount:       db      1
 WndCur:         db      0
