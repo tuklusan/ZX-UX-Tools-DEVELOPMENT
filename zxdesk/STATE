@@ -1,4 +1,4 @@
 phase=integration
-tape=absent
-next=Port ZXDesk GUI as a relocatable ZX-UX SSX1 program; build and commit separate ZXDESK.tzx plus source on main.
+tape=present
+next=Port ZXDesk's full window, event and mouse modules and adapt file operations to ZX-UX; the current cassette contains only a keyboard-driven core.
 blocker=none

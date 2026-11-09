@@ -1,0 +1,1 @@
+ZXDesk design attribution: Damian Cooper. Upstream MIT license: https://github.com/tuklusan/zxdesk/blob/main/LICENSE
