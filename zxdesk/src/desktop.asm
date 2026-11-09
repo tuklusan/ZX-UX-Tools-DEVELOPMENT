@@ -192,7 +192,7 @@ DskDefault:
         db 0
         db 1,9,16
         dw TxtDskTerm,0
-        db 3
+        db 4
 TxtDskNote: db 'NOTE',0
 TxtDskClock: db 'CLOCK',0
 TxtDskCal: db 'CAL',0
@@ -217,6 +217,11 @@ DskShapes:
         db $80,$01,$80,$01,$80,$01,$FF,$FF
         db $80,$01,$83,$C1,$80,$01,$80,$01
         db $80,$01,$80,$01,$80,$01,$FF,$FF
+; 16x16 dedicated terminal monitor: display bezel, > prompt and cursor.
+        db $7F,$FE,$80,$01,$BF,$FD,$A0,$05
+        db $A8,$05,$A4,$05,$A8,$05,$A3,$C5
+        db $A0,$05,$A0,$05,$BF,$FD,$80,$01
+        db $7F,$FE,$01,$80,$07,$E0,$07,$E0
 DskSelected: db 0
 DskIx: db 0
 DskPx: db 0

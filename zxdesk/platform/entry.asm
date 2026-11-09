@@ -104,37 +104,14 @@ mainloop:
         or a
         jp nz,modal_dispatch
         ld a,b
-        cp 7
-        jp z,close_key
+        cp 7                   ; EDIT = CAPS SHIFT+1 (ZX-UX raw key)
+        jp z,menu_key
         cp 'q'
         jp z,quit_key
         cp 'Q'
         jp z,quit_key
-        cp 'M'
-        jp z,menu_key
-        cp 'm'
-        jr nz,normal_key
-        ; Lowercase m is text inside Note and Console. Uppercase M
-        ; remains the explicit menu shortcut when editing text.
-        ld a,(WndCount)
-        or a
-        jp z,menu_key
-        ld hl,(WinApp)
-        ld de,AppNote
-        or a
-        sbc hl,de
-        jr z,normal_key
-        ld hl,(WinApp)
-        ld de,AppTerm
-        or a
-        sbc hl,de
-        jr z,normal_key
-        jp menu_key
+        ; All ordinary letters, including M, reach the focused application.
 normal_key:
-        ld a,b
-        cp 6
-        jp z,next_window
-        ld b,a
         ld a,(MenuOpen)
         or a
         jp nz,menu_dispatch
@@ -310,7 +287,7 @@ JoySettings:
 next_window:
         ld a,(WndCount)
         cp 2
-        jp c,mainloop
+        jp c,repaint
         ld a,(WndZ+1)
         call WndFocusTo
         jp repaint
@@ -330,8 +307,18 @@ quit_key:
         ld c,APP_KEY
         call AppCall
         jp repaint
+; EDIT (CAPS SHIFT+1) opens/cycles the menu and begins a shortcut.
+; BREAK (CAPS SHIFT+SPACE) is reserved by the ZX-UX kernel.
 menu_dispatch:
         ld a,b
+        cp 'n'
+        jr z,menu_cycle
+        cp 'N'
+        jr z,menu_cycle
+        cp 'x'
+        jr z,menu_close_front
+        cp 'X'
+        jr z,menu_close_front
         cp '1'
         jr c,menu_navigation
         cp '8'
@@ -347,6 +334,12 @@ menu_dispatch:
         pop af
         call WndOpen
         jp repaint
+menu_cycle:
+        call MenuClose
+        jp next_window
+menu_close_front:
+        call MenuClose
+        jp close_key
 menu_navigation:
         ld a,b
         cp 8
@@ -539,7 +532,7 @@ MenuSel: db 0
 BgRow: db 0
 key: db 0
 TxtMenu: db 'ZX DESK           FILE          VIEW          HELP',0
-TxtStatus: db 'M MENU  M+1-7 APPS  CTRL-F NEXT  CTRL-G CLOSE',0
+TxtStatus: db 'EDIT: 1-7 APPS  N NEXT  X CLOSE',0
 QuickApps: db 0,2,3,4,1,5,6
         section bss
 oldtty: ds 6

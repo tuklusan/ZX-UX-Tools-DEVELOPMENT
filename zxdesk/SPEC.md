@@ -43,9 +43,10 @@ under `zxdesk/platform/`.
   App-local scratch and the global clock service remain separate. There
   are no 273-byte window-state slots or app-state copies. `desktop.asm` draws the original bitmap desktop icons;
   `menus.asm` provides native drop-down drawing and table-driven actions.
-  `M` cycles menus and `M` followed by `1`..`7` launches or focuses
-  applications even when other windows cover desktop icons; Ctrl-F cycles
-  windows, Ctrl-G closes the front window. Disabled items are dimmed and
+  EDIT (CAPS SHIFT+1) cycles menus; EDIT followed by 1..7 launches or
+  focuses applications even if windows cover desktop icons. EDIT then N
+  cycles windows, EDIT then X closes the front window. BREAK is reserved
+  by ZX-UX as a process interrupt, so it is never a GUI shortcut. Disabled items are dimmed and
   never dispatched. VIEW orders Calendar, Clock, Console, Cascade, Tile,
   Desktop. Save needs Notes focus; arranging needs two windows.
 - Original `note.asm`, `calendar.asm`, `clock.asm`, `commander.asm` and
@@ -69,15 +70,15 @@ under `zxdesk/platform/`.
   Desktop icons, menus, dialogs and non-text application controls navigate
   by selection; Note and Console keep all digits as editable text. The five
   digit keys cannot be distinguished from the physical joystick, so text
-  windows require the keyboard's `M` menu shortcut to switch UI focus.
+  windows use EDIT for GUI commands without sacrificing ordinary letters.
 - `platform/entry.asm`, `api.asm`, `rect.asm`, `storage.asm`, `zxux.asm`
   own the SSX1 lifecycle, screen claim/release, TTY, keyboard mapping,
   syscall-backed files and user-mode drawing. Commander copies through a
   small reusable transfer buffer; console filesystem scratch buffers share
   storage when their live ranges do not overlap. The assembly is optimized
   in source and builds without a separate optimizer dependency. No kernel
-  or ZX-UX boot cassette changes. Current resident size is 11,559 bytes
-  (10,757 image + 418 BSS + 384 stack); ZX-UX owns font storage.
+  or ZX-UX boot cassette changes. Current resident size is 11,629 bytes
+  (10,827 image + 418 BSS + 384 stack); ZX-UX owns font storage.
 
 **Still incomplete:** remaining upstream FILE panels (Save As, Print,
 menu Delete and Load), and VIEW Desktop action. Mouse/pointer support is **intentionally excluded**;

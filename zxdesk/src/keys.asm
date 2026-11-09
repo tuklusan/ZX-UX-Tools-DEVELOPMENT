@@ -39,15 +39,14 @@ KdSkip:
         section data
 KeyRow: db 0
 KeysText:
-        db 'NEW NOTE',0
-        db 'VIEW: CONSOLE',0
-        db 'FILES',0
-        db 'SAVE',0
-        db 'CLOSE',0
-        db 'NEXT WINDOW',0
-        db 'CLOCK',0
-        db 'CALENDAR',0
-        db 'DESKTOP',0
-        db 'SETTINGS',0
-        db 'ABOUT',0
+        db 'EDIT = CAPS SHIFT+1',0
+        db 'EDIT 1: NOTE',0
+        db 'EDIT 2: CLOCK',0
+        db 'EDIT 3: CALENDAR',0
+        db 'EDIT 4: FILES',0
+        db 'EDIT 5: ABOUT',0
+        db 'EDIT 6: KEYS',0
+        db 'EDIT 7: CONSOLE',0
+        db 'EDIT N: NEXT WINDOW',0
+        db 'EDIT X: CLOSE WINDOW',0
         db 0
