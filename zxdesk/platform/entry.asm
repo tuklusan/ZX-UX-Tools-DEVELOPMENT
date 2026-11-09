@@ -311,6 +311,10 @@ quit_key:
 ; BREAK (CAPS SHIFT+SPACE) is reserved by the ZX-UX kernel.
 menu_dispatch:
         ld a,b
+        cp 'm'
+        jp z,menu_key
+        cp 'M'
+        jp z,menu_key
         cp 'n'
         jr z,menu_cycle
         cp 'N'

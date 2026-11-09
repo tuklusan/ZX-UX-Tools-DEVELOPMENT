@@ -43,11 +43,13 @@ under `zxdesk/platform/`.
   Commander 5 bytes; About, Clock and Keys need no per-window state.
   App-local scratch and the global clock service remain separate. There
   are no 273-byte window-state slots or app-state copies. `desktop.asm` draws the original bitmap desktop icons, with compact
-  gear and ZX-UX wordmark icons for SETUP and ABOUT;
+  gear and ZX-UX wordmark icons for SETUP and ABOUT; all desktop
+  captions are centred to half-byte precision beneath their 16px icons;
   `menus.asm` provides native drop-down drawing and table-driven actions.
   EDIT (CAPS SHIFT+1) cycles menus; EDIT followed by 1..7 launches or
   focuses applications even if windows cover desktop icons. EDIT then N
-  cycles windows, EDIT then X closes the front window. BREAK is reserved
+  cycles windows, EDIT then X closes the front window; EDIT then M
+  cycles the menu headings, as shown in HELP > KEYS. BREAK is reserved
   by ZX-UX as a process interrupt, so it is never a GUI shortcut. Disabled items are dimmed and
   never dispatched. VIEW orders Calendar, Clock, Console, Cascade, Tile,
   Desktop. HELP contains KEYS and ABOUT. Save needs Notes focus;
@@ -70,8 +72,11 @@ under `zxdesk/platform/`.
   contains a path, input and eight-line text history. Its default window
   is 20x72 at column 11, row 48 (half the former 30x96 area), showing
   the newest six history rows without duplicating or reducing state. Built-in `help`, `pwd`, `ls`, `cd`,
-  `cat`, `echo`, `rm`, `mkdir`, `clear` use ZX-UX filesystem calls where
-  applicable; it does not fork/exec, steal `/dev/tty`, or impersonate `/bin/sh`.
+  `cat`, `echo`, `rm`, `ps`, `clear` use ZX-UX filesystem calls where
+  applicable; `ps` reads native PID/state/name snapshots through
+  `/dev/mem` without forking. The prompt is `$ ` and `help` lists the
+  lowercase commands alphabetically. It does not steal `/dev/tty` or
+  impersonate `/bin/sh`.
 - Sinclair Interface 2 joystick 1 uses ordinary ZX-UX keyboard input only:
   `6` left, `7` right, `8` down, `9` up, `0` fire/Enter when enabled.
   Desktop icons, menus, dialogs and non-text application controls navigate
@@ -84,11 +89,12 @@ under `zxdesk/platform/`.
   small reusable transfer buffer; console filesystem scratch buffers share
   storage when their live ranges do not overlap. The assembly is optimized
   in source and builds without a separate optimizer dependency. No kernel
-  or ZX-UX boot cassette changes. Current resident size is 11,765 bytes
-  (10,963 image + 418 BSS + 384 stack); ZX-UX owns font storage.
+  or ZX-UX boot cassette changes. Current resident size is 12,058 bytes
+  (11,256 image + 418 BSS + 384 stack); ZX-UX owns font storage.
 
 **Still incomplete:** remaining upstream FILE panels (Save As, Print,
-menu Delete and Load), and VIEW Desktop action. Mouse/pointer support is **intentionally excluded**;
+menu Delete and Load), VIEW Desktop action and Console `mkdir`
+(held until usable ZX-UX shared-arena RAM is recovered). Mouse/pointer support is **intentionally excluded**;
 use Sinclair joystick keyboard emulation, never direct device-port I/O.
 Do not reinstate the lookalike or claim unsupported menu functions work.
 

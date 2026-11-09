@@ -10,6 +10,7 @@
         global DskSelected
         extern AddrAt
         extern PrintStrPx
+        extern PrintStrPxHalf
         extern PrintInv
         extern PxRow
         extern SetJoyEnabled
@@ -85,15 +86,23 @@ DskPaintOne:
         ld d,(hl)
         ex de,hl
         push hl
+        ; Centre the 4-pixel glyphs under each 16-pixel icon.
+        ; Work in half-byte columns so odd-width labels line up too.
         call DskStrLen
         srl a
         ld b,a
         ld a,(DskPx)
         inc a
+        add a,a
         sub b
         jr nc,DskLabX
         xor a
 DskLabX:
+        ld b,a
+        and 1
+        ld (DskHx),a
+        ld a,b
+        srl a
         ld c,a
         ld a,(DskPy)
         add a,DSKLABELY
@@ -112,7 +121,14 @@ DskLabX:
         ld a,1
         ld (PrintInv),a
 DskPrintLabel:
+        ld a,(DskHx)
+        or a
+        jr z,DskFullByte
+        call PrintStrPxHalf
+        jr DskLabelDone
+DskFullByte:
         call PrintStrPx
+DskLabelDone:
         xor a
         ld (PrintInv),a
         pop hl

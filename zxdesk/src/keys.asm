@@ -47,6 +47,7 @@ KeysText:
         db 'EDIT 5: ABOUT',0
         db 'EDIT 6: KEYS',0
         db 'EDIT 7: CONSOLE',0
+        db 'EDIT M: MENU',0
         db 'EDIT N: NEXT WINDOW',0
         db 'EDIT X: CLOSE WINDOW',0
         db 0

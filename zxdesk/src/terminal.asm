@@ -241,9 +241,9 @@ TermDispatch:
         call TermEqual
         jp z,TermRm
         ld hl,TermInput
-        ld de,CmdMkdir
+        ld de,CmdPs
         call TermEqual
-        jp z,TermMkdir
+        jp z,TermPs
         ld hl,TermInput
         ld de,CmdClear
         call TermEqual
@@ -480,63 +480,156 @@ TermRm:
         ld hl,TextDone
         jp TermSay
 
-; ZX-UX _mkdir creates the node; links for . and .. complete its
-; directory structure just as the resident Unix mkdir utility does.
-TermMkdir:
-        call TermNeedPath
-        ret c
-        ld hl,TermPath
-        ld de,$0e
-        ld a,14
+; Process snapshot via ZX-UX /dev/mem, as the native ps utility does.
+; Both snapshots fit existing filesystem scratch, without another arena.
+TermPs:
+        ld hl,TextMem
+        ld de,0
+        ld a,5                  ; open /dev/mem, read-only
         call zx_syscall
         jp c,TermError
-        ld hl,TermPath
-        ld de,TermLink
-        call TermCopyLink
-        ld hl,TermPath
-        ld de,TermLink
-        ld a,9                  ; link dir -> dir/.
+        ld (TermFD),hl
+        ld de,$5b00             ; KV: state[4], wchan, signal, pid, ppid
+        ld bc,0
+        ld a,19                 ; absolute seek
         call zx_syscall
-	jr c,TermError
-        ld hl,TermPath
-        call TermParent
-        ld hl,TermPath
+        jp c,TpsFail
+        ld hl,(TermFD)
+        ld de,TermPath
+        ld bc,28
+        ld a,3
+        call zx_syscall
+        jp c,TpsFail
+        ld a,l
+        cp 28
+        jp nz,TpsFail
+        ld hl,(TermFD)
+        ld de,$5d0b             ; KV2+32: four 8-byte process names
+        ld bc,0
+        ld a,19
+        call zx_syscall
+        jp c,TpsFail
+        ld hl,(TermFD)
         ld de,TermLink
-        call TermCopyLink
-        ld a,'.'
-        ld (de),a
-        inc de
-        ld (de),a
-        inc de
+        ld bc,32
+        ld a,3
+        call zx_syscall
+        jp c,TpsFail
+        ld a,l
+        cp 32
+        jp nz,TpsFail
+        ld hl,(TermFD)
+        ld a,6
+        call zx_syscall
+        ld hl,TextPsHead
+        call TermSay
         xor a
-        ld (de),a
-        ld hl,TermParentPath
-        ld de,TermLink
-        ld a,9                  ; link parent -> dir/..
-        call zx_syscall
-	jr c,TermError
-        ld hl,TextDone
-        jp TermSay
-TermCopyLink:
-        ld b,39
-TclLoop:
+        ld (TermPsSlot),a
+TpsNext:
+        ld a,(TermPsSlot)
+        ld e,a
+        ld d,0
+        ld hl,TermPath
+        add hl,de
         ld a,(hl)
         or a
-        jr z,TclEnd
-        ld (de),a
+        jr z,TpsAdvance
+        ld a,(TermPsSlot)
+        add a,a
+        ld e,a
+        ld d,0
+        ld hl,TermPath+12
+        add hl,de
+        ld e,(hl)
         inc hl
-        inc de
-        djnz TclLoop
-TclEnd:
-        ld a,'/'
-        ld (de),a
-        inc de
-        ld a,'.'
-        ld (de),a
-        inc de
-        xor a
-        ld (de),a
+        ld d,(hl)
+        ex de,hl
+        call TermPsNumber
+        ld a,' '
+        call TermPutChar
+        ld a,(TermPsSlot)
+        ld e,a
+        ld d,0
+        ld hl,TermPath
+        add hl,de
+        ld a,(hl)
+        cp 1
+        jr z,TpsRun
+        cp 2
+        jr z,TpsSleep
+        ld a,'Z'
+        jr TpsState
+TpsRun:
+        ld a,'R'
+        jr TpsState
+TpsSleep:
+        ld a,'S'
+TpsState:
+        call TermPutChar
+        ld a,' '
+        call TermPutChar
+        ld a,(TermPsSlot)
+        add a,a
+        add a,a
+        add a,a
+        ld e,a
+        ld d,0
+        ld hl,TermLink
+        add hl,de
+        ld b,8
+TpsName:
+        ld a,(hl)
+        cp ' '
+        jr z,TpsNameEnd
+        push hl
+        push bc
+        call TermPutChar
+        pop bc
+        pop hl
+        inc hl
+        djnz TpsName
+TpsNameEnd:
+        call TermNewline
+TpsAdvance:
+        ld a,(TermPsSlot)
+        inc a
+        ld (TermPsSlot),a
+        cp 4
+        jp c,TpsNext
         ret
+TpsFail:
+        ld hl,(TermFD)
+        ld a,6
+        call zx_syscall
+        ld hl,TextError
+        jp TermSay
+; Print the real 16-bit PID as five decimal digits.
+TermPsNumber:
+        ld (TermQuota),hl
+        ld de,10000
+        call TpsDigit
+        ld de,1000
+        call TpsDigit
+        ld de,100
+        call TpsDigit
+        ld de,10
+        call TpsDigit
+        ld de,1
+        jp TpsDigit
+TpsDigit:
+        ld b,'0'
+TpdAgain:
+        ld hl,(TermQuota)
+        or a
+        sbc hl,de
+        jr c,TpdOutput
+        ld (TermQuota),hl
+        inc b
+        jr TpdAgain
+TpdOutput:
+        ld a,b
+        jp TermPutChar
+
 TermParent:
         ld de,TermParentPath
         ld hl,TermPath
@@ -591,14 +684,16 @@ CmdCd: db 'cd',0
 CmdCat: db 'cat',0
 CmdEcho: db 'echo',0
 CmdRm: db 'rm',0
-CmdMkdir: db 'mkdir',0
+CmdPs: db 'ps',0
 CmdClear: db 'clear',0
-TextPrompt: db '> ',0
+TextPrompt: db '$ ',0
 TextCaret: db '_',0
-TextGreeting: db 'ZX-UX COMMAND CONSOLE',0
-TextHint: db 'TYPE HELP FOR COMMANDS',0
-TextHelp1: db 'LS CD PWD CAT ECHO',0
-TextHelp2: db 'RM MKDIR CLEAR HELP',0
+TextGreeting: db 'ZX-UX command console',0
+TextHint: db 'type help for commands',0
+TextHelp1: db 'cat cd clear echo help',0
+TextHelp2: db 'ls ps pwd rm',0
+TextPsHead: db '  PID S CMD',0
+TextMem: db '/dev/mem',0
 TextUnknown: db '? COMMAND',0
 TextError: db '? FILE OR DIRECTORY',0
 TextNoSpace: db '? NO SPACE',0
@@ -624,6 +719,7 @@ TermArgSaved: dw 0
 TermFD: dw 0
 TermQuota: dw 0
 TermByte: db 0
+TermPsSlot equ TermByte
 TermPath: ds 42
 TermLink: ds 45
 TermParentPath: ds 42
