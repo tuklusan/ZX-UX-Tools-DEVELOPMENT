@@ -8,6 +8,8 @@
         section text
         global start
         extern zx_syscall
+        extern EvPost
+        extern EvNext
 
 SCREEN  equ $4000
 ATTRS   equ $5800
@@ -44,7 +46,16 @@ mainloop:
         ld a,h
         or l
         jp z,release
+        ; Deliver ZX-UX input through ZXDesk's original event ring.
         ld a,(key)
+        ld b,a
+        ld c,0
+        ld a,4                   ; original EV_KEY
+        call EvPost
+        call EvNext
+        cp 4
+        jp nz,mainloop
+        ld a,b
         cp 7
         jp z,escape_key
         cp 13

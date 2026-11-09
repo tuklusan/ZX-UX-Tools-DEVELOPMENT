@@ -1,4 +1,4 @@
-phase=integration
+phase=port-original-gui
 tape=present
-next=Port ZXDesk's full window, event and mouse modules and adapt file operations to ZX-UX; the current cassette contains only a keyboard-driven core.
+next=Port original ZXDesk screen-addressing and window rendering modules into relocatable SSX1; retire corresponding lookalike routines.
 blocker=none
