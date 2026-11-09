@@ -6,8 +6,6 @@
         global MenuSel
         extern zx_syscall
         extern BuildScrTab
-        extern EvPost
-        extern EvNext
         extern DskInit
         extern DskPaintAll
         extern DskSelected
@@ -99,12 +97,6 @@ mainloop:
         call ClkService
         ld a,(key)
         ld b,a
-        ld c,0
-        ld a,4
-        call EvPost
-        call EvNext
-        cp 4
-        jr nz,mainloop
         call JoyTranslate
         ld a,(DlgUp)
         or a
@@ -173,32 +165,32 @@ desktop_keys:
         cp '1'
         jr nz,Dk2
         xor a
-        jp open_key
+	jr open_key
 Dk2:
         cp '2'
         jr nz,Dk3
         ld a,2
-        jp open_key
+	jr open_key
 Dk3:
         cp '3'
         jr nz,Dk4
         ld a,3
-        jp open_key
+	jr open_key
 Dk4:
         cp '4'
         jr nz,Dk5
         ld a,4
-        jp open_key
+	jr open_key
 Dk5:
         cp '5'
         jr nz,Dk6
         ld a,1
-        jp open_key
+	jr open_key
 Dk6:
         cp '6'
         jr nz,Dk7
         ld a,5
-        jp open_key
+	jr open_key
 Dk7:
         cp '7'
         jp nz,mainloop
@@ -339,9 +331,9 @@ quit_key:
 menu_dispatch:
         ld a,b
         cp 8
-        jp z,menu_left_tab
+	jr z,menu_left_tab
         cp 9
-        jp z,menu_right_tab
+	jr z,menu_right_tab
         cp 11
         jr z,menu_previous
         cp 10
@@ -367,14 +359,14 @@ menu_tab_set:
         ld (MenuSel),a
         pop af
         call MenuOpenDrop
-        jp repaint
+	jr repaint
 menu_previous:
         ld a,(MenuSel)
         or a
         jp z,mainloop
         dec a
         ld (MenuSel),a
-        jp repaint
+	jr repaint
 menu_next:
         ld a,(MenuSel)
         inc a
@@ -385,7 +377,7 @@ menu_next:
         jp c,mainloop
         ld a,b
         ld (MenuSel),a
-        jp repaint
+	jr repaint
 menu_choose:
         ld a,(MenuOpen)
         ld (MnLastMenu),a
@@ -427,7 +419,6 @@ MkZero:
         ld a,1
 MkSet:
         call MenuOpenDrop
-        jp repaint
 repaint:
         call WndRepaintAll
         ld a,(MenuOpen)
@@ -450,8 +441,7 @@ restore:
 done:
         ld hl,0
         ld a,1
-        call zx_syscall
-        ret
+	jp zx_syscall
 
 ; ZXDesk bitmap desktop under ZX-UX's claimed Spectrum screen.
 DrawDesktop:

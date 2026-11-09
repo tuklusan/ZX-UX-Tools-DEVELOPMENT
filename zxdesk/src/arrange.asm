@@ -126,8 +126,7 @@ WndTile:
         ld d,0
         ld hl,ArrTileAt
         add hl,de
-        ld a,(hl)
-        ld e,a
+	ld e,(hl)
         ld hl,ArrTiles
         add hl,de
         ld (ArrTab),hl

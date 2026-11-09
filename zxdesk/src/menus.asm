@@ -5,8 +5,6 @@
         global MenuOpenDrop
         global MenuPaint
         global MenuClose
-        global MenuHitTitle
-        global MenuItemAt
         global MenuOpen
         global MnCount
         global MnX
@@ -36,35 +34,6 @@ SCRCOLS equ 32
 MNCOUNT equ 4
 MNDEFSZ equ 6
 MNITEMH equ 8
-MenuHitTitle:
-        ld hl,MenuDefs
-        ld c,1
-MhtLoop:
-        ld a,c
-        cp MNCOUNT+1
-        jr nc,MhtNone
-        ld a,(hl)
-        cp b
-        jr z,MhtIn
-        jr nc,MhtNext
-MhtIn:
-        inc hl
-        add a,(hl)
-        dec hl
-        cp b
-        jr z,MhtNext
-        jr c,MhtNext
-        ld a,c
-        ret
-MhtNext:
-        ld de,MNDEFSZ
-        add hl,de
-        inc c
-        jr MhtLoop
-MhtNone:
-        xor a
-        ret
-
 ; Original ZXDesk menu geometry, with pointer/save-under calls removed.
 MenuOpenDrop:
         ld (MenuOpen),a
@@ -110,30 +79,10 @@ MoGot:
         add a,SCRCOLS
         ld (MnX),a
 MoFits:
-        jp MenuPaint
+	jr MenuPaint
 MenuClose:
         xor a
         ld (MenuOpen),a
-        ret
-MenuItemAt:
-        ld a,(MnY)
-        inc a
-        ld b,a
-        ld a,c
-        sub b
-        jr c,MiaNone
-        srl a
-        srl a
-        srl a
-        ld b,a
-        ld a,(MnCount)
-        cp b
-        jr z,MiaNone
-        jr c,MiaNone
-        ld a,b
-        ret
-MiaNone:
-        ld a,$ff
         ret
 MenuPaint:
         ld a,(MnX)

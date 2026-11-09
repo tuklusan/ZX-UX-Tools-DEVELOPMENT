@@ -154,7 +154,7 @@ DgEscape:
         ld a,(DgDepth)
         or a
         jp z,DlgClose
-        jp DgCancel
+	jr DgCancel
         section data
 DgConfirmRows:
         db PT_LABEL

@@ -209,7 +209,6 @@ WndNoRoom:
 WndCloseNow:
         ld a,1
         ld (WndForce),a
-        jp WndClose
 WndClose:
         ld a,(WndCount)
         or a
@@ -263,7 +262,7 @@ WcUnflag:
         ld bc,WNDRECSZ
         ldir
         call AppLoad
-        jp WndRepaintAll
+	jr WndRepaintAll
 WcNoWindow:
         ld hl,0
         ld (WinApp),hl
@@ -274,7 +273,6 @@ WcNoWindow:
 WndFocusTo:
         ld (WndFocusSlot),a
         call WndRaise
-        jp WndRepaintAll
 
 ; Original back-to-front composition via the live record and application
 ; vectors. Screen buffers are grabbed after each window, in process RAM.
@@ -303,7 +301,6 @@ WndPaintOne:
         call WinDraw
         ld c,APP_DRAW
         call AppCall
-        jp WinGrab
 
 
 ; A window surface is composed back-to-front on each change. Keeping

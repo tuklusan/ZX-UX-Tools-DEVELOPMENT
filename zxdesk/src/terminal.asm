@@ -141,7 +141,7 @@ TermPutChar:
         cp 13
         ret z
         cp 10
-        jp z,TermNewline
+	jr z,TermNewline
         cp ' '
         ret c
         cp 127
@@ -173,7 +173,7 @@ TermPutStr:
         jr TermPutStr
 TermSay:
         call TermPutStr
-        jp TermNewline
+	jr TermNewline
 
 ; Split command from its optional argument in the existing input buffer.
 TermParse:
@@ -215,11 +215,11 @@ TermDispatch:
         ld hl,TermInput
         ld de,CmdHelp
         call TermEqual
-        jp z,TermHelp
+	jr z,TermHelp
         ld hl,TermInput
         ld de,CmdPwd
         call TermEqual
-        jp z,TermPwd
+	jr z,TermPwd
         ld hl,TermInput
         ld de,CmdLs
         call TermEqual
@@ -235,7 +235,7 @@ TermDispatch:
         ld hl,TermInput
         ld de,CmdEcho
         call TermEqual
-        jp z,TermEcho
+	jr z,TermEcho
         ld hl,TermInput
         ld de,CmdRm
         call TermEqual
@@ -247,7 +247,7 @@ TermDispatch:
         ld hl,TermInput
         ld de,CmdClear
         call TermEqual
-        jp z,TermClear
+	jr z,TermClear
         ld hl,TextUnknown
         jp TermSay
 TermHelp:
@@ -293,11 +293,10 @@ TermBuildPath:
         jr z,TbpLong
 TbpName:
         ld hl,(TermArgSaved)
-        jp TermPathCopy
+	jr TermPathCopy
 TbpAbs:
         ld de,TermPath
         ld b,39
-        jp TermPathCopy
 TermPathCopy:
         ld a,(hl)
         or a
@@ -498,7 +497,7 @@ TermMkdir:
         ld de,TermLink
         ld a,9                  ; link dir -> dir/.
         call zx_syscall
-        jp c,TermError
+	jr c,TermError
         ld hl,TermPath
         call TermParent
         ld hl,TermPath
@@ -515,7 +514,7 @@ TermMkdir:
         ld de,TermLink
         ld a,9                  ; link parent -> dir/..
         call zx_syscall
-        jp c,TermError
+	jr c,TermError
         ld hl,TextDone
         jp TermSay
 TermCopyLink:
@@ -625,9 +624,9 @@ TermArgSaved: dw 0
 TermFD: dw 0
 TermQuota: dw 0
 TermByte: db 0
-TermEntry: ds 10
-TermName: ds 9
 TermPath: ds 42
 TermLink: ds 45
 TermParentPath: ds 42
-TermStat: ds 34
+TermEntry equ TermParentPath
+TermName equ TermLink
+TermStat equ TermLink

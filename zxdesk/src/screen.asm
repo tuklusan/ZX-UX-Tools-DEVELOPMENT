@@ -8,27 +8,11 @@
         global ScrDown
         global AddrAt
         global FillRowSolid
-        global ClearRow
 
 SCRROWS equ 192
 SCRCOLS equ 32
 
 BuildScrTab:
-                ld      hl,ScrTab
-                xor     a
-                ld      (TmpY),a
-BstLoop:
-                ld      a,(TmpY)
-                call    CalcScr
-                ld      (hl),e
-                inc     hl
-                ld      (hl),d
-                inc     hl
-                ld      a,(TmpY)
-                inc     a
-                ld      (TmpY),a
-                cp      SCRROWS
-                jr      nz,BstLoop
                 ret
 
 ; in: A = pixel row, out: DE = screen address of column 0
@@ -54,15 +38,12 @@ CalcScr:
 
 ; in: A = pixel row, out: HL = screen address of column 0
 RowAddr:
-                ld      l,a
-                ld      h,0
-                add     hl,hl
-                ld      de,ScrTab
-                add     hl,de
-                ld      e,(hl)
-                inc     hl
-                ld      d,(hl)
+                push    af
+                push    bc
+                call    CalcScr
                 ex      de,hl
+                pop     bc
+                pop     af
                 ret
 
 ; Step HL down one pixel row. Touches only A and HL.
@@ -100,15 +81,3 @@ FrsLoop:
                 ret
 
 ; in: A = pixel row
-ClearRow:
-                call    RowAddr
-                ld      b,SCRCOLS
-ClrLoop:
-                ld      (hl),0
-                inc     l
-                djnz    ClrLoop
-                ret
-
-        section bss
-ScrTab:         ds SCRROWS*2
-TmpY:           ds 1

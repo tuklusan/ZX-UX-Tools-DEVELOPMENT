@@ -26,7 +26,6 @@
         global WdFills
         global WndRaise
         global WndFlush
-        global WndHitTest
         global WdAbout
         extern AddrAt
         extern ScrDown
@@ -113,8 +112,7 @@ WinDraw:
         call WdFills
         call WdEdges
         call WdCloseBox
-        call WdText
-        ret
+	jp WdText
 
 ; ZXDesk WdFills, with the hardware-specific fill behind DevFillRect.
 WdFills:
@@ -287,94 +285,6 @@ WndFlush:
         ldir
         ret
 
-; Original ZXDesk window hit-test, with a ZX-UX-owned record table.
-; Input: B=byte column, C=pixel row; output A=control id.
-WndHitTest:
-        ld a,b
-        ld (WhtCol),a
-        ld a,c
-        ld (WhtRow),a
-        call WndFlush
-        ld a,(WndCount)
-        or a
-        jr z,WhtNone
-        ld b,a
-        ld c,0
-WhtLoop:
-        push bc
-        ld e,c
-        ld d,0
-        ld hl,WndZ
-        add hl,de
-        ld a,(hl)
-        ld (WndHit),a
-        call WndRecAt
-        ld e,(hl)
-        inc hl
-        ld d,(hl)
-        inc hl
-        ld c,(hl)
-        inc hl
-        ld b,(hl)
-        ld a,(WhtCol)
-        sub e
-        jr c,WhtNext
-        cp c
-        jr nc,WhtNext
-        ld a,(WhtRow)
-        sub d
-        jr c,WhtNext
-        cp b
-        jr nc,WhtNext
-        cp WinCapH
-        jr nc,WhtBody
-        ld d,a
-        ld a,(WhtCol)
-        sub e
-        jr nz,WhtTitle
-        ld a,d
-        or a
-        jr z,WhtTitle
-        cp 9
-        jr nc,WhtTitle
-        ld a,1
-        jr WhtDone
-WhtTitle:
-        ld a,2
-        jr WhtDone
-WhtBody:
-        ld d,a
-        add a,8
-        cp b
-        jr c,WhtScrollTest
-        ld a,(WhtCol)
-        sub e
-        inc a
-        cp c
-        jr c,WhtScrollTest
-        ld a,8
-        jr WhtDone
-WhtScrollTest:
-        ld a,(WhtCol)
-        sub e
-        add a,2
-        cp c
-        jr nz,WhtInterior
-        ld a,9
-        jr WhtDone
-WhtInterior:
-        ld a,3
-WhtDone:
-        pop bc
-        ret
-WhtNext:
-        pop bc
-        inc c
-        djnz WhtLoop
-WhtNone:
-        xor a
-        ret
-
 WndIsFront:
                 ld      a,(WndZ)
                 ld      hl,WndCur
@@ -403,9 +313,6 @@ TxtAb3: db 'MONOCHROME',0
 TxtAb4: db 'PIXEL EXACT',0
 WndZ:           db      0,1,2,3
 WndCount:       db      1
-WndHit:         db      0
-WhtCol:         db      0
-WhtRow:         db      0
 WndCur:         db      0
 
         section bss

@@ -300,7 +300,7 @@ PnkCycle:
         cp PT_CYCLE
         ret nz
         ld a,(PnlFocus)
-        jp PnlActivate
+	jr PnlActivate
 PnkUp:
         ld a,(PnlFocus)
         or a
@@ -318,7 +318,7 @@ PnkDown:
         jp PnlPaint
 PnkEnter:
         ld a,(PnlFocus)
-        jp PnlActivate
+	jr PnlActivate
  ; Original ZXDesk D3 nested-panel record swap.
 PNLRECSZ equ 13
 PNLDEPTH equ 3

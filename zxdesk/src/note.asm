@@ -46,7 +46,7 @@ NoteRowAddr:
         ret
 NoteCurAddr:
         ld a,(NoteCY)
-        jp NoteRowAddr
+	jr NoteRowAddr
 NoteVisRows:
         ld a,(WinH)
         sub 14
@@ -132,7 +132,7 @@ NdlOff:
         ret
 NoteDrawInterior:
         call NoteDrawAll
-        jp NoteCurDraw
+	jr NoteCurDraw
 NoteDrawAll:
         call NoteVisRows
         ld b,a
@@ -294,9 +294,8 @@ NorLoop:
         pop hl
         ld bc,NOTESTRIDE
         ldir
-        ld a,(NoteRowDst)
-        dec a
-        ld (NoteRowDst),a
+	ld hl,NoteRowDst
+	dec (hl)
         jr NorLoop
 NoteCloseRow:
         ld (NoteRowDst),a
@@ -313,13 +312,12 @@ NcrLoop:
         pop hl
         ld bc,NOTESTRIDE
         ldir
-        ld a,(NoteRowDst)
-        inc a
-        ld (NoteRowDst),a
+	ld hl,NoteRowDst
+	inc (hl)
         jr NcrLoop
 NcrBlank:
         ld a,NOTELASTROW
-        jp NoteBlankRow
+	jr NoteBlankRow
 NoteBack:
         ld a,(NoteCX)
         or a

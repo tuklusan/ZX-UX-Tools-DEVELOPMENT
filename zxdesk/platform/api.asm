@@ -4,9 +4,7 @@
         global ApiWinPrint
         global ApiWinPrintInv
         global ApiWinPrintIf
-        global ApiWinClear
         global ApiWinRows
-        global ApiWinGrab
         global ApiWinAddr
         global ApiOpenFile
         extern WinX
@@ -46,7 +44,6 @@ ApiWinPrintGo:
 ApiWinPrintIf:
         or a
         jr z,ApiWinPrint
-        jp ApiWinPrintInv
 ApiWinPrintInv:
         ld a,1
         ld (PrintInv),a
@@ -58,22 +55,6 @@ ApiWinRows:
         ld a,(WinH)
         sub 10
         ret
-ApiWinClear:
-        ld a,(WinX)
-        inc a
-        ld (FrX),a
-        ld a,(WinY)
-        add a,10
-        ld (FrY),a
-        ld a,(WinW)
-        sub 2
-        ld (FrW),a
-        ld a,(WinH)
-        sub 11
-        ld (FrH),a
-        ld hl,0
-        ld (FrPat),hl
-        jp DevFillRect
 ApiWinAddr:
         ld a,(WinX)
         inc a
@@ -98,5 +79,3 @@ OfBad:
         call WndClose
         scf
         ret
-ApiWinGrab:
-        jp WinGrab

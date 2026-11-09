@@ -188,12 +188,11 @@ CkNotR:
         cp 11
         jr nz,CkNotU
         ld c,1
-        jp ClkAdjust
+	jr ClkAdjust
 CkNotU:
         cp 10
         ret nz
         ld c,0
-        jp ClkAdjust
 ClkAdjust:
         ld a,(ClkField)
         ld hl,ClkH

@@ -104,8 +104,7 @@ CalMonthLen:
         ld d,0
         ld hl,CalLens
         add hl,de
-        ld a,(hl)
-        ld b,a
+	ld b,(hl)
         ld a,e
         cp 1
         ld a,b

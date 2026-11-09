@@ -7,7 +7,6 @@
         global DskPaintOne
         global DskShapeAt
         global DskBlitShape
-        global DskHit
         global DskSelected
         extern AddrAt
         extern PrintStrPx
@@ -78,8 +77,9 @@ DskPaintOne:
         call DskBlitShape
         pop hl
         push hl
-        ld de,DSKLABEL
-        add hl,de
+	inc hl
+	inc hl
+	inc hl
         ld e,(hl)
         inc hl
         ld d,(hl)
@@ -168,47 +168,6 @@ DbsRow:
         inc (hl)
         pop bc
         djnz DbsRow
-        ret
-
- ; Original ZXDesk desktop icon hit-testing.
-DskHit:
-        ld a,b
-        ld (DskHx),a
-        ld a,c
-        ld (DskHy),a
-        xor a
-        ld (DskIx),a
-DhLoop:
-        ld a,(DskIx)
-        call DskEntry
-        ld a,(hl)
-        or a
-        jr z,DhNext
-        inc hl
-        ld a,(hl)
-        ld b,a
-        inc hl
-        ld c,(hl)
-        ld a,(DskHx)
-        sub b
-        jr c,DhNext
-        cp DSKICONW
-        jr nc,DhNext
-        ld a,(DskHy)
-        sub c
-        jr c,DhNext
-        cp DSKSLOTH
-        jr nc,DhNext
-        ld a,(DskIx)
-        inc a
-        ret
-DhNext:
-        ld hl,DskIx
-        inc (hl)
-        ld a,(hl)
-        cp DSKMAX
-        jr c,DhLoop
-        xor a
         ret
 
         section data

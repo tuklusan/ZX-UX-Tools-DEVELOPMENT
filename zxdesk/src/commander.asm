@@ -103,7 +103,6 @@ CmdPane1:
         ld a,CMDPANEW+2
 CmpLeft:
         ld (CmdCol),a
-        ld a,(CmdCol)
         ld c,a
         call CmdDevName
         ld a,(CmdPane)
@@ -233,7 +232,7 @@ CmkNotL:
         ret
 CmkNotR:
         cp 13
-        jp z,CmdOpen
+	jr z,CmdOpen
         cp 'C'
         jr z,CmkCopy
         cp 'c'
@@ -311,7 +310,7 @@ CmcChunk:
         call CmdUse
         ld a,(CmdHandle)
         ld hl,CmdBuf
-        ld bc,256
+        ld bc,64
         call ApiStRead
         jr c,CmcReadFailed
         ld (CmdGot),bc
@@ -409,7 +408,7 @@ CmdHandle: db 0
 CmdOut: db 0
 CmdGot: dw 0
 CmdWork: ds 13
-CmdBuf: ds 256
+CmdBuf: ds 64
 TxtCmdRoot: db 'ROOT',0
 TxtCmdBin: db 'BIN',0
 TxtCmdBlank: db ' ',0

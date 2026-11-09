@@ -23,13 +23,15 @@ under `zxdesk/platform/`.
 
 ## Current integration
 
-- Original ZXDesk `events.asm`, `screen.asm` and `text.asm` supply the event
-  ring, display addresses, pixel rows and character drawing. The glyphs
-  still read Spectrum ROM font *data*, not ROM firmware routines.
-- Original `windows.asm`, `wm.asm`, `hittest.asm` and `arrange.asm` provide
-  window records, focus, z-order, hit tests, title chrome, back-to-front
-  composition and Cascade/Tile. Multiwindow buffers are deliberately
-  replaced by full recomposition to fit the ZX-UX SSX1 memory limit.
+- Original ZXDesk `screen.asm` and `text.asm` supply display-address math,
+  pixel rows and character drawing. Screen addresses are computed on demand
+  instead of retaining a 384-byte row table. ZX-UX delivers keyboard events
+  directly; unused mouse hit testing and its event queue are omitted. The
+  glyphs still read Spectrum ROM font *data*, not ROM firmware routines.
+- Original `windows.asm`, `wm.asm` and `arrange.asm` provide window
+  records, focus, z-order, title chrome, back-to-front composition and
+  Cascade/Tile. Mouse-only hit testing is omitted. Multiwindow bitmap
+  buffers are replaced by full recomposition to fit SSX1 memory.
 - Original `app.asm` provides application dispatch and independent per-window
   app-state swaps. `desktop.asm` draws the original bitmap desktop icons;
   `menus.asm` provides native drop-down drawing and table-driven actions.
@@ -58,8 +60,11 @@ under `zxdesk/platform/`.
   windows require the keyboard's `M` menu shortcut to switch UI focus.
 - `platform/entry.asm`, `api.asm`, `rect.asm`, `storage.asm`, `zxux.asm`
   own the SSX1 lifecycle, screen claim/release, TTY, keyboard mapping,
-  syscall-backed files and user-mode drawing. No kernel or ZX-UX boot
-  cassette changes.
+  syscall-backed files and user-mode drawing. Commander copies through a
+  small reusable transfer buffer; console filesystem scratch buffers share
+  storage when their live ranges do not overlap. The assembly is optimized
+  in source and builds without a separate optimizer dependency. No kernel
+  or ZX-UX boot cassette changes.
 
 **Still incomplete:** remaining upstream FILE panels (Save As, Print,
 menu Delete and Load), VIEW Desktop action, and a process-local substitute
@@ -74,12 +79,12 @@ mkdir -p zxdesk/build zxdesk/tzx
 for m in entry api storage rect zxux; do
   python3 sdk/bin/py/ras.py -o zxdesk/build/$m.sso zxdesk/platform/$m.asm
 done
-for m in app wm note calendar commander keys hittest events screen text windows desktop menus clock settings panel dialog arrange terminal; do
+for m in app wm note calendar commander keys screen text windows desktop menus clock settings panel dialog arrange terminal; do
   python3 sdk/bin/py/ras.py -o zxdesk/build/$m.sso zxdesk/src/$m.asm
 done
 python3 sdk/bin/py/rld.py --entry start --stack 384 --heap 0 \
   -o zxdesk/build/zxdesk.ssx \
-  $(for m in entry api storage rect zxux app wm note calendar commander keys hittest events screen text windows desktop menus clock settings panel dialog arrange terminal; do printf 'zxdesk/build/%s.sso ' "$m"; done)
+  $(for m in entry api storage rect zxux app wm note calendar commander keys screen text windows desktop menus clock settings panel dialog arrange terminal; do printf 'zxdesk/build/%s.sso ' "$m"; done)
 python3 sdk/bin/py/rtap.py -o zxdesk/tzx/ZXDESK.tzx \
   zxdesk/build/zxdesk.ssx=ZXDESK
 ```
