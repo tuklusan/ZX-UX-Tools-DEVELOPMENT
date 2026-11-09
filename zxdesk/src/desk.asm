@@ -18,6 +18,17 @@
         extern WinSetGeometry
         extern WdEdges
         extern WdCloseBox
+        extern WinDraw
+        extern WinSetTitle
+        extern DskInit
+        extern DskPaintAll
+        extern ClkInit
+        extern ClkService
+        extern ClkDraw
+        extern ClkKey
+        extern WdAbout
+        extern MenuOpenDrop
+        extern MenuClose
 
 SCREEN  equ $4000
 ATTRS   equ $5800
@@ -44,6 +55,8 @@ start:
         or a
         jp nz,release
         call BuildScrTab
+        call DskInit
+        call ClkInit
         call redraw
 mainloop:
         ld hl,0
@@ -56,6 +69,7 @@ mainloop:
         or l
         jp z,release
         ; The kernel input byte enters ZXDesk's original event ring.
+        call ClkService
         ld a,(key)
         ld b,a
         ld c,0
@@ -163,7 +177,7 @@ backspace_key:
 menu_key:
         ld a,(menu)
         inc a
-        cp 4
+        cp 5
         jp c,menu_store
         xor a
 menu_store:
@@ -188,6 +202,13 @@ open_selected:
         jp select_open
 up_key:
         ld a,(window)
+        cp 2
+        jr nz,not_clock_up_key
+        ld a,8
+        call ClkKey
+        jp repaint
+not_clock_up_key:
+        ld a,(window)
         or a
         jp nz,win_up
         ld a,(selected)
@@ -206,6 +227,13 @@ win_up:
         jp repaint
 down_key:
         ld a,(window)
+        cp 2
+        jr nz,not_clock_down_key
+        ld a,9
+        call ClkKey
+        jp repaint
+not_clock_down_key:
+        ld a,(window)
         or a
         jp nz,win_down
         ld a,(selected)
@@ -223,6 +251,13 @@ win_down:
         jp repaint
 left_key:
         ld a,(window)
+        cp 2
+        jr nz,not_clock_left_key
+        ld a,10
+        call ClkKey
+        jp repaint
+not_clock_left_key:
+        ld a,(window)
         or a
         jp z,up_key
         ld a,(wx)
@@ -232,6 +267,13 @@ left_key:
         ld (wx),a
         jp repaint
 right_key:
+        ld a,(window)
+        cp 2
+        jr nz,not_clock_right_key
+        ld a,11
+        call ClkKey
+        jp repaint
+not_clock_right_key:
         ld a,(window)
         or a
         jp z,down_key
@@ -323,103 +365,23 @@ redraw:
         ld c,0
         ld hl,helpbar2
         call draw_at
-        ld a,5
-        ld c,2
-        ld hl,icons1
-        call draw_at
-        ld a,6
-        ld c,2
-        ld hl,icons2
-        call draw_at
-        ld a,7
-        ld c,2
-        ld hl,icons3
-        call draw_at
-        ld a,12
-        ld c,2
-        ld hl,icons4
-        call draw_at
-        ld a,13
-        ld c,2
-        ld hl,icons5
-        call draw_at
-        ld a,14
-        ld c,2
-        ld hl,icons6
-        call draw_at
-        call draw_selection
+        ; Original ZXDesk desktop bitmap icons and labels.
+        call DskPaintAll
         ld a,(window)
         or a
         call nz,draw_window
-        ld a,(window)
-        or a
-        jr z,redraw_no_chrome
-        call WdEdges
-        call WdCloseBox
-redraw_no_chrome:
         ld a,(menu)
         or a
-        call nz,draw_menu
+        call nz,MenuOpenDrop
         ret
-
-draw_selection:
-        ld a,(window)
-        or a
-        ret nz
-        ld a,(selected)
-        dec a
-        ld e,a
-        ld d,0
-        ld hl,selcols
-        add hl,de
-        ld c,(hl)
-        ld a,(selected)
-        cp 4
-        jp c,sel_top
-        ld a,12
-        jp sel_mark
-sel_top:
-        ld a,5
-sel_mark:
-        ld hl,selectmark
-        jp draw_at
 
 draw_window:
         ld a,(wx)
-        ld b,0
         push af
         ld a,(wy)
         ld b,a
         pop af
         call WinSetGeometry
-        ld a,(wy)
-        ld c,0
-        call at_wx
-        ld hl,frame_top
-        call draw_at
-        ld a,(wy)
-        inc a
-        ld (workrow),a
-        ld a,9
-        ld (count),a
-win_lines:
-        ld a,(workrow)
-        ld c,0
-        call at_wx
-        ld hl,frame_body
-        call draw_at
-        ld a,(workrow)
-        inc a
-        ld (workrow),a
-        ld a,(count)
-        dec a
-        ld (count),a
-        jp nz,win_lines
-        ld a,(workrow)
-        ld c,0
-        call at_wx
-        ld hl,frame_bot
-        call draw_at
         ld a,(window)
         dec a
         ld e,a
@@ -431,11 +393,10 @@ win_lines:
         inc hl
         ld d,(hl)
         ex de,hl
-        ld a,(wy)
-        inc a
-        ld c,2
-        call at_wx
-        call draw_at
+        call WinSetTitle
+        ; ZXDesk's original graphical window compositor replaces
+        ; the ASCII frame drawing loop in this same change.
+        call WinDraw
         ld a,(window)
         cp 1
         jp z,content_note
@@ -453,14 +414,7 @@ content_note:
         call win_line5
         ret
 content_clock:
-        ld a,38
-        call zx_syscall
-        call make_tick_hex
-        ld hl,clock_caption
-        call win_line3
-        ld hl,ticks_text
-        call win_line5
-        ret
+        jp ClkDraw
 content_files:
         ld hl,files_caption
         call win_line3
@@ -468,11 +422,7 @@ content_files:
         call win_line5
         ret
 content_about:
-        ld hl,about_caption
-        call win_line3
-        ld hl,about_caption2
-        call win_line5
-        ret
+        jp WdAbout
 content_setup:
         ld hl,setup_caption
         call win_line3
@@ -496,55 +446,6 @@ at_wx:
         add a,c
         ld c,a
         pop af
-        ret
-
-draw_menu:
-        cp 1
-        jp z,menu_file
-        cp 2
-        jp z,menu_view
-        ld hl,menu_help
-        ld c,22
-        jp menu_paint
-menu_file:
-        ld hl,menu_file_text
-        ld c,5
-        jp menu_paint
-menu_view:
-        ld hl,menu_view_text
-        ld c,12
-menu_paint:
-        ld a,2
-        call draw_at
-        ret
-
-; A = 0..65535 in HL from the tick syscall, render four hex digits.
-make_tick_hex:
-        ld a,h
-        ld de,ticks_text+7
-        call hex_byte
-        ld a,l
-        call hex_byte
-        ret
-hex_byte:
-        push af
-        rrca
-        rrca
-        rrca
-        rrca
-        call hex_digit
-        pop af
-        call hex_digit
-        ret
-hex_digit:
-        and 15
-        add a,'0'
-        cp '9'+1
-        jp c,hex_digit_store
-        add a,7
-hex_digit_store:
-        ld (de),a
-        inc de
         ret
 
 ; Draw a zero terminated string at A=row, C=column, HL=source.
@@ -606,24 +507,11 @@ note_text: db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 penrow:  db 0
 pencol:  db 0
 inverse: db 0
-workrow: db 0
-count:   db 0
-selcols: db 2,12,22,2,12
 
-title:  db ' ZXDESK   FILE    VIEW    HELP  ',0
+title:  db 'ZX DESK   FILE   VIEW   HELP',0
 rule:   db '--------------------------------',0
 helpbar: db ' 1 NOTE 2 CLOCK 3 FILES 4 ABOUT ',0
 helpbar2: db ' 5 SETUP M MENU  EDIT CLOSE     ',0
-icons1: db ' +-----+   +-----+   +-----+ ',0
-icons2: db ' |NOTE |   |CLOCK|   |FILES| ',0
-icons3: db ' +-----+   +-----+   +-----+ ',0
-icons4: db ' +-----+   +-----+           ',0
-icons5: db ' |ABOUT|   |SETUP|           ',0
-icons6: db ' +-----+   +-----+           ',0
-selectmark: db '>',0
-frame_top: db '+----------------------+',0
-frame_body: db '|                      |',0
-frame_bot: db '+----------------------+',0
 titles: dw title_note,title_clock,title_files,title_about,title_setup
 title_note: db 'NOTEPAD          [EDIT]',0
 title_clock: db 'CLOCK            [EDIT]',0
@@ -631,17 +519,10 @@ title_files: db 'FILES            [EDIT]',0
 title_about: db 'ABOUT            [EDIT]',0
 title_setup: db 'SETTINGS         [EDIT]',0
 note_caption: db 'TYPE TEXT BELOW:',0
-clock_caption: db 'ZX-UX FRAME COUNTER',0
-ticks_text: db 'TICKS: 0000',0
 files_caption: db 'FILES BELONG TO ZX-UX',0
 files_caption2: db 'USE /BIN/LS IN SHELL',0
-about_caption: db 'ZX DESK ON ZX-UX',0
-about_caption2: db 'GUI: DAMIAN COOPER',0
 setup_caption: db 'ARROWS MOVE WINDOWS',0
 setup_caption2: db 'EDIT CLOSES WINDOW',0
-menu_file_text: db '1 NOTE  3 FILES',0
-menu_view_text: db '2 CLOCK  5 SETUP',0
-menu_help: db '4 ABOUT',0
 
         section bss
 oldtty: ds 6

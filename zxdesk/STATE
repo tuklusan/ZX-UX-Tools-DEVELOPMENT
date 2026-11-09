@@ -1,4 +1,4 @@
 phase=port-original-gui
 tape=present
-next=Port ZXDesk original window fill/composition, z-order and hit-testing onto the WinRec geometry; replace temporary ASCII frame.
-blocker=Full compositor needs ZX-UX-owned per-window pixel buffers and an SSX1-safe allocation strategy.
+next=Port original ZXDesk multiwindow buffer/composition and remaining Note, Calendar, Commander, dialog and settings modules; retire all remaining scaffold code.
+blocker=Native window/application code depends on original heap, pointer and storage interfaces requiring ZX-UX adapters.

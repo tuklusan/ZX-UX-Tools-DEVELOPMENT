@@ -29,14 +29,22 @@ Incorporate the ZXDesk GUI as an **optional ZX-UX utility**: `zxdesk/tzx/ZXDESK.
 5. Maintain only `STATE` for the current next step and blocker. No development
    diary, duplicate source copies, or emulator QA as a completion gate.
 
-Active original modules: `src/events.asm` provides `EvPost` / `EvNext`;
-`src/screen.asm` provides the original `BuildScrTab`, `CalcScr`, `RowAddr`,
-`ScrDown`, `AddrAt`, `FillRowSolid` and `ClearRow`. Original `PrintChar` is
-in `src/text.asm` and is active in the display; its ROM font address is still
-a ZX-UX compatibility boundary. Original `WdEdges`, `WdCloseBox`, `WndRecAt` and `WndIsFront` now live in
-`src/windows.asm`; the current one-window scaffold uses the original pixel
-geometry and draws its original edge/close-box chrome. The full window
-compositor, z-order, applications and mouse remain to be transplanted.
+Active original modules: `events.asm` (event ring), `screen.asm` (bitmap
+addressing and screen rows), `text.asm` (ROM-font and pixel-row text),
+`windows.asm` (original `WinDraw` fill/chrome, hit-testing, z-order
+operations, and the About application), `desktop.asm` (original bitmap
+shortcuts, labels, and hit-testing), `menus.asm` (original menu definitions,
+geometry, and drop-down painting), and `clock.asm` (original adjustable clock
+with its interrupt counter replaced by ZX-UX ticks). `platform/rect.asm`
+replaces the original self-modifying/SP-changing fill primitive with
+process-local drawing.
+
+Still incomplete: true multiwindow composition with allocated window buffers;
+original application dispatch and Note, Calendar, Commander, Settings and
+dialog modules; mouse input/storage adapters; replacing the remaining
+`src/desk.asm` application scaffold. The original menu painter is active,
+but its application actions are not fully connected. Do not claim these
+stages complete or extend the scaffold.
 
 ## Implementation
 
@@ -54,8 +62,12 @@ python3 sdk/bin/py/ras.py -o zxdesk/build/events.sso zxdesk/src/events.asm
 python3 sdk/bin/py/ras.py -o zxdesk/build/screen.sso zxdesk/src/screen.asm
 python3 sdk/bin/py/ras.py -o zxdesk/build/text.sso zxdesk/src/text.asm
 python3 sdk/bin/py/ras.py -o zxdesk/build/windows.sso zxdesk/src/windows.asm
+python3 sdk/bin/py/ras.py -o zxdesk/build/desktop.sso zxdesk/src/desktop.asm
+python3 sdk/bin/py/ras.py -o zxdesk/build/menus.sso zxdesk/src/menus.asm
+python3 sdk/bin/py/ras.py -o zxdesk/build/clock.sso zxdesk/src/clock.asm
 python3 sdk/bin/py/ras.py -o zxdesk/build/zxux.sso zxdesk/platform/zxux.asm
-python3 sdk/bin/py/rld.py --entry start --stack 384 --heap 0 -o zxdesk/build/zxdesk.ssx zxdesk/build/zxdesk.sso zxdesk/build/events.sso zxdesk/build/screen.sso zxdesk/build/text.sso zxdesk/build/windows.sso zxdesk/build/zxux.sso
+python3 sdk/bin/py/ras.py -o zxdesk/build/rect.sso zxdesk/platform/rect.asm
+python3 sdk/bin/py/rld.py --entry start --stack 384 --heap 0 -o zxdesk/build/zxdesk.ssx zxdesk/build/zxdesk.sso zxdesk/build/events.sso zxdesk/build/screen.sso zxdesk/build/text.sso zxdesk/build/windows.sso zxdesk/build/desktop.sso zxdesk/build/menus.sso zxdesk/build/clock.sso zxdesk/build/zxux.sso zxdesk/build/rect.sso
 python3 sdk/bin/py/rtap.py -o zxdesk/tzx/ZXDESK.tzx zxdesk/build/zxdesk.ssx=ZXDESK
 ```
 
