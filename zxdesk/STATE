@@ -1,0 +1,4 @@
+phase=bootstrap
+tape=absent
+next=Implement zxdesk/src/desk.asm; build ZXDESK.tzx; test load, keyboard Quit and repeat launch on ZX-UX 48K.
+blocker=GitHub Actions is missing the private ZXUX_CHECKER_ZIP_B64 secret; remote checker fails closed.
