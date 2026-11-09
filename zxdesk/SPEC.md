@@ -25,8 +25,10 @@ Active original modules: `src/events.asm` provides `EvPost` / `EvNext`;
 `src/screen.asm` provides the original `BuildScrTab`, `CalcScr`, `RowAddr`,
 `ScrDown`, `AddrAt`, `FillRowSolid` and `ClearRow`. Original `PrintChar` is
 in `src/text.asm` and is active in the display; its ROM font address is still
-a ZX-UX compatibility boundary. The window compositor and applications
-remain to be transplanted.
+a ZX-UX compatibility boundary. Original `WdEdges`, `WdCloseBox`, `WndRecAt` and `WndIsFront` now live in
+`src/windows.asm`; the current one-window scaffold uses the original pixel
+geometry and draws its original edge/close-box chrome. The full window
+compositor, z-order, applications and mouse remain to be transplanted.
 
 ## Implementation
 
@@ -43,8 +45,9 @@ python3 sdk/bin/py/ras.py -o zxdesk/build/zxdesk.sso zxdesk/src/desk.asm
 python3 sdk/bin/py/ras.py -o zxdesk/build/events.sso zxdesk/src/events.asm
 python3 sdk/bin/py/ras.py -o zxdesk/build/screen.sso zxdesk/src/screen.asm
 python3 sdk/bin/py/ras.py -o zxdesk/build/text.sso zxdesk/src/text.asm
+python3 sdk/bin/py/ras.py -o zxdesk/build/windows.sso zxdesk/src/windows.asm
 python3 sdk/bin/py/ras.py -o zxdesk/build/zxux.sso zxdesk/platform/zxux.asm
-python3 sdk/bin/py/rld.py --entry start --stack 384 --heap 0 -o zxdesk/build/zxdesk.ssx zxdesk/build/zxdesk.sso zxdesk/build/events.sso zxdesk/build/screen.sso zxdesk/build/text.sso zxdesk/build/zxux.sso
+python3 sdk/bin/py/rld.py --entry start --stack 384 --heap 0 -o zxdesk/build/zxdesk.ssx zxdesk/build/zxdesk.sso zxdesk/build/events.sso zxdesk/build/screen.sso zxdesk/build/text.sso zxdesk/build/windows.sso zxdesk/build/zxux.sso
 python3 sdk/bin/py/rtap.py -o zxdesk/tzx/ZXDESK.tzx zxdesk/build/zxdesk.ssx=ZXDESK
 ```
 

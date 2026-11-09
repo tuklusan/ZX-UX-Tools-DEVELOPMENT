@@ -15,6 +15,9 @@
         extern ScrDown
         extern PrintChar
         extern FillRowSolid
+        extern WinSetGeometry
+        extern WdEdges
+        extern WdCloseBox
 
 SCREEN  equ $4000
 ATTRS   equ $5800
@@ -348,6 +351,12 @@ redraw:
         ld a,(window)
         or a
         call nz,draw_window
+        ld a,(window)
+        or a
+        jr z,redraw_no_chrome
+        call WdEdges
+        call WdCloseBox
+redraw_no_chrome:
         ld a,(menu)
         or a
         call nz,draw_menu
@@ -376,6 +385,13 @@ sel_mark:
         jp draw_at
 
 draw_window:
+        ld a,(wx)
+        ld b,0
+        push af
+        ld a,(wy)
+        ld b,a
+        pop af
+        call WinSetGeometry
         ld a,(wy)
         ld c,0
         call at_wx

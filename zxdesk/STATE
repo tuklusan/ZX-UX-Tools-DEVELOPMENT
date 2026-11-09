@@ -1,4 +1,4 @@
 phase=port-original-gui
 tape=present
-next=Port original ZXDesk window compositor and geometry; remove temporary frame rendering.
-blocker=Original ZXDesk ROM glyph source still needs ZX-UX font API or SSX1-owned font bytes.
+next=Port ZXDesk original window fill/composition, z-order and hit-testing onto the WinRec geometry; replace temporary ASCII frame.
+blocker=Full compositor needs ZX-UX-owned per-window pixel buffers and an SSX1-safe allocation strategy.
