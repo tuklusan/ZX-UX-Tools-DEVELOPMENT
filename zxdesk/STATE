@@ -1,4 +1,4 @@
 phase=spec
-next=Write zxdesk/src/desk.asm for a minimal SSX1 screen claim, input, Quit and clean shell return.
+next=Set GitHub Actions secret ZXUX_CHECKER_ZIP_B64, rerun PR #1 checker, merge PR; then build minimal desk.asm.
 tape=absent
-blocker=none
+blocker=Private checker cannot run: ZXUX_CHECKER_ZIP_B64 has no value in GitHub Actions.
