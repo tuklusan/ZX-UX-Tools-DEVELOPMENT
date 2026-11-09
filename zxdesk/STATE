@@ -1,4 +1,4 @@
-phase=resident-memory-optimization
+phase=queued-ui-font64
 tape=present
-next=Recover sufficient ZX-UX shared arena RAM for console mkdir without kernel or boot changes, then finish original FILE and VIEW actions and ROM-font replacement.
-blocker=Current ZXDesk SSX1 needs 11123 bytes including stack; console mkdir still returns ENOSPC despite free inodes. App state is single-instance with no fixed per-window copies.
+next=Before mkdir work: fix visible menu-bar titles and desktop ABOUT/SETUP overlap; permit app launch/focus while windows are open; show unimplemented FILE/VIEW commands disabled and non-activatable; order VIEW apps CALENDAR,CLOCK,CONSOLE then CASCADE,TILE,DESKTOP; retain Calendar as separate app and single-instance focus-on-relaunch; adopt native ZX-UX 4x8 font64 for aesthetic consistency without storing duplicate font data; verify these UI changes first.
+blocker=Console mkdir still returns ENOSPC due to shared filesystem/process arena RAM, despite free inodes. Defer mkdir until the queued UI and font64 iteration is finished and verified. ZX-UX kernel and boot cassette remain unchanged.
