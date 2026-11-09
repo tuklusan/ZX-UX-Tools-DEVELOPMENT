@@ -18,8 +18,9 @@ The GUI comes from **upstream ZXDesk Z80 source**, not a rewrite or an
 ASCII lookalike. Only ROM, port, fixed-memory, bank, IRQ and storage
 interfaces may be changed for ZX-UX compatibility. As soon as an upstream
 module replaces a function, delete its lookalike in that same commit.
-`zxdesk/src/desk.asm` must not exist; keep startup/system-call glue only
-under `zxdesk/src/platform/`.
+`src/zx-desk/desk.asm` must not exist; keep startup/system-call glue only
+under `src/zx-desk/platform/`. All ZXDesk source lives under
+`src/zx-desk/`; the standalone cassette remains in `zxdesk/tzx/`.
 
 ## Current integration
 
@@ -84,7 +85,7 @@ under `zxdesk/src/platform/`.
   by selection; Note and Console keep all digits as editable text. The five
   digit keys cannot be distinguished from the physical joystick, so text
   windows use EDIT for GUI commands without sacrificing ordinary letters.
-- `src/platform/entry.asm`, `api.asm`, `rect.asm`, `storage.asm`, `zxux.asm`
+- `src/zx-desk/platform/entry.asm`, `api.asm`, `rect.asm`, `storage.asm`, `zxux.asm`
   own the SSX1 lifecycle, screen claim/release, TTY, keyboard mapping,
   syscall-backed files and user-mode drawing. Commander copies through a
   small reusable transfer buffer; console filesystem scratch buffers share
@@ -104,10 +105,10 @@ Do not reinstate the lookalike or claim unsupported menu functions work.
 ```sh
 mkdir -p zxdesk/build zxdesk/tzx
 for m in entry api storage rect zxux; do
-  python3 sdk/bin/py/ras.py -o zxdesk/build/$m.sso zxdesk/src/platform/$m.asm
+  python3 sdk/bin/py/ras.py -o zxdesk/build/$m.sso src/zx-desk/platform/$m.asm
 done
 for m in app wm note calendar commander keys screen text windows desktop menus clock settings panel dialog arrange terminal; do
-  python3 sdk/bin/py/ras.py -o zxdesk/build/$m.sso zxdesk/src/$m.asm
+  python3 sdk/bin/py/ras.py -o zxdesk/build/$m.sso src/zx-desk/$m.asm
 done
 python3 sdk/bin/py/rld.py --entry start --stack 384 --heap 0 \
   -o zxdesk/build/zxdesk.ssx \
@@ -127,7 +128,7 @@ requested; emulator QA is not a porting prerequisite.
    restore `/mnt/data` when checkout is unavailable, then refresh changed
    files from current GitHub. Never treat the ZIP as newer than `main`.
 2. Read the original routines from read-only `tuklusan/zxdesk` and adapt
-   only the hardware and OS boundaries via `zxdesk/src/platform/`. Delete
+   only the hardware and OS boundaries via `src/zx-desk/platform/`. Delete
    duplicate GUI scaffolding; do not develop an imitation.
 3. Build the SSX1 and package the separate cassette using the SDK above.
    The kernel syscall entry is `$6003`; `_screen`=39 (HL 1/0),
