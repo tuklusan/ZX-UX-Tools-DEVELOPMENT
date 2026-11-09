@@ -13,6 +13,8 @@
         extern BuildScrTab
         extern AddrAt
         extern ScrDown
+        extern PrintChar
+        extern FillRowSolid
 
 SCREEN  equ $4000
 ATTRS   equ $5800
@@ -50,7 +52,7 @@ mainloop:
         ld a,h
         or l
         jp z,release
-        ; Deliver ZX-UX input through ZXDesk's original event ring.
+        ; The kernel input byte enters ZXDesk's original event ring.
         ld a,(key)
         ld b,a
         ld c,0
@@ -305,14 +307,11 @@ redraw:
         ld c,0
         ld hl,title
         call draw_at
-        ld a,1
-        ld c,0
-        ld hl,rule
-        call draw_at
-        ld a,21
-        ld c,0
-        ld hl,rule
-        call draw_at
+        ; ZXDesk original FillRowSolid replaces fake ASCII rules.
+        ld a,8
+        call FillRowSolid
+        ld a,183
+        call FillRowSolid
         ld a,22
         ld c,0
         ld hl,helpbar
@@ -560,34 +559,14 @@ draw_char:
         push bc
         push de
         push hl
-        sub 32
-        ld l,a
-        ld h,0
-        add hl,hl
-        add hl,hl
-        add hl,hl
-        ld de,FONT
-        add hl,de
-        ; Use original ZXDesk bitmap address/row traversal.
-        push hl
+        ld d,a
         ld a,(pencol)
         ld c,a
         ld a,(penrow)
-        add a,a
-        add a,a
-        add a,a
-        call AddrAt
-        ex de,hl
-        pop hl
-        ld b,8
-glyph_row:
-        ld a,(hl)
-        ld (de),a
-        inc hl
-        ex de,hl
-        call ScrDown
-        ex de,hl
-        djnz glyph_row
+        ld b,a
+        ld a,d
+        ; Original PrintChar: A glyph, B character row, C byte column.
+        call PrintChar
         ld a,(pencol)
         inc a
         ld (pencol),a

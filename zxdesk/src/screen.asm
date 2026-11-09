@@ -7,6 +7,8 @@
         global RowAddr
         global ScrDown
         global AddrAt
+        global FillRowSolid
+        global ClearRow
 
 SCRROWS equ 192
 SCRCOLS equ 32
@@ -84,6 +86,27 @@ AddrAt:
                 ld      e,c
                 ld      d,0
                 add     hl,de
+                ret
+
+; Original ZXDesk screen row surface primitives.
+; in: A = pixel row
+FillRowSolid:
+                call    RowAddr
+                ld      b,SCRCOLS
+FrsLoop:
+                ld      (hl),$FF
+                inc     l
+                djnz    FrsLoop
+                ret
+
+; in: A = pixel row
+ClearRow:
+                call    RowAddr
+                ld      b,SCRCOLS
+ClrLoop:
+                ld      (hl),0
+                inc     l
+                djnz    ClrLoop
                 ret
 
         section bss

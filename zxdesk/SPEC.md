@@ -23,10 +23,10 @@ Incorporate the ZXDesk GUI as an **optional ZX-UX utility**: `zxdesk/tzx/ZXDESK.
 
 Active original modules: `src/events.asm` provides `EvPost` / `EvNext`;
 `src/screen.asm` provides the original `BuildScrTab`, `CalcScr`, `RowAddr`,
-`ScrDown` and `AddrAt`. The temporary character renderer now uses ZXDesk
-screen address/row traversal, but the window/drawing/compositor code remains
-to be transplanted. The drawing,
-window and application code is still a temporary scaffold until ported.
+`ScrDown`, `AddrAt`, `FillRowSolid` and `ClearRow`. Original `PrintChar` is
+in `src/text.asm` and is active in the display; its ROM font address is still
+a ZX-UX compatibility boundary. The window compositor and applications
+remain to be transplanted.
 
 ## Implementation
 
@@ -42,8 +42,9 @@ mkdir -p zxdesk/build zxdesk/tzx
 python3 sdk/bin/py/ras.py -o zxdesk/build/zxdesk.sso zxdesk/src/desk.asm
 python3 sdk/bin/py/ras.py -o zxdesk/build/events.sso zxdesk/src/events.asm
 python3 sdk/bin/py/ras.py -o zxdesk/build/screen.sso zxdesk/src/screen.asm
+python3 sdk/bin/py/ras.py -o zxdesk/build/text.sso zxdesk/src/text.asm
 python3 sdk/bin/py/ras.py -o zxdesk/build/zxux.sso zxdesk/platform/zxux.asm
-python3 sdk/bin/py/rld.py --entry start --stack 384 --heap 0 -o zxdesk/build/zxdesk.ssx zxdesk/build/zxdesk.sso zxdesk/build/events.sso zxdesk/build/screen.sso zxdesk/build/zxux.sso
+python3 sdk/bin/py/rld.py --entry start --stack 384 --heap 0 -o zxdesk/build/zxdesk.ssx zxdesk/build/zxdesk.sso zxdesk/build/events.sso zxdesk/build/screen.sso zxdesk/build/text.sso zxdesk/build/zxux.sso
 python3 sdk/bin/py/rtap.py -o zxdesk/tzx/ZXDESK.tzx zxdesk/build/zxdesk.ssx=ZXDESK
 ```
 

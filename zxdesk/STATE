@@ -1,4 +1,4 @@
 phase=port-original-gui
 tape=present
-next=Port ZXDesk original window compositor and drawing primitives; bind them to ZX-UX screen ownership and retire temporary window painting.
-blocker=none
+next=Port original ZXDesk window compositor and geometry; remove temporary frame rendering.
+blocker=Original ZXDesk ROM glyph source still needs ZX-UX font API or SSX1-owned font bytes.
