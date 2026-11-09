@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+root=$(git rev-parse --show-toplevel)
+message=$1
+case "$message" in /*) ;; *) message="$(pwd)/$message" ;; esac
+cd "$root"
+exec python3 -B tools/checker_gate.py --message-file "$message"

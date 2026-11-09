@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+while read -r local_ref local_sha remote_ref remote_sha; do
+    case "$local_sha" in 0000000000000000000000000000000000000000)
+        echo 'FAIL: a deletion push needs separate review' >&2
+        exit 1 ;;
+    esac
+    python3 -B tools/checker_gate.py --ref "$local_sha" --check-ref-message
+done

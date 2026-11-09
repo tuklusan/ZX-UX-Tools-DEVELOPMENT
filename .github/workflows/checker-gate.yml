@@ -1,0 +1,55 @@
+name: Private checker full-tree gate
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+permissions:
+  contents: read
+  statuses: write
+jobs:
+  checker-full-tree:
+    name: checker-full-tree
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout trusted gate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          path: trusted
+          persist-credentials: false
+      - name: Checkout PR source as data only
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: candidate
+          persist-credentials: false
+      - name: Scan complete PR commit with trusted gate
+        if: github.event_name == 'pull_request_target'
+        id: scan_pr
+        working-directory: candidate
+        env:
+          ZXUX_CHECKER_ZIP_B64: ${{ secrets.ZXUX_CHECKER_ZIP_B64 }}
+        run: python3 -B ../trusted/tools/checker_gate.py --ref HEAD --check-ref-message
+      - name: Scan complete main commit
+        if: github.event_name == 'push'
+        id: scan_main
+        working-directory: trusted
+        env:
+          ZXUX_CHECKER_ZIP_B64: ${{ secrets.ZXUX_CHECKER_ZIP_B64 }}
+        run: python3 -B tools/checker_gate.py --ref HEAD --check-ref-message
+      - name: Publish required status on scanned commit
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          SCAN_RESULT: ${{ github.event_name == 'pull_request_target' && steps.scan_pr.outcome || steps.scan_main.outcome }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ "$SCAN_RESULT" = success ]; then state=success; else state=failure; fi
+          gh api "repos/$REPOSITORY/statuses/$TARGET_SHA" \
+            -f state="$state" \
+            -f context='zxux/private-checker' \
+            -f description='Private checker full-tree gate'
