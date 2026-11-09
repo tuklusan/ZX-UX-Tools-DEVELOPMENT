@@ -1,4 +1,4 @@
 phase=port-original-gui
 tape=present
-next=Port original ZXDesk multiwindow buffer/composition and remaining Note, Calendar, Commander, dialog and settings modules; retire all remaining scaffold code.
-blocker=Native window/application code depends on original heap, pointer and storage interfaces requiring ZX-UX adapters.
+next=Port original ZXDesk Settings and modal Dialog/Panel modules, complete Commander file-open/copy/delete and menu actions, and bridge mouse input when ZX-UX exposes a device interface.
+blocker=ZX-UX has no mouse syscall; full-window bitmap buffers exceed available SSX1 process memory, so windows recompose back-to-front.

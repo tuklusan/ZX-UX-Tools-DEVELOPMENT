@@ -8,6 +8,11 @@
         global MenuHitTitle
         global MenuItemAt
         global MenuOpen
+        global MnCount
+        global MnX
+        global MnY
+        global MnW
+        global MnH
         extern DevFillRect
         extern FrX
         extern FrY

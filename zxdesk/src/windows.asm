@@ -2,20 +2,31 @@
 ; Damian Cooper (MIT); see zxdesk/NOTICE.txt.
 ; Screen is claimed by the ZX-UX process. No private interrupts or banking.
         section text
-        global WinSetGeometry
         global WdEdges
         global WdCloseBox
         global WndRecAt
         global WndIsFront
         global WinDraw
         global WinX
+        global WinRec
+        global WndTab
+        global WndZ
+        global WndCur
+        global WndCount
+        global WinW
+        global WinH
+        global WinTitle
+        global WinBufP
+        global WinApp
+        global WinStateP
+        global WinOldX
+        global WinOldY
+        global WinMoved
         global WinY
         global WdFills
         global WndRaise
         global WndFlush
         global WndHitTest
-        global WinSetTitle
-        global WndSetCount
         global WdAbout
         extern AddrAt
         extern ScrDown
@@ -28,21 +39,10 @@
         extern PrintStrPx
         extern PrintInv
         extern PxRow
+        extern AppSave
 
 WinCapH equ 10
 WNDRECSZ equ 15
-
-; Translate the current temporary desktop window's character position to
-; the original ZXDesk byte-column/pixel-row geometry model.
-; A = byte column, B = character row.
-WinSetGeometry:
-        ld (WinX),a
-        ld a,b
-        add a,a
-        add a,a
-        add a,a
-        ld (WinY),a
-        ret
 
 ; Original ZXDesk: left/right window edges in pixel coordinates.
 WdEdges:
@@ -107,13 +107,6 @@ WraLoop:
                 add     hl,de
                 djnz    WraLoop
                 ret
-
-WinSetTitle:
-        ld (WinTitle),hl
-        ret
-WndSetCount:
-        ld (WndCount),a
-        ret
 
 ; Original ZXDesk window composition: fill, edges, close box, title.
 WinDraw:
@@ -285,6 +278,7 @@ WrShift:
 
 ; Window record synchronization; ZX-UX app state is separate.
 WndFlush:
+        call AppSave
         ld a,(WndCur)
         call WndRecAt
         ex de,hl
