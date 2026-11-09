@@ -187,7 +187,7 @@ DskDefault:
         db 1,1,144
         dw TxtDskAbout,0
         db 0
-        db 1,4,144
+        db 1,6,144
         dw TxtDskSet,0
         db 0
         db 1,9,16

@@ -37,6 +37,7 @@
         extern PrintStrPx
         extern PxRow
         extern PrintInv
+        extern FontBase
         extern AppCall
         extern ApiStSelect
         extern ApiStIdent
@@ -72,6 +73,7 @@ start:
         jp c,restore
         ld a,1
         ld (owned),a
+        ld (FontBase),hl       ; _screen returns the OS-owned font64
         ld a,e
         or a
         jp nz,release
@@ -330,6 +332,23 @@ quit_key:
         jp repaint
 menu_dispatch:
         ld a,b
+        cp '1'
+        jr c,menu_navigation
+        cp '8'
+        jr nc,menu_navigation
+        sub '1'
+        ld e,a
+        ld d,0
+        ld hl,QuickApps
+        add hl,de
+        ld a,(hl)
+        push af
+        call MenuClose
+        pop af
+        call WndOpen
+        jp repaint
+menu_navigation:
+        ld a,b
         cp 8
 	jr z,menu_left_tab
         cp 9
@@ -450,11 +469,6 @@ DrawDesktop:
         ld bc,6143
         ld (hl),0
         ldir
-        ld hl,ATTRS
-        ld de,ATTRS+1
-        ld bc,767
-        ld (hl),$78
-        ldir
         call DrawLattice
         xor a
         ld (PrintInv),a
@@ -472,7 +486,13 @@ DrawDesktop:
         ld (PxRow),a
         ld c,1
         ld hl,TxtStatus
-        jp PrintStrPx
+        call PrintStrPx
+        ld hl,ATTRS
+        ld de,ATTRS+1
+        ld bc,767
+        ld (hl),$78
+        ldir
+        ret
 
  ; ZXDesk lattice: $88 on pixel rows modulo four 0 and $22 on 2.
 ; Draw only after ZX-UX grants the process the screen.
@@ -518,7 +538,8 @@ owned: db 0
 MenuSel: db 0
 BgRow: db 0
 key: db 0
-TxtMenu: db 'ZX DESK   FILE   VIEW   HELP',0
-TxtStatus: db 'ZX-UX / ZXDESK',0
+TxtMenu: db 'ZX DESK           FILE          VIEW          HELP',0
+TxtStatus: db 'M MENU  M+1-7 APPS  CTRL-F NEXT  CTRL-G CLOSE',0
+QuickApps: db 0,2,3,4,1,5,6
         section bss
 oldtty: ds 6

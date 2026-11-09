@@ -7,6 +7,7 @@
         global ClkKey
         extern zx_syscall
         extern PrintStrPx
+        extern PrintStrPxHalf
         extern PrintInv
         extern PxRow
         extern WinX
@@ -136,9 +137,12 @@ ClkDraw:
         inc hl
         ld a,(hl)
         ld (ClkPair+1),a
+        ld a,e
+        srl a
+        ld c,a
         ld a,(WinX)
         add a,2
-        add a,e
+        add a,c
         ld c,a
         ld a,(WinY)
         add a,WinCapH+CLKROW
@@ -146,7 +150,14 @@ ClkDraw:
         ld a,1
         ld (PrintInv),a
         ld hl,ClkPair
+        ld a,(ClkField)
+        or a
+        jr z,ClkPrintPair
+        call PrintStrPxHalf
+        jr ClkPairDone
+ClkPrintPair:
         call PrintStrPx
+ClkPairDone:
         xor a
         ld (PrintInv),a
         ret

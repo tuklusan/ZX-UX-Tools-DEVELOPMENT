@@ -18,7 +18,7 @@
         extern ApiStDelete
         extern ApiOpenFile
 
-CMDPANEW equ 13
+CMDPANEW equ 28
 CMDHEADY equ 12
 CMDLISTY equ 22
 WINCAPH equ 10

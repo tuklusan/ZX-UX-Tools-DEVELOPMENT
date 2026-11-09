@@ -1,75 +1,122 @@
-; Original ZXDesk PrintChar from upstream src/zxdesk.asm.
+; ZXDesk pixel-row text adapter using the live ZX-UX font64.
+; The screen claim returns the resident 4x8 font: 96 glyphs, four bytes
+; each (two four-pixel rows per byte). Never duplicate the font in SSX1.
 ; Damian Cooper, MIT; see zxdesk/NOTICE.txt.
-; ROM character font is an outstanding platform dependency.
         section text
         global PrintChar
         global PrintCharPx
         global PrintStrPx
+        global PrintStrPxHalf
         global PrintInv
+        global PrintDim
         global PxRow
+        global FontBase
         extern AddrAt
         extern ScrDown
-CHARSET equ $3c00
 
-; in: A = char code, B = char row, C = char column
+; A=character, B=8-pixel character row, C=screen byte column.
 PrintChar:
-                ld      l,a
-                ld      h,0
-                add     hl,hl
-                add     hl,hl
-                add     hl,hl
-                ld      de,CHARSET
-                add     hl,de
-                push    hl
-                ld      a,b
-                add     a,a
-                add     a,a
-                add     a,a
-                call    AddrAt
-                pop     de
-                ld      b,8
-PcRow:
-                ld      a,(de)
-                ld      (hl),a
-                inc     de
-                inc     h
-                djnz    PcRow
-                ret
+        push af
+        xor a
+        ld (PrintHalf),a
+        ld a,b
+        add a,a
+        add a,a
+        add a,a
+        ld (PxRow),a
+        pop af
+        jp PrintCharPx
 
-; Original ZXDesk pixel-row text entry points.
-; A=character, C=column, PxRow=pixel row.
+; A=character, C=screen byte column, PxRow=pixel row.
+; PrintHalf=0 selects the high nibble, 1 selects the low nibble.
 PrintCharPx:
+        sub 32
+        cp 96
+        jr c,PcpValid
+        xor a
+PcpValid:
         ld l,a
         ld h,0
         add hl,hl
         add hl,hl
-        add hl,hl
-        ld de,CHARSET
+        ld de,(FontBase)
         add hl,de
-        push hl
+        ex de,hl
+        push de
         ld a,(PxRow)
         call AddrAt
         pop de
-        ld b,8
-PcpRow:
+        ld b,4
+PcpPair:
         ld a,(de)
+        push af
+        and $f0
+        call PcpNibble
+        pop af
+        rlca
+        rlca
+        rlca
+        rlca
+        and $f0
+        call PcpNibble
+        inc de
+        djnz PcpPair
+        ret
+PcpNibble:
         ld c,a
+        ld a,(PrintDim)
+        or a
+        jr z,PcnBright
+        ld a,(DimPhase)
+        xor 1
+        ld (DimPhase),a
+        ld a,c
+        jr z,PcnDimOdd
+        and $d0
+        jr PcnDimDone
+PcnDimOdd:
+        and $b0
+PcnDimDone:
+        ld c,a
+PcnBright:
         ld a,(PrintInv)
         or a
-        jr z,PcpNorm
+        jr z,PcnNormal
         ld a,c
-        cpl
+        xor $f0
         ld c,a
-PcpNorm:
+PcnNormal:
+        ld a,(PrintHalf)
+        or a
+        jr z,PcnHigh
         ld a,c
+        rrca
+        rrca
+        rrca
+        rrca
+        ld c,a
+        ld a,(hl)
+        and $f0
+        or c
+        jr PcnStore
+PcnHigh:
+        ld a,(hl)
+        and $0f
+        or c
+PcnStore:
         ld (hl),a
-        inc de
-        call ScrDown
-        djnz PcpRow
-        ret
+        jp ScrDown
 
-; Original ZXDesk string loop with pixel-accurate line placement.
+; Pixel-row strings keep the existing screen-byte X coordinate, but
+; pack two 4-pixel glyphs into each byte and preserve the other nibble.
 PrintStrPx:
+        xor a
+        ld (PrintHalf),a
+        jr PspLoop
+PrintStrPxHalf:
+        ld a,1
+        ld (PrintHalf),a
+PspLoop:
         ld a,(hl)
         or a
         ret z
@@ -79,9 +126,18 @@ PrintStrPx:
         pop bc
         pop hl
         inc hl
+        ld a,(PrintHalf)
+        xor 1
+        ld (PrintHalf),a
+        or a
+        jr nz,PspLoop
         inc c
-        jr PrintStrPx
+        jr PspLoop
 
         section data
+FontBase: dw 0
 PrintInv: db 0
+PrintDim: db 0
+DimPhase: db 0
+PrintHalf: db 0
 PxRow: db 0

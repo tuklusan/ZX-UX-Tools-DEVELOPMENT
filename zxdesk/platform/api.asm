@@ -14,6 +14,7 @@
         extern PrintInv
         extern PxRow
         extern PrintStrPx
+        extern PrintStrPxHalf
         extern DevFillRect
         extern FrX
         extern FrY
@@ -31,6 +32,10 @@ ApiWinPrint:
         ld (PrintInv),a
 ApiWinPrintGo:
         push hl
+        ld a,c
+        and 1
+        push af
+        srl c               ; two native font64 columns per screen byte
         ld a,(WinX)
         inc a
         add a,c
@@ -39,7 +44,10 @@ ApiWinPrintGo:
         add a,10
         add a,b
         ld (PxRow),a
+        pop af
         pop hl
+        or a
+        jp nz,PrintStrPxHalf
         jp PrintStrPx
 ApiWinPrintIf:
         or a

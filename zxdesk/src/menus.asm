@@ -12,6 +12,7 @@
         global MnW
         global MnH
         global MenuAction
+        global MenuEnabled
         global MnLastMenu
         extern DevFillRect
         extern FrX
@@ -22,6 +23,13 @@
         extern AddrAt
         extern PxRow
         extern PrintInv
+        extern PrintDim
+        extern WinApp
+        extern AppNote
+        extern WndCount
+        extern WndZ
+        extern WndRecAt
+        extern AppAt
         extern PrintStrPx
         extern WndOpen
         extern NoteMenuSave
@@ -136,16 +144,39 @@ MpEdge:
         ld a,(MnY)
         inc a
         ld (PxRow),a
-        ld hl,(MnItemPtr)
         xor a
         ld (MnPaintIndex),a
         ld a,(MnCount)
         ld b,a
 MpItem:
         push bc
+        ld hl,(MnItemPtr)
+        ld a,(MnPaintIndex)
+        add a,a
+        ld e,a
+        ld d,0
+        add hl,de
+        ld e,(hl)
+        inc hl
+        ld d,(hl)
+        ex de,hl
         push hl
         xor a
         ld (PrintInv),a
+        ld (PrintDim),a
+        ld a,(MnPaintIndex)
+        ld c,a
+        ld a,(MenuOpen)
+        ld b,a
+        push hl
+        call MenuEnabled
+        pop hl
+        or a
+        jr nz,MpAvailable
+        ld a,1
+        ld (PrintDim),a
+        jr MpNotSelected
+MpAvailable:
         ld a,(MnPaintIndex)
         ld c,a
         ld a,(MenuSel)
@@ -160,12 +191,8 @@ MpNotSelected:
         call PrintStrPx
         xor a
         ld (PrintInv),a
+        ld (PrintDim),a
         pop hl
-MpSkip:
-        ld a,(hl)
-        inc hl
-        or a
-        jr nz,MpSkip
         ld a,(PxRow)
         add a,MNITEMH
         ld (PxRow),a
@@ -177,10 +204,113 @@ MpSkip:
 
 ; Original ZXDesk table-driven menu action dispatcher from menus.inc.
 ; The unsupported OS-dependent actions are not advertised as complete.
+; B=menu ID, C=item index. Returns A=1 if available, 0 if dimmed.
+; The action dispatcher calls this again, so dimmed items never execute.
+MenuEnabled:
+        ld a,b
+        cp 2
+        jr z,MeFile
+        cp 3
+        jr z,MeView
+        ld a,1
+        ret
+MeFile:
+        ld a,c
+        cp 3
+        jp nc,MeNo          ; SAVE AS, PRINT, DELETE, LOAD unavailable
+        cp 2
+        jr z,MeSave
+        or a
+        jr z,MeNote
+        ld a,4             ; FILE/OPEN launches Commander
+        jp MeHasSlot
+MeNote:
+        xor a              ; FILE/NEW launches Notes
+        jp MeHasSlot
+MeSave:
+        ld a,(WndCount)
+        or a
+        jr z,MeNo
+        ld hl,(WinApp)
+        ld de,AppNote
+        or a
+        sbc hl,de
+        jr nz,MeNo
+        ld a,1
+        ret
+MeView:
+        ld a,c
+        cp 5
+        jr z,MeNo         ; DESKTOP not implemented
+        cp 3
+        jr nc,MeLayout
+        or a
+        jr z,MeCalendar
+        cp 1
+        jr z,MeClock
+        ld a,6            ; CONSOLE
+        jp MeHasSlot
+MeCalendar:
+        ld a,3
+        jp MeHasSlot
+MeClock:
+        ld a,2
+        jp MeHasSlot
+MeLayout:
+        ld a,(WndCount)
+        cp 2
+        jr c,MeNo
+        ld a,1
+        ret
+; A=application kind. At four windows, only an existing app may open.
+MeHasSlot:
+        push af
+        ld a,(WndCount)
+        cp 4
+        jr nc,MeFull
+        pop af
+        ld a,1
+        ret
+MeFull:
+        pop af
+        call AppAt
+        ld (MeTarget),hl
+        ld a,(WndCount)
+        ld b,a
+        ld hl,WndZ
+MeScan:
+        ld a,(hl)
+        push bc
+        push hl
+        call WndRecAt
+        ld de,6            ; WinApp field in the 11-byte record
+        add hl,de
+        ld e,(hl)
+        inc hl
+        ld d,(hl)
+        ld hl,(MeTarget)
+        or a
+        sbc hl,de
+        pop hl
+        pop bc
+        jr z,MeYes
+        inc hl
+        djnz MeScan
+MeNo:
+        xor a
+        ret
+MeYes:
+        ld a,1
+        ret
 MenuAction:
         ld c,a
         ld a,(MnLastMenu)
         ld b,a
+        push bc
+        call MenuEnabled
+        pop bc
+        or a
+        ret z
         ld hl,MnActions
 MnaLoop:
         ld a,(hl)
@@ -230,22 +360,34 @@ TermOpen:
         section data
 MenuDefs:
         db 1,8,10,2
-        dw MnItems1
+        dw MnPtrs1
         db 10,6,8,7
-        dw MnItems2
+        dw MnPtrs2
         db 17,6,10,6
-        dw MnItems3
+        dw MnPtrs3
         db 24,6,8,2
-        dw MnItems4
-MnItems1:
-        db 'ABOUT',0,'SETTINGS',0
-MnItems2:
-        db 'NEW',0,'OPEN',0,'SAVE',0,'SAVE AS',0
-        db 'PRINT',0,'DELETE',0,'LOAD',0
-MnItems3:
-        db 'CLOCK',0,'CALENDAR',0,'CASCADE',0,'TILE',0,'DESKTOP',0,'CONSOLE',0
-MnItems4:
-        db 'KEYS',0,'ABOUT',0
+        dw MnPtrs4
+MnPtrs1: dw MnAb, MnSettings
+MnPtrs2: dw MnNew, MnOpen, MnSave, MnSaveAs, MnPrint, MnDelete, MnLoad
+MnPtrs3: dw MnCalendar, MnClock, MnConsole, MnCascade, MnTile, MnDesktop
+MnPtrs4: dw MnKeys, MnAbout
+MnAb: db 'ABOUT',0
+MnSettings: db 'SETTINGS',0
+MnNew: db 'NEW',0
+MnOpen: db 'OPEN',0
+MnSave: db 'SAVE',0
+MnSaveAs: db 'SAVE AS',0
+MnPrint: db 'PRINT',0
+MnDelete: db 'DELETE',0
+MnLoad: db 'LOAD',0
+MnCalendar: db 'CALENDAR',0
+MnClock: db 'CLOCK',0
+MnConsole: db 'CONSOLE',0
+MnCascade: db 'CASCADE',0
+MnTile: db 'TILE',0
+MnDesktop: db 'DESKTOP',0
+MnKeys: db 'KEYS',0
+MnAbout: db 'ABOUT',0
 ; menu, item, routine. Original table format and supported actions.
 MnActions:
         db 1,0
@@ -259,15 +401,15 @@ MnActions:
         db 2,2
         dw NoteMenuSave
         db 3,0
-        dw ClockOpen
-        db 3,1
         dw WndOpenCal
+        db 3,1
+        dw ClockOpen
         db 3,2
-        dw WndCascade
-        db 3,3
-        dw WndTile
-        db 3,5
         dw TermOpen
+        db 3,3
+        dw WndCascade
+        db 3,4
+        dw WndTile
         db 4,0
         dw KeysOpen
         db 4,1
@@ -282,3 +424,4 @@ MnW: db 0
 MnH: db 0
 MnCount: db 0
 MnItemPtr: dw 0
+MeTarget: dw 0

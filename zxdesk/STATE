@@ -1,4 +1,4 @@
-phase=queued-ui-font64
+phase=ui-font64-verified
 tape=present
-next=Before mkdir work: fix visible menu-bar titles and desktop ABOUT/SETUP overlap; permit app launch/focus while windows are open; show unimplemented FILE/VIEW commands disabled and non-activatable; order VIEW apps CALENDAR,CLOCK,CONSOLE then CASCADE,TILE,DESKTOP; retain Calendar as separate app and single-instance focus-on-relaunch; adopt native ZX-UX 4x8 font64 for aesthetic consistency without storing duplicate font data; verify these UI changes first.
-blocker=Console mkdir still returns ENOSPC due to shared filesystem/process arena RAM, despite free inodes. Defer mkdir until the queued UI and font64 iteration is finished and verified. ZX-UX kernel and boot cassette remain unchanged.
+next=Resume console mkdir by freeing ZX-UX shared arena RAM without changing the kernel or boot cassette. Afterwards finish remaining FILE and VIEW actions.
+blocker=Console mkdir returns ENOSPC when shared arena RAM is exhausted despite free filesystem inodes. ZXDesk currently occupies 11559 resident bytes (10757 image, 418 BSS, 384 stack).

@@ -27,7 +27,8 @@ under `zxdesk/platform/`.
   pixel rows and character drawing. Screen addresses are computed on demand
   instead of retaining a 384-byte row table. ZX-UX delivers keyboard events
   directly; unused mouse hit testing and its event queue are omitted. The
-  glyphs still read Spectrum ROM font *data*, not ROM firmware routines.
+  glyphs use ZX-UX's native 4x8 font64, read through the `_screen` return pointer.
+  No second font is stored in the ZXDesk SSX1 image.
 - Original `windows.asm`, `wm.asm` and `arrange.asm` provide window
   records, focus, z-order, title chrome, back-to-front composition and
   Cascade/Tile. Up to four different application windows may be open;
@@ -42,6 +43,11 @@ under `zxdesk/platform/`.
   App-local scratch and the global clock service remain separate. There
   are no 273-byte window-state slots or app-state copies. `desktop.asm` draws the original bitmap desktop icons;
   `menus.asm` provides native drop-down drawing and table-driven actions.
+  `M` cycles menus and `M` followed by `1`..`7` launches or focuses
+  applications even when other windows cover desktop icons; Ctrl-F cycles
+  windows, Ctrl-G closes the front window. Disabled items are dimmed and
+  never dispatched. VIEW orders Calendar, Clock, Console, Cascade, Tile,
+  Desktop. Save needs Notes focus; arranging needs two windows.
 - Original `note.asm`, `calendar.asm`, `clock.asm`, `commander.asm` and
   `keys.asm` run as application vectors. The Note editor retains its
   original 256-byte document, file read/write and unsaved-work confirm.
@@ -70,11 +76,11 @@ under `zxdesk/platform/`.
   small reusable transfer buffer; console filesystem scratch buffers share
   storage when their live ranges do not overlap. The assembly is optimized
   in source and builds without a separate optimizer dependency. No kernel
-  or ZX-UX boot cassette changes.
+  or ZX-UX boot cassette changes. Current resident size is 11,559 bytes
+  (10,757 image + 418 BSS + 384 stack); ZX-UX owns font storage.
 
 **Still incomplete:** remaining upstream FILE panels (Save As, Print,
-menu Delete and Load), VIEW Desktop action, and a process-local substitute
-for the ROM font data. Mouse/pointer support is **intentionally excluded**;
+menu Delete and Load), and VIEW Desktop action. Mouse/pointer support is **intentionally excluded**;
 use Sinclair joystick keyboard emulation, never direct device-port I/O.
 Do not reinstate the lookalike or claim unsupported menu functions work.
 
