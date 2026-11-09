@@ -10,6 +10,9 @@
         extern zx_syscall
         extern EvPost
         extern EvNext
+        extern BuildScrTab
+        extern AddrAt
+        extern ScrDown
 
 SCREEN  equ $4000
 ATTRS   equ $5800
@@ -35,6 +38,7 @@ start:
         ld a,e
         or a
         jp nz,release
+        call BuildScrTab
         call redraw
 mainloop:
         ld hl,0
@@ -564,27 +568,25 @@ draw_char:
         add hl,hl
         ld de,FONT
         add hl,de
-        ld a,(penrow)
-        and 24
-        add a,$40
-        ld d,a
-        ld a,(penrow)
-        and 7
-        add a,a
-        add a,a
-        add a,a
-        add a,a
-        add a,a
-        ld b,a
+        ; Use original ZXDesk bitmap address/row traversal.
+        push hl
         ld a,(pencol)
-        add a,b
-        ld e,a
+        ld c,a
+        ld a,(penrow)
+        add a,a
+        add a,a
+        add a,a
+        call AddrAt
+        ex de,hl
+        pop hl
         ld b,8
 glyph_row:
         ld a,(hl)
         ld (de),a
         inc hl
-        inc d
+        ex de,hl
+        call ScrDown
+        ex de,hl
         djnz glyph_row
         ld a,(pencol)
         inc a

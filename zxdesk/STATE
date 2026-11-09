@@ -1,4 +1,4 @@
 phase=port-original-gui
 tape=present
-next=Port original ZXDesk screen-addressing and window rendering modules into relocatable SSX1; retire corresponding lookalike routines.
+next=Port ZXDesk original window compositor and drawing primitives; bind them to ZX-UX screen ownership and retire temporary window painting.
 blocker=none
