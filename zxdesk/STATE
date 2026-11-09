@@ -1,0 +1,4 @@
+phase=spec
+next=Write zxdesk/src/desk.asm for a minimal SSX1 screen claim, input, Quit and clean shell return.
+tape=absent
+blocker=none
