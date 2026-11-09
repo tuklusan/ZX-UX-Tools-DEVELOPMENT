@@ -16,9 +16,7 @@
         global WinW
         global WinH
         global WinTitle
-        global WinBufP
         global WinApp
-        global WinStateP
         global WinOldX
         global WinOldY
         global WinMoved
@@ -38,10 +36,9 @@
         extern PrintStrPx
         extern PrintInv
         extern PxRow
-        extern AppSave
 
 WinCapH equ 10
-WNDRECSZ equ 15
+WNDRECSZ equ 11
 
 ; Original ZXDesk: left/right window edges in pixel coordinates.
 WdEdges:
@@ -276,7 +273,6 @@ WrShift:
 
 ; Window record synchronization; ZX-UX app state is separate.
 WndFlush:
-        call AppSave
         ld a,(WndCur)
         call WndRecAt
         ex de,hl
@@ -299,9 +295,7 @@ WinY:           db      32
 WinW:           db      24
 WinH:           db      88
 WinTitle:       dw      0
-WinBufP:        dw      0
 WinApp:         dw      0
-WinStateP:      dw      0
 WinOldX:       db      4
 WinOldY:       db      32
 WinMoved:      db      0

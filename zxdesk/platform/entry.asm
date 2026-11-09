@@ -53,7 +53,7 @@
 
 SCREEN equ $4000
 ATTRS equ $5800
-APP_KEY equ 8
+APP_KEY equ 4
 
 start:
         ld hl,0

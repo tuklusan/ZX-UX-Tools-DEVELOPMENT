@@ -1,4 +1,4 @@
 phase=resident-memory-optimization
 tape=present
-next=Reduce ZXDesk resident image without removing original GUI features; confirm console mkdir succeeds with free shared arena RAM, then finish remaining FILE and VIEW actions and ROM-font replacement.
-blocker=ZX-UX filesystem and SSX1 images share RAM; mkdir still returns ENOSPC while ZXDesk runs despite free inodes. The existing ZX-UX kernel and boot cassette must remain unchanged.
+next=Recover sufficient ZX-UX shared arena RAM for console mkdir without kernel or boot changes, then finish original FILE and VIEW actions and ROM-font replacement.
+blocker=Current ZXDesk SSX1 needs 11123 bytes including stack; console mkdir still returns ENOSPC despite free inodes. App state is single-instance with no fixed per-window copies.

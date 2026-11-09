@@ -13,7 +13,7 @@
 TERMROWS equ 8
 TERMWIDTH equ 28
 TERMLINE equ 26
-; A live application record fits WndStates' existing 273-byte slot.
+; Console has one 269-byte record, shared by its single window.
 TermInit:
         xor a
         ld hl,TermState
@@ -608,7 +608,7 @@ TextDone: db 'OK',0
 TextLimit: db '[OUTPUT TRUNCATED]',0
 TermRoot: db '/',0
 TermUp: db '..',0
-; Saved separately for every ZXDesk window by AppSave/AppLoad.
+; Live state exists once for the single console instance.
 TermState:
 TermRows: ds TERMROWS*TERMWIDTH
 TermInput: ds TERMLINE

@@ -30,10 +30,17 @@ under `zxdesk/platform/`.
   glyphs still read Spectrum ROM font *data*, not ROM firmware routines.
 - Original `windows.asm`, `wm.asm` and `arrange.asm` provide window
   records, focus, z-order, title chrome, back-to-front composition and
-  Cascade/Tile. Mouse-only hit testing is omitted. Multiwindow bitmap
-  buffers are replaced by full recomposition to fit SSX1 memory.
-- Original `app.asm` provides application dispatch and independent per-window
-  app-state swaps. `desktop.asm` draws the original bitmap desktop icons;
+  Cascade/Tile. Up to four different application windows may be open;
+  reopening an already-open app raises and focuses its existing window
+  without resetting content. The window record is 11 bytes; no per-window
+  bitmap buffers or duplicated application-state slots are retained.
+  Mouse-only hit testing is omitted.
+- Original `app.asm` provides 14-byte application descriptors and dispatch.
+  Each application has exactly one live state record: Note 273 bytes
+  (including its 256-byte document), Console 269 bytes, Calendar 3 bytes,
+  Commander 5 bytes; About, Clock and Keys need no per-window state.
+  App-local scratch and the global clock service remain separate. There
+  are no 273-byte window-state slots or app-state copies. `desktop.asm` draws the original bitmap desktop icons;
   `menus.asm` provides native drop-down drawing and table-driven actions.
 - Original `note.asm`, `calendar.asm`, `clock.asm`, `commander.asm` and
   `keys.asm` run as application vectors. The Note editor retains its
@@ -46,10 +53,9 @@ under `zxdesk/platform/`.
   it selects the desktop background, sound preference and an OFF-by-default
   `SINCLAIR` joystick-navigation mode. Unused pointer-speed/Y-axis fields are
   reserved but are not shown or applied. No mouse support is planned.
-- `terminal.asm` adds a small command-console application to the original
-  24-byte ZXDesk application descriptor model. Its live state (269 bytes)
-  fits an existing 273-byte window slot, giving each console its own path,
-  input and eight-line text history. Built-in `help`, `pwd`, `ls`, `cd`,
+- `terminal.asm` adds a small command-console application using the
+  ZXDesk application descriptor model. Its single 269-byte live state
+  contains a path, input and eight-line text history. Built-in `help`, `pwd`, `ls`, `cd`,
   `cat`, `echo`, `rm`, `mkdir`, `clear` use ZX-UX filesystem calls where
   applicable; it does not fork/exec, steal `/dev/tty`, or impersonate `/bin/sh`.
 - Sinclair Interface 2 joystick 1 uses ordinary ZX-UX keyboard input only:

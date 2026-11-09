@@ -19,7 +19,7 @@
         extern WinOldX
         extern WinOldY
         extern WinMoved
-WNDRECSZ equ 15
+WNDRECSZ equ 11
 SCRCOLS equ 32
 STATRULE equ 183
 DESKTOP_TOP equ 9
@@ -72,7 +72,7 @@ ArcXok:
         pop hl
         push hl
         ld (hl),c
-        ld de,12
+        ld de,8
         add hl,de
         ld (hl),c
         pop hl
@@ -100,7 +100,7 @@ ArcYok:
         pop hl
         inc hl
         ld (hl),c
-        ld de,12
+        ld de,8
         add hl,de
         ld (hl),c
         ld hl,ArrI

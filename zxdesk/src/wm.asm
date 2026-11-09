@@ -22,9 +22,7 @@
         extern WinW
         extern WinH
         extern WinTitle
-        extern WinBufP
         extern WinApp
-        extern WinStateP
         extern WinOldX
         extern WinOldY
         extern WinMoved
@@ -34,18 +32,18 @@
         extern WndCur
         extern AppAt
         extern AppCall
-        extern AppSave
-        extern AppLoad
         extern DrawDesktop
         extern AddrAt
         extern ScrDown
 
-WNDRECSZ equ 15
+WNDRECSZ equ 11
 WNDMAX equ 4
-APP_TITLE equ 10
-APP_X equ 12
-APP_DRAW equ 6
-APP_INIT equ 4
+WINAPP_OFF equ 6
+APP_TITLE equ 6
+APP_X equ 8
+APP_DRAW equ 2
+APP_INIT equ 0
+APP_CLOSE equ 12
 
 WndInit:
         xor a
@@ -56,7 +54,7 @@ WndInit:
         ld (WinApp),hl
         ret
 
-; Original WndSelect: swap the live descriptor and application state.
+; Select a window descriptor. App state remains live in its own module.
 WndSelect:
         ld hl,WndCur
         cp (hl)
@@ -69,20 +67,56 @@ WndSelect:
         ld de,WinRec
         ld bc,WNDRECSZ
         ldir
-        jp AppLoad
+        ret
 
-; One window per slot. Values in the original WinRec fields are retained;
-; the fixed process-local arenas replace ZXDesk's physical heap.
+; One window per application kind. Reopening an existing application raises
+; its window without reinitializing data, even when four windows are open.
 ; A = original application kind 0..6.
 WndOpen:
         ld (WndWantKind),a
         cp 7
         jp nc,WndNoRoom
+        call AppAt
+        ld (WndWantApp),hl
+        ld a,(WndCount)
+        or a
+        jr z,WoFresh
+        call WndFlush
+        ld a,(WndCount)
+        ld b,a
+        ld hl,WndZ
+WoCheck:
+        ld a,(hl)
+        push bc
+        push hl
+        push af
+        call WndRecAt
+        ld de,WINAPP_OFF
+        add hl,de
+        ld e,(hl)
+        inc hl
+        ld d,(hl)
+        ld hl,(WndWantApp)
+        xor a
+        sbc hl,de
+        jr z,WoPresent
+        pop af
+        pop hl
+        pop bc
+        inc hl
+        djnz WoCheck
+        jr WoFresh
+WoPresent:
+        pop af
+        pop hl
+        pop bc
+        call WndFocusTo
+        xor a
+        ret
+WoFresh:
         ld a,(WndCount)
         cp WNDMAX
         jp nc,WndNoRoom
-        or a
-        call nz,WndFlush
         ; Slots are selected from the currently unused part of a bitmap.
         ld a,(WndUsed)
         ld b,a
@@ -111,8 +145,7 @@ WoBitReady:
         ld a,(WndUsed)
         or b
         ld (WndUsed),a
-        ld a,(WndWantKind)
-        call AppAt
+        ld hl,(WndWantApp)
         ld (WinApp),hl
         ld de,APP_TITLE
         add hl,de
@@ -165,17 +198,9 @@ WoYok:
         ld (WinOldY),a
         xor a
         ld (WinMoved),a
-        ; Each slot gets its own screen buffer and app state.
-        ld a,(WndCur)
-        call WndArenaAt
-        ld (WinBufP),hl
-        ld a,(WndCur)
-        call WndStateAt
-        ld (WinStateP),hl
+        ; Each app initializes its only live state on its first launch.
         ld c,APP_INIT
         call AppCall
-        ; Fresh app state is now in the live copy. Save before changing.
-        call AppSave
         ld a,(WndCount)
         or a
         jr z,WoFirst
@@ -219,7 +244,7 @@ WndClose:
         ld a,(WndForce)
         or a
         jr nz,WcGo
-        ld c,16
+        ld c,APP_CLOSE
         call AppCall
         ret c
 WcGo:
@@ -261,17 +286,13 @@ WcUnflag:
         ld de,WinRec
         ld bc,WNDRECSZ
         ldir
-        call AppLoad
 	jr WndRepaintAll
 WcNoWindow:
         ld hl,0
         ld (WinApp),hl
-        ld (WinStateP),hl
-        ld (WinBufP),hl
         jp DrawDesktop
 
 WndFocusTo:
-        ld (WndFocusSlot),a
         call WndRaise
 
 ; Original back-to-front composition via the live record and application
@@ -303,23 +324,9 @@ WndPaintOne:
         call AppCall
 
 
-; A window surface is composed back-to-front on each change. Keeping
-; several full bitmap copies would exceed the ZX-UX process RAM limit.
-; Native window descriptors and per-application state remain independent.
+ ; A window surface is composed back-to-front on each change.
+; Application data remains in its single live state record.
 WinGrab:
-        ret
-WndArenaAt:
-        ld hl,0
-        ret
-WndStateAt:
-        ld hl,WndStates
-        or a
-        ret z
-        ld de,273
-        ld b,a
-WsNext:
-        add hl,de
-        djnz WsNext
         ret
 
         section data
@@ -327,9 +334,4 @@ WndUsed: db 0
 WndForce: db 0
 WndWantKind: db 0
 WndClosing: db 0
-WndFocusSlot: db 0
-GrabDst: dw 0
-GrabY: db 0
-GrabCount: db 0
-        section bss
-WndStates: ds 4*273
+WndWantApp: dw 0
