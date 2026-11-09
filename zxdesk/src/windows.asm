@@ -11,7 +11,7 @@
         extern ScrDown
 
 WinCapH equ 10
-WNDRECSZ equ 13
+WNDRECSZ equ 15
 
 ; Translate the current temporary desktop window's character position to
 ; the original ZXDesk byte-column/pixel-row geometry model.
