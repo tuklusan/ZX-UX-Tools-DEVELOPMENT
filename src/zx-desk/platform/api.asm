@@ -64,22 +64,29 @@ ApiOpenFile:
         push hl
         call ApiCheckNote
         pop hl
-        ld de,TxtOfNot
-        jr c,OfAlert
-        push hl
+        jr nc,OfLoad
+        ld de,TxtOfDir1
+        ld hl,TxtOfDir2
+        jr OfAlert
+OfLoad:
+        call NoteLoadAs        ; load first: a failure must not open a blank window
+        jr nc,OfShow
+        cp 28                  ; ENOSPC: a packed file needs room for its full size
+        ld de,TxtOfRam1
+        ld hl,TxtOfRam2
+        jr z,OfAlert
+        ld de,TxtOfBad1
+        ld hl,TxtOfBad2
+        jr OfAlert
+OfShow:
         xor a
-        call WndOpen
-        pop hl
+        call WndOpen           ; opens or raises Notes (carry: no free window)
         ret c
-        call NoteLoadAs
-        ld de,TxtOfBad
-        jr c,OfAlert
         call WndRepaintAll
         xor a
         ret
-OfAlert:
+OfAlert:                       ; DE = line 1, HL = line 2 of the notice
         ex de,hl
-        ld de,0
         call DlgAlert
         scf
         ret
@@ -107,5 +114,9 @@ ApiCheckNote:
         ret
         section data
 ApiFd: db 0
-TxtOfNot: db 'IS A DIRECTORY',0
-TxtOfBad: db 'COULD NOT OPEN',0
+TxtOfDir1: db 'THIS IS A DIRECTORY',0
+TxtOfDir2: db 'NOTES SHOWS FILES ONLY',0
+TxtOfRam1: db 'NOT ENOUGH FREE MEMORY',0
+TxtOfRam2: db 'TO UNPACK THIS FILE',0
+TxtOfBad1: db 'CANNOT OPEN THIS FILE',0
+TxtOfBad2: db 'ZX-UX REPORTED AN ERROR',0

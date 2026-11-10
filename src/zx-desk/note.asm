@@ -9,6 +9,7 @@
         global NoteDrawInterior
         global NoteKey
         global NoteLoadAs
+        global NoteBuf
         extern WinW
         extern WinH
         extern ApiWinPrint
@@ -114,9 +115,10 @@ NdLoop:
         djnz NdLoop
         ret
 
+; A new Notes window shows the document already loaded (entry.asm empties the
+; page once at start), from its first row.
 NoteInit:
         xor a
-        ld (NoteBuf),a
         ld (NoteTop),a
         ret
 
@@ -145,7 +147,9 @@ NkUp:
         ret
 
 ; HL = basename in the selected directory (ApiOpenFile has checked it is not a
-; directory). NC on success.
+; directory). NC on success. On failure (carry, A = the kernel's error code) the
+; page is left as it was: a packed file that cannot be unpacked fails the first
+; read before any byte is copied.
 NoteLoadAs:
         call ApiStOpen
         ret c

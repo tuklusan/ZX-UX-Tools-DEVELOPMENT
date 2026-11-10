@@ -34,6 +34,7 @@
         extern FontBase
         extern AppCall
         extern DlgUp
+        extern NoteBuf
         extern WinX
         extern WinY
         extern WinW
@@ -68,6 +69,8 @@ start:
         ld a,e
         or a
         jp nz,release
+        xor a
+        ld (NoteBuf),a         ; Notes starts with an empty page
         call ClkInit
         call WndInit
         ld a,APP_CONSOLE       ; the console is the default application

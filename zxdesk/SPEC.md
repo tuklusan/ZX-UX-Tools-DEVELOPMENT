@@ -76,9 +76,15 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   to the window width every time it is drawn (so it re-wraps after Tile)
   and scrolls with Up/Down. Files (Commander) has two panes, `/bin` on the
   left and `/usr/doc` on the right, separated by a grey dotted vertical
-  line; Enter on a file shows it in Notes, a directory is refused with a
-  notice, and every storage key leaves the shared backend as it found it.
-  Pressing Enter on a page of `/usr/doc` shows the start of its manual.
+  line; Enter on a file shows it in Notes, and every storage key leaves the
+  shared backend as it found it. Pressing Enter on a page of `/usr/doc`
+  shows the start of its manual. The file is loaded before any window is
+  opened, so a failure shows a two-line notice and never opens a blank
+  Notes window or disturbs the document already loaded: a directory
+  ("THIS IS A DIRECTORY"), a file too big to unpack in the free RAM
+  ("NOT ENOUGH FREE MEMORY TO UNPACK THIS FILE": ZX-UX unpacks the whole
+  packed file on any read, so only part cannot be read) and any other
+  ZX-UX error. Notes keeps its last document when its window is closed.
 - The ABOUT window displays ZX-Desk and ZX-UX author credits, with
   two copyright marks and the requested attribution.
 - Original `panel.asm` and `dialog.asm` provide the one modal control left,
