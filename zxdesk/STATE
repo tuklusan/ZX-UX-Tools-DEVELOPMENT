@@ -1,4 +1,4 @@
-phase=memory-budget
+phase=read-only-viewer
 tape=present
-next=Cut about 450 to 550 more bytes of resident memory (Clock, About or joystick mode, or Console) to reach a 9.8 KB total, then restore console mkdir without kernel or boot changes.
-blocker=Resident total is 10315 bytes (image+bss+stack); ZX-UX creates a 256-byte file only while it is under about 9.9 KB, so Note SAVE and Commander COPY report failure and console mkdir is replaced by ps.
+next=Reduce full-screen repainting (the whole desktop is redrawn on every key) and evaluate double buffering within the memory budget.
+blocker=none; resident total is 8553 bytes (image+bss+stack) against a 9.8 KB budget, and ZXDesk writes nothing to the filesystem.

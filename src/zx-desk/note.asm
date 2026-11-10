@@ -1,54 +1,22 @@
-; ZXDesk Notepad, transplanted from Damian Cooper's src/note.inc (MIT).
-; The original 16x16 document, editing routines and pixel-row cursor model.
-; ZX-UX supplies memory and screen services through window app adapters.
+; ZXDesk Notes: a read-only text viewer, from Damian Cooper's src/note.inc (MIT).
+; Editing and saving are removed, so nothing in ZXDesk writes to the filesystem.
+; The first 256 bytes of a file are kept as they are (new lines and printable
+; ASCII), with a "[truncated]" line added when the file is longer, and wrapped
+; to the window width each time they are drawn, so the text re-wraps when the
+; window changes size. Up and Down scroll by display row.
         section text
         global NoteInit
         global NoteDrawInterior
         global NoteKey
-        global NoteNew
-        global NoteModified
-        global NoteName
-        global NoteSave
         global NoteLoadAs
-        global NoteMenuSave
-        global NoteClose
+        extern WinW
         extern WinH
         extern ApiWinPrint
-        extern ApiWinPrintInv
         extern ApiStOpen
         extern ApiStRead
-        extern ApiStWrite
         extern ApiStClose
-        extern WinApp
-        extern AppNote
-        extern DlgSave3
-        extern DlgAlert
-        extern TxtNoSave
-        extern WndCloseNow
-        extern ApiStIdent
-        extern ApiStSelect
 
-NOTECOLS equ 14
-NOTELAST equ 13
-NOTEROWS equ 16
-NOTELASTROW equ 15
-NOTESTRIDE equ 16
-NOTETOP equ 12
-
-; Original NoteRowAddr / NoteCurAddr / view helpers.
-NoteRowAddr:
-        ld l,a
-        ld h,0
-        add hl,hl
-        add hl,hl
-        add hl,hl
-        add hl,hl
-        ld de,NoteBuf
-        add hl,de
-        ret
-NoteCurAddr:
-        ld a,(NoteCY)
-	jr NoteRowAddr
+; -> A = visible text rows in the window.
 NoteVisRows:
         ld a,(WinH)
         sub 14
@@ -56,652 +24,196 @@ NoteVisRows:
         srl a
         srl a
         srl a
-        jr z,NvrOne
-        cp NOTEROWS
-        ret c
-        ld a,NOTEROWS
-        ret
+        ret nz
 NvrOne:
         ld a,1
         ret
-NoteRowPx:
-        ld c,a
-        ld a,(NoteTop)
+
+; HL = start of a display row (text left) -> DE = end of its text (the new
+; line, the first character of the next row, or the end), HL = start of the
+; next row. A row holds as many characters as fit between the window borders;
+; a new line straight after a full row is swallowed.
+NoteRowEnd:
+        ld a,(WinW)
+        sub 2
+        add a,a
         ld b,a
-        ld a,c
-        sub b
-        ret c
-        push af
-        call NoteVisRows
-        ld b,a
-        pop af
-        cp b
-        ccf
-        ret c
-        add a,a
-        add a,a
-        add a,a
-        add a,2
+        ld d,h
+        ld e,l
+NreLoop:
+        ld a,(de)
+        cp 10
+        jr z,NreLf
         or a
+        jr z,NreEnd
+        inc de
+        djnz NreLoop
+        ld a,(de)
+        cp 10
+        jr z,NreLf
+NreEnd:
+        ld h,d
+        ld l,e
         ret
-NoteScroll:
-        ld a,(NoteCY)
-        ld c,a
-        ld a,(NoteTop)
-        cp c
-        jr z,NsSame
-        jr c,NsBelowTop
-        ld a,c
-        ld (NoteTop),a
-        or 1
-        ret
-NsBelowTop:
-        call NoteVisRows
-        ld b,a
-        ld a,(NoteTop)
-        add a,b
-        dec a
-        cp c
-        jr nc,NsSame
-        ld a,c
-        sub b
-        inc a
-        ld (NoteTop),a
-        or 1
-        ret
-NsSame:
-        xor a
+NreLf:
+        ld h,d
+        ld l,e
+        inc hl
         ret
 
-; Original ZXDesk's visible-row painter and cursor inversion.
-NoteDrawLine:
-        push af
-        call NoteRowPx
-        jr c,NdlOff
+; A = number of display rows to skip -> HL = start of that row (or the end).
+NoteSkip:
+        ld b,a
+        ld hl,NoteBuf
+NskLoop:
+        ld a,b
+        or a
+        ret z
+        ld a,(hl)
+        or a
+        ret z
+        push bc
+        call NoteRowEnd
+        pop bc
+        dec b
+        jr NskLoop
+
+NoteDrawInterior:
+        ld a,(NoteTop)
+        call NoteSkip
+        call NoteVisRows
+        ld b,a
+        ld a,2                 ; pixel row of the first text row
+        ld (NoteY),a
+NdLoop:
+        ld a,(hl)
+        or a
+        ret z                  ; no more text
+        push bc
+        push hl
+        call NoteRowEnd
+        ld (NoteNext),hl
+        ld a,(de)
+        ld (NoteHold),a        ; the character after this row's text
+        xor a
+        ld (de),a              ; end the row in place, print, put it back
+        pop hl
+        push de
+        ld a,(NoteY)
         ld b,a
         ld c,0
-        pop af
-        push bc
-        call NoteRowAddr
+        call ApiWinPrint
+        pop de
+        ld a,(NoteHold)
+        ld (de),a
+        ld a,(NoteY)
+        add a,8
+        ld (NoteY),a
+        ld hl,(NoteNext)
         pop bc
-        jp ApiWinPrint
-NdlOff:
-        pop af
+        djnz NdLoop
         ret
-NoteDrawInterior:
-        call NoteDrawAll
-	jr NoteCurDraw
-NoteDrawAll:
-        call NoteVisRows
-        ld b,a
-        ld a,(NoteTop)
-        ld c,a
-NdaLoop:
-        push bc
-        ld a,c
-        call NoteDrawLine
-        pop bc
-        inc c
-        ld a,c
-        cp NOTEROWS
-        ret nc
-        djnz NdaLoop
-        ret
-NoteCurDraw:
-        ld a,(NoteCY)
-        call NoteRowPx
-        ret c
-        ld b,a
-        ld a,(NoteCX)
-        ld c,a
-        push bc
-        call NoteCurAddr
-        ld a,(NoteCX)
-        ld e,a
-        ld d,0
-        add hl,de
-        ld a,(hl)
-        ld (NoteCell),a
-        pop bc
-        ld hl,NoteCell
-        jp ApiWinPrintInv
 
-; NoteNew, insertion and movement are copied from the original
-; editor's buffer interface; they neither own the screen nor interrupts.
 NoteInit:
-        call NoteNew
-        ld hl,TxtNoteName
-        ld de,NoteName
-        ld bc,5
-        ldir
         xor a
-        ld (NoteBk),a
-        ret
-NoteNew:
-        xor a
-        ld (NoteRowIx),a
-        ld b,NOTEROWS
-NnRow:
-        push bc
-        ld a,(NoteRowIx)
-        call NoteBlankRow
-        ld a,(NoteRowIx)
-        inc a
-        ld (NoteRowIx),a
-        pop bc
-        djnz NnRow
-        xor a
-        ld (NoteCX),a
-        ld (NoteCY),a
+        ld (NoteBuf),a
         ld (NoteTop),a
-        ld (NoteModified),a
-        ret
-NoteInsert:
-        ld (NoteChar),a
-        call NoteCurAddr
-        ld (NoteLine),hl
-        ld a,NOTELAST
-        ld c,a
-        ld a,(NoteCX)
-        cp c
-        jr nc,NiPut
-        ld b,a
-        ld a,NOTELAST-1
-        sub b
-        inc a
-        ld c,a
-        ld b,0
-        ld hl,(NoteLine)
-        ld de,NOTELAST-1
-        add hl,de
-        ld d,h
-        ld e,l
-        inc de
-        lddr
-NiPut:
-        ld hl,(NoteLine)
-        ld a,(NoteCX)
-        ld e,a
-        ld d,0
-        add hl,de
-        ld a,(NoteChar)
-        ld (hl),a
-        ld a,1
-        ld (NoteModified),a
-        ld a,(NoteCX)
-        inc a
-        cp NOTECOLS
-        jr c,NiSetX
-        ld a,(NoteCY)
-        inc a
-        cp NOTEROWS
-        jr nc,NiEnd
-        ld (NoteCY),a
-        xor a
-NiSetX:
-        ld (NoteCX),a
-        ret
-NiEnd:
-        ld a,NOTELAST
-        ld (NoteCX),a
-        ret
-NoteBlankRow:
-        call NoteRowAddr
-        ld b,NOTECOLS
-        ld a,' '
-NbrLoop:
-        ld (hl),a
-        inc hl
-        djnz NbrLoop
-        ld (hl),0
-        inc hl
-        ld (hl),0
-        ret
-NoteLineLen:
-        call NoteRowAddr
-        ld de,NOTELAST
-        add hl,de
-        ld b,NOTECOLS
-NllLoop:
-        ld a,(hl)
-        cp ' '
-        jr nz,NllGot
-        dec hl
-        djnz NllLoop
-        xor a
-        ret
-NllGot:
-        ld a,b
-        ret
-NoteOpenRow:
-        ld (NoteRowIx),a
-        ld a,NOTELASTROW
-        ld (NoteRowDst),a
-NorLoop:
-        ld a,(NoteRowDst)
-        ld hl,NoteRowIx
-        cp (hl)
-        ret z
-        dec a
-        call NoteRowAddr
-        push hl
-        ld a,(NoteRowDst)
-        call NoteRowAddr
-        ex de,hl
-        pop hl
-        ld bc,NOTESTRIDE
-        ldir
-	ld hl,NoteRowDst
-	dec (hl)
-        jr NorLoop
-NoteCloseRow:
-        ld (NoteRowDst),a
-NcrLoop:
-        ld a,(NoteRowDst)
-        cp NOTELASTROW
-        jr nc,NcrBlank
-        inc a
-        call NoteRowAddr
-        push hl
-        ld a,(NoteRowDst)
-        call NoteRowAddr
-        ex de,hl
-        pop hl
-        ld bc,NOTESTRIDE
-        ldir
-	ld hl,NoteRowDst
-	inc (hl)
-        jr NcrLoop
-NcrBlank:
-        ld a,NOTELASTROW
-	jr NoteBlankRow
-NoteBack:
-        ld a,(NoteCX)
-        or a
-        jr z,NbEdge
-        dec a
-        ld (NoteCX),a
-        ld c,a
-        call NoteCurAddr
-        ld e,c
-        ld d,0
-        add hl,de
-        ld d,h
-        ld e,l
-        inc hl
-        ld a,NOTELAST
-        sub c
-        ld c,a
-        ld b,0
-        or a
-        jr z,NbTail
-        ldir
-NbTail:
-        call NoteCurAddr
-        ld de,NOTELAST
-        add hl,de
-        ld (hl),' '
-        ld a,1
-        ld (NoteModified),a
-        ret
-NbEdge:
-        ld a,(NoteCY)
-        or a
-        ret z
-        dec a
-        call NoteLineLen
-        ld (NoteJoinAt),a
-        ld a,(NoteCY)
-        call NoteLineLen
-        ld c,a
-        ld a,(NoteJoinAt)
-        add a,c
-        cp NOTECOLS+1
-        jr nc,NbMoveOnly
-        ld a,c
-        or a
-        jr z,NbJoinEmpty
-        ld b,0
-        ld a,(NoteCY)
-        call NoteRowAddr
-        push hl
-        ld a,(NoteCY)
-        dec a
-        call NoteRowAddr
-        ld a,(NoteJoinAt)
-        ld e,a
-        ld d,0
-        add hl,de
-        ex de,hl
-        pop hl
-        ldir
-NbJoinEmpty:
-        ld a,(NoteCY)
-        call NoteCloseRow
-        ld hl,NoteCY
-        dec (hl)
-        ld a,(NoteJoinAt)
-        ld (NoteCX),a
-        ld a,1
-        ld (NoteModified),a
-        ret
-NbMoveOnly:
-        ld hl,NoteCY
-        dec (hl)
-        ld a,NOTELAST
-        ld (NoteCX),a
-        ret
-NoteEnter:
-        ld a,NOTELASTROW       ; Enter would push the last row off the page:
-        call NoteLineLen       ; refuse rather than lose text silently.
-        or a
-        ret nz
-        ld a,(NoteCY)
-        cp NOTELASTROW
-        ret nc
-        inc a
-        call NoteOpenRow
-        ld a,(NoteCY)
-        inc a
-        call NoteBlankRow
-        ld a,NOTECOLS
-        ld c,a
-        ld a,(NoteCX)
-        neg
-        add a,c
-        ld (NoteRowDst),a
-        or a
-        jr z,NeNoTail
-        ld c,a
-        ld b,0
-        ld a,(NoteCY)
-        call NoteRowAddr
-        ld a,(NoteCX)
-        ld e,a
-        ld d,0
-        add hl,de
-        push hl
-        ld a,(NoteCY)
-        inc a
-        call NoteRowAddr
-        ex de,hl
-        pop hl
-        ldir
-        ld a,(NoteCY)
-        call NoteRowAddr
-        ld a,(NoteCX)
-        ld e,a
-        ld d,0
-        add hl,de
-        ld a,(NoteRowDst)
-        ld b,a
-        ld a,' '
-NeBlank:
-        ld (hl),a
-        inc hl
-        djnz NeBlank
-NeNoTail:
-        ld hl,NoteCY
-        inc (hl)
-        xor a
-        ld (NoteCX),a
-        ld a,1
-        ld (NoteModified),a
-        ret
-NoteLeft:
-        ld a,(NoteCX)
-        or a
-        ret z
-        dec a
-        ld (NoteCX),a
-        ret
-NoteRight:
-        ld a,(NoteCX)
-        cp NOTELAST
-        ret nc
-        inc a
-        ld (NoteCX),a
-        ret
-NoteUp:
-        ld a,(NoteCY)
-        or a
-        ret z
-        dec a
-        ld (NoteCY),a
-        ret
-NoteDown:
-        ld a,(NoteCY)
-        cp NOTELASTROW
-        ret nc
-        inc a
-        ld (NoteCY),a
         ret
 
-; Original key-event dispatch; key constants map to ZX-UX raw terminal.
+; Up and Down scroll the page; every other key is ignored.
 NoteKey:
-        ld (NoteChar),a
-        ld a,(NoteChar)
-        cp 8
-        jr nz,NkNotL
-        call NoteLeft
-        jr NkView
-NkNotL:
-        cp 9
-        jr nz,NkNotR
-        call NoteRight
-        jr NkView
-NkNotR:
         cp 11
-        jr nz,NkNotU
-        call NoteUp
-        jr NkView
-NkNotU:
+        jr z,NkUp
         cp 10
-        jr nz,NkNotD
-        call NoteDown
-        jr NkView
-NkNotD:
-        cp 12
-        jr nz,NkNotBs
-        call NoteBack
-        jr NkView
-NkNotBs:
-        cp 13
-        jr nz,NkNotEnt
-        call NoteEnter
-        jr NkView
-NkNotEnt:
-        cp ' '
-        ret c
-        cp 128
-        ret nc
-        call NoteInsert
-NkView:
-        jp NoteScroll
+        ret nz
+        call NoteVisRows
+        ld hl,NoteTop
+        add a,(hl)
+        call NoteSkip          ; HL = first row below the page
+        ld a,(hl)
+        or a
+        ret z                  ; nothing below
+        ld hl,NoteTop
+        inc (hl)
+        ret
+NkUp:
+        ld hl,NoteTop
+        ld a,(hl)
+        or a
+        ret z
+        dec (hl)
+        ret
 
-; Original ZXDesk Note file interface (src/note.inc), calling the
-; process-local ZX-UX storage adapter. Each note remains 256 bytes.
-; A note is saved back to the directory it came from (new notes: root).
-NoteSave:
-        call ApiStIdent
-        ld (NoteWasBk),a
-        ld a,(NoteBk)
-        call ApiStSelect
-        call NoteSaveFile
-        push af
-        ld a,(NoteWasBk)
-        call ApiStSelect
-        pop af
-        ret
-NoteSaveFile:
-        ld hl,NoteName
-        ld b,1
-        call ApiStOpen
-        ret c
-        ld (NoteHandle),a
-        ld hl,NoteBuf
-        ld bc,256
-        call ApiStWrite
-        ld (NoteGot),bc
-        ld a,(NoteHandle)
-        call ApiStClose
-        ret c
-        ld hl,(NoteGot)
-        ld de,256
-        or a
-        sbc hl,de
-        jr nz,NsShort
-        xor a
-        ld (NoteModified),a
-        or a
-        ret
-NsShort:
-        scf
-        ret
-; HL = basename. ApiOpenFile has already checked that it is a regular
-; 256-byte file, so a failure here is a read error. The name is adopted only
-; on success; a failed read resets to a blank default note, never to a blank
-; note that would overwrite some other file on SAVE.
+; HL = basename in the selected directory (ApiOpenFile has checked it is not a
+; directory). NC on success.
 NoteLoadAs:
-        ld (NoteLine),hl
-        ld b,0
         call ApiStOpen
-        jr c,NlFail
+        ret c
         ld (NoteHandle),a
         ld hl,NoteBuf
         ld bc,256
         call ApiStRead
-        ld (NoteGot),bc
-        push af
+        push af                ; carry = read error
+        push bc                ; bytes read
+        ld a,(NoteHandle)
+        ld hl,NoteChar
+        ld bc,1
+        call ApiStRead         ; is there anything after the first 256?
+        ld a,0
+        jr c,NlNoMore
+        ld a,b
+        or c
+NlNoMore:
+        ld (NoteMore),a
         ld a,(NoteHandle)
         call ApiStClose
-        pop af
-        jr c,NlReset
-        ld hl,(NoteGot)
-        ld de,256
-        or a
-        sbc hl,de
-        jr nz,NlReset
-        ld hl,(NoteLine)
-        call NoteSetName
-        call ApiStIdent
-        ld (NoteBk),a
-        call NoteSanitise
-        xor a
-        ld (NoteCX),a
-        ld (NoteCY),a
-        ld (NoteTop),a
-        ld (NoteModified),a
-        or a
-        ret
-NlReset:
-        ld hl,TxtNoteName
-        call NoteSetName
-        xor a
-        ld (NoteBk),a
-        call NoteNew
-NlFail:
-        scf
-        ret
-NoteSetName:
-        ld de,NoteName
-        ld b,10
-NsnLoop:
-        ld a,(hl)
-        ld (de),a
-        or a
-        ret z
-        inc hl
-        inc de
-        djnz NsnLoop
-        xor a
-        ld (de),a
-        ret
-NoteSanitise:
-        ld b,NOTEROWS
-        xor a
-        ld (NoteRowIx),a
-NsanRow:
-        push bc
-        ld a,(NoteRowIx)
-        call NoteRowAddr
-        ld b,NOTECOLS
-NsanCol:
-        ld a,(hl)
-        cp ' '
-        jr c,NsanBad
-        cp 128
-        jr c,NsanOk
-NsanBad:
-        ld (hl),' '
-NsanOk:
-        inc hl
-        djnz NsanCol
-        ld (hl),0
-        inc hl
-        ld (hl),0
-        ld a,(NoteRowIx)
-        inc a
-        ld (NoteRowIx),a
         pop bc
-        djnz NsanRow
+        pop af
+        ret c
+        ld hl,NoteBuf          ; keep new lines and printable ASCII, drop the rest
+        ld d,h
+        ld e,l
+        ld a,b
+        or c
+        jr z,NlTerm
+NlKeep:
+        ld a,(hl)
+        inc hl
+        cp 10
+        jr z,NlStore
+        cp ' '
+        jr c,NlNext
+        cp 127
+        jr nc,NlNext
+NlStore:
+        ld (de),a
+        inc de
+NlNext:
+        dec bc
+        ld a,b
+        or c
+        jr nz,NlKeep
+NlTerm:
+        ld a,(NoteMore)
+        or a
+        jr z,NlEnd
+        ld hl,TxtTrunc
+        ld bc,12
+        ldir
+NlEnd:
+        xor a
+        ld (de),a
+        ld (NoteTop),a
         ret
-NoteMenuSave:
-        ld hl,(WinApp)
-        ld de,AppNote
-        or a
-        sbc hl,de
-        ret nz
-        call NoteSave
-        ret nc
-        ld hl,TxtNoSave
-        ld de,0
-        jp DlgAlert
-
- ; Original ZXDesk NoteClose callback: do not lose modified work.
-NoteClose:
-        ld a,(NoteModified)
-        or a
-        ret z
-        ld hl,NoteName
-        ld de,TxtNoteLose
-        ld bc,NoteCloseAnswer
-        call DlgSave3
-        scf
-        ret
-NoteCloseAnswer:
-        or a
-        ret z
-        cp 2
-        jr z,NcaSave
-NcaGo:
-        xor a                  ; a closed note holds no unsaved work
-        ld (NoteModified),a
-        jp WndCloseNow
-NcaSave:
-        call NoteSave
-        jr nc,NcaGo
-        ld hl,TxtNoSave
-        ld de,0
-        jp DlgAlert
 
         section data
-TxtNoteName: db 'NOTE',0
-TxtNoteLose: db 'UNSAVED WORK',0
-NoteBk: db 0
-NoteWasBk: db 0
-NoteRowIx: db 0
-NoteRowDst: db 0
-NoteJoinAt: db 0
-NoteChar: db 0
-NoteLine: dw 0
+TxtTrunc: db 10,'[truncated]'
 NoteHandle: db 0
-NoteGot: dw 0
-NoteCell: db ' ',0
+NoteChar: db 0
+NoteMore: db 0
+NoteY: db 0
+NoteHold: db 0
+NoteNext: dw 0
         section bss
-NoteBuf: ds 256
-NoteName: ds 11
-NoteCX: ds 1
-NoteCY: ds 1
+NoteBuf: ds 269                ; 256 bytes, the truncation line and an end mark
 NoteTop: ds 1
-NoteModified: ds 1

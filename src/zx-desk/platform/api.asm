@@ -16,11 +16,10 @@
         extern WndOpen
         extern WndRepaintAll
         extern NoteLoadAs
-        extern NoteModified
         extern DlgAlert
         extern ApiStOpen
         extern ApiStClose
-        extern CmdBuf
+        extern CmdStat
         extern zx_syscall
 ApiWinPrint:
         xor a
@@ -58,14 +57,10 @@ ApiWinRows:
         ld a,(WinH)
         sub 10
         ret
-; HL = basename in the selected directory. Notes are exactly 256 bytes, so
-; anything else (a directory, a longer or shorter file) is refused up front:
-; loading it would truncate it on SAVE. Unsaved note text is never replaced.
+; HL = basename in the selected directory. Notes shows the first 256 bytes of a
+; file (with a "[truncated]" line when it is longer); a directory is refused with
+; a notice. ZXDesk never writes to the filesystem.
 ApiOpenFile:
-        ld a,(NoteModified)
-        or a
-        ld de,TxtOfBusy
-        jr nz,OfAlert
         push hl
         call ApiCheckNote
         pop hl
@@ -88,16 +83,16 @@ OfAlert:
         call DlgAlert
         scf
         ret
-; HL = basename. NC only for a regular file of exactly 256 bytes (fstat via
-; the Commander scratch buffer: 2-byte inode number, then the 32-byte inode).
+; HL = basename. NC unless it is a directory (fstat via the Commander scratch
+; buffer: 2-byte inode number, then the 32-byte inode; the flags' high byte is
+; at +3 and bit 6 marks a directory).
 ApiCheckNote:
-        ld b,0
         call ApiStOpen
         ret c
         ld (ApiFd),a
         ld l,a
         ld h,0
-        ld de,CmdBuf
+        ld de,CmdStat
         ld a,28
         call zx_syscall
         push af
@@ -105,19 +100,12 @@ ApiCheckNote:
         call ApiStClose
         pop af
         ret c
-        ld hl,(CmdBuf+6)
-        ld de,256
-        or a
-        sbc hl,de
-        jr nz,AcBad
-        ld a,(CmdBuf+3)
+        ld a,(CmdStat+3)
         and $40
         ret z
-AcBad:
         scf
         ret
         section data
 ApiFd: db 0
-TxtOfBusy: db 'SAVE OR CLOSE NOTE FIRST',0
-TxtOfNot: db 'NOT A 256 BYTE NOTE',0
+TxtOfNot: db 'IS A DIRECTORY',0
 TxtOfBad: db 'COULD NOT OPEN',0

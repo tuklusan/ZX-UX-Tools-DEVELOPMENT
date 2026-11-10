@@ -1,8 +1,8 @@
-; ZXDesk D2 panel record, drawing and keyboard control from src/panel.inc.
+; ZXDesk D2 panel record and drawing from src/panel.inc (rows of labels and one
+; button). Keyboard control is in dialog.asm: a notice closes on Enter or EDIT.
 ; Damian Cooper (MIT); save-under and pointer calls become full redraws.
         section text
         global PnlPaint
-        global PnlKey
         global PnlRowPaint
         global PnlX
         global PnlY
@@ -13,8 +13,6 @@
         global PnlTab
         global PnlTitle
         global PnlFocus
-        global PnlPush
-        global PnlPop
         extern DevFillRect
         extern FrX
         extern FrY
@@ -25,7 +23,6 @@
         extern PxRow
         extern PrintInv
         extern PrintStrPx
-PT_ACTION equ 1
 PTSIZE equ 5
 PNLMARGIN equ $30
 PNLROWH equ 8
@@ -170,89 +167,6 @@ PnpRow:
         cp (hl)
         jr c,PnpRow
         ret
-PnlActivate:
-        ld (PnlIdx),a
-        call PnlRowAddr
-        ld a,(hl)
-        cp PT_ACTION
-        ret nz
-        inc hl
-        inc hl
-        inc hl
-        ld e,(hl)
-        inc hl
-        ld d,(hl)
-        ex de,hl
-        jp (hl)                ; the action returns to PnlKey's caller
-PnlKey:
-        cp 11
-        jr z,PnkUp
-        cp 10
-        jr z,PnkDown
-        cp 13
-        jr z,PnkEnter
-        ret
-PnkUp:
-        ld a,(PnlFocus)
-        or a
-        ret z
-        dec a
-        ld (PnlFocus),a
-        jp PnlPaint
-PnkDown:
-        ld a,(PnlFocus)
-        inc a
-        ld hl,PnlRows
-        cp (hl)
-        ret nc
-        ld (PnlFocus),a
-        jp PnlPaint
-PnkEnter:
-        ld a,(PnlFocus)
-	jr PnlActivate
- ; Original ZXDesk D3 nested-panel record swap.
-PNLRECSZ equ 11
-PNLDEPTH equ 3
-PnlPush:
-        ld a,(PnlRecDep)
-        cp PNLDEPTH
-        jr nc,PnlStkErr
-        call PnlRecSlot
-        ex de,hl
-        ld hl,PnlX
-        ld bc,PNLRECSZ
-        ldir
-        ld hl,PnlRecDep
-        inc (hl)
-        or a
-        ret
-PnlPop:
-        ld a,(PnlRecDep)
-        or a
-        jr z,PnlStkErr
-        dec a
-        ld (PnlRecDep),a
-        call PnlRecSlot
-        ld de,PnlX
-        ld bc,PNLRECSZ
-        ldir
-        or a
-        ret
-PnlStkErr:
-        scf
-        ret
-PnlRecSlot:
-        ld l,a
-        ld h,0
-        ld de,PNLRECSZ
-        ld b,a
-        ld hl,PnlRecStk
-        or a
-        ret z
-PrsLoop:
-        add hl,de
-        djnz PrsLoop
-        ret
         section data
 PnlX: db 0
 PnlY: db 0
@@ -264,6 +178,3 @@ PnlTab: dw 0
 PnlTitle: dw 0
 PnlFocus: db 0
 PnlIdx: db 0
-PnlRecDep: db 0
-        section bss
-PnlRecStk: ds PNLDEPTH*PNLRECSZ

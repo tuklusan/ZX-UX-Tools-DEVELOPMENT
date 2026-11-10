@@ -237,9 +237,9 @@ TermDispatch:
         call TermEqual
 	jr z,TermEcho
         ld hl,TermInput
-        ld de,CmdRm
+        ld de,CmdDf
         call TermEqual
-        jp z,TermRm
+        jp z,TermDf
         ld hl,TermInput
         ld de,CmdPs
         call TermEqual
@@ -462,23 +462,24 @@ TcatEnd:
         ld a,6
         call zx_syscall
         jp TermNewline
-TermRm:
-        call TermNeedPath
-        ret c
-        ld hl,TermPath
-        ld de,TermStat
-        ld a,18
+; df: free arena bytes and free i-nodes (ZX-UX call 37 with HL=0).
+TermDf:
+        ld hl,0
+        ld a,37
         call zx_syscall
         jp c,TermError
-        ld a,(TermStat+3)
-        and $40                 ; rm never removes a directory
-        jp nz,TermError
-        ld hl,TermPath
-        ld a,10
-        call zx_syscall
-        jp c,TermError
-        ld hl,TextDone
-        jp TermSay
+        push de
+        push hl
+        ld hl,TextDfBytes
+        call TermPutStr
+        pop hl
+        call TermPsNumber
+        call TermNewline
+        ld hl,TextDfNodes
+        call TermPutStr
+        pop hl
+        call TermPsNumber
+        jp TermNewline
 
 ; Process snapshot via ZX-UX /dev/mem, as the native ps utility does.
 ; Both snapshots fit existing filesystem scratch, without another arena.
@@ -683,15 +684,17 @@ CmdLs: db 'ls',0
 CmdCd: db 'cd',0
 CmdCat: db 'cat',0
 CmdEcho: db 'echo',0
-CmdRm: db 'rm',0
+CmdDf: db 'df',0
 CmdPs: db 'ps',0
 CmdClear: db 'clear',0
 TextPrompt: db '$ ',0
 TextCaret: db '_',0
 TextGreeting: db 'ZX-UX command console',0
 TextHint: db 'type help for commands',0
-TextHelp1: db 'cat cd clear echo help',0
-TextHelp2: db 'ls ps pwd rm',0
+TextHelp1: db 'cat cd clear df echo help',0
+TextHelp2: db 'ls ps pwd',0
+TextDfBytes: db 'free bytes  ',0
+TextDfNodes: db 'free inodes ',0
 TextPsHead: db '  PID S CMD',0
 TextMem: db '/dev/mem',0
 TextUnknown: db '? COMMAND',0
@@ -699,7 +702,6 @@ TextError: db '? FILE OR DIRECTORY',0
 TextNoSpace: db '? NO SPACE',0
 TextArg: db '? NAME REQUIRED',0
 TextLong: db '? PATH TOO LONG',0
-TextDone: db 'OK',0
 TextLimit: db '[OUTPUT TRUNCATED]',0
 TermRoot: db '/',0
 TermUp: db '..',0

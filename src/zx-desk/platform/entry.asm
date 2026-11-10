@@ -2,14 +2,13 @@
 ; This is not a separate desktop, ROM or operating system.
         section text
         global start
-        global quit_try
+        global clean_exit
         global SetJoyEnabled
         global DrawDesktop
         global MenuSel
         extern zx_syscall
         extern DskPaintAll
         extern DskSelected
-        extern AppNote
         extern AppTerm
         extern WinApp
         extern ClkInit
@@ -34,16 +33,13 @@
         extern PrintInv
         extern FontBase
         extern AppCall
-        extern NoteModified
-        extern NoteName
-        extern NoteSave
-        extern DlgSave3
-        extern DlgAlert
-        extern TxtNoSave
         extern DlgUp
-        extern PnlKey
+        extern WinX
+        extern WinY
+        extern WinW
+        extern WinH
+        extern DlgClose
         extern MenuIsSep
-        extern DgEscape
         extern RowAddr
 
 SCREEN equ $4000
@@ -93,6 +89,9 @@ mainloop:
         ld a,(DlgUp)
         or a
         jp nz,modal_dispatch
+        ld a,(MoveMode)
+        or a
+        jp nz,move_key
         ld a,b
         cp 7                   ; EDIT = CAPS SHIFT+1 (ZX-UX raw key)
         jp z,menu_key
@@ -151,11 +150,6 @@ JoyTranslate:
         ld a,(MenuOpen)
         or a
         jr nz,JtMap
-        ld hl,(WinApp)
-        ld de,AppNote
-        or a
-        sbc hl,de
-        ret z
         ld hl,(WinApp)
         ld de,AppTerm
         or a
@@ -233,7 +227,7 @@ close_key:
 quit_key:
         ld a,(WndCount)
         or a
-        jp z,quit_try
+        jp z,clean_exit
         ; q is part of a document while a window has focus.
         ld a,'q'
         ld c,APP_KEY
@@ -244,9 +238,13 @@ quit_key:
 menu_dispatch:
         ld a,b
         cp 'q'
-        jp z,quit_try
+        jp z,clean_exit
         cp 'Q'
-        jp z,quit_try
+        jp z,clean_exit
+        cp 'm'
+        jp z,move_start
+        cp 'M'
+        jp z,move_start
         cp 'n'
         jr z,menu_cycle
         cp 'N'
@@ -334,14 +332,14 @@ menu_choose:
         pop af
         call MenuAction
         jp mainloop
-modal_dispatch:
+modal_dispatch:                ; a notice closes on Enter or EDIT
         ld a,b
         cp 7
         jr z,modal_close
-        call PnlKey
-        jp mainloop
+        cp 13
+        jp nz,mainloop
 modal_close:
-        call DgEscape
+        call DlgClose
         jp mainloop
 menu_key:
         xor a
@@ -364,28 +362,75 @@ repaint:
         call nz,MenuPaint
         jp mainloop
 
-; Quit never discards a modified note silently.
-quit_try:
+; EDIT then M: the arrow keys move the front window 8 pixels at a time, kept
+; inside the desktop (x + width <= 32 bytes, 9 <= y, y + height <= 183).
+; Enter or EDIT drops it.
+move_start:
         call MenuClose
-        ld a,(NoteModified)
+        ld a,(WndCount)
         or a
-        jp z,clean_exit
-        call WndRepaintAll     ; wipe the menu before the dialog goes up
-        ld hl,NoteName
-        ld de,TxtQuitLose
-        ld bc,QuitAnswer
-        call DlgSave3
-        jp mainloop
-QuitAnswer:
+        jp z,repaint
+        ld a,1
+        ld (MoveMode),a
+        jp repaint
+move_key:
+        ld a,b
+        cp 7
+        jr z,move_done
+        cp 13
+        jr z,move_done
+        cp 8
+        jr z,mv_left
+        cp 9
+        jr z,mv_right
+        cp 11
+        jr z,mv_up
+        cp 10
+        jp nz,mainloop
+        ld a,(WinY)            ; down: y = min(y + 8, 183 - height)
+        add a,8
+        ld c,a
+        ld a,183
+        ld hl,WinH
+        sub (hl)
+        cp c
+        jr nc,mv_dok
+        ld c,a
+mv_dok:
+        ld a,c
+        jr mv_putY
+mv_up:
+        ld a,(WinY)            ; up: y = max(y - 8, 9)
+        sub 8
+        jr c,mv_top
+        cp 9
+        jr nc,mv_putY
+mv_top:
+        ld a,9
+mv_putY:
+        ld (WinY),a
+        jp repaint
+mv_left:
+        ld a,(WinX)
         or a
-        ret z                  ; CANCEL
-        cp 2
-        jp nz,clean_exit       ; DISCARD
-        call NoteSave
-        jp nc,clean_exit
-        ld hl,TxtNoSave
-        ld de,0
-        jp DlgAlert
+        jp z,mainloop
+        dec a
+mv_putX:
+        ld (WinX),a
+        jp repaint
+mv_right:
+        ld a,(WinX)
+        ld hl,WinW
+        add a,(hl)
+        cp 32
+        jp nc,mainloop
+        ld a,(WinX)
+        inc a
+        jr mv_putX
+move_done:
+        xor a
+        ld (MoveMode),a
+        jp repaint
  ; Normal exit clears the application's bitmap before ZX-UX
 ; returns the screen to its text console. BREAK is a kernel kill
 ; and cannot execute this process-side cleanup.
@@ -437,8 +482,13 @@ DrawDesktop:
         call DskPaintAll
         ld a,185
         ld (PxRow),a
-        ld c,1
         ld hl,TxtStatus
+        ld a,(MoveMode)
+        or a
+        jr z,DdStat
+        ld hl,TxtMove
+DdStat:
+        ld c,1
         call PrintStrPx
         ld hl,ATTRS
         ld de,ATTRS+1
@@ -489,8 +539,9 @@ MenuSel: db 0
 BgRow: db 0
 key: db 0
 TxtMenu: db 'ZX DESK           FILE          VIEW          HELP',0
-TxtStatus: db 'EDIT (CAPS SHIFT+1): MENU THEN N=NEXT X=CLOSE Q=QUIT ZX DESK',0
-TxtQuitLose: db 'QUIT WITH UNSAVED NOTE',0
+TxtStatus: db 'EDIT (CAPS+1): MENU THEN M=MOVE N=NEXT X=CLOSE Q=QUIT ZX DESK',0
+TxtMove: db 'ARROWS MOVE THE WINDOW  ENTER=DONE',0
+MoveMode: db 0
 JoyApps: db 0,2,3,1,4          ; desktop icon order: Notes Clock Files About Console
 SetJoyEnabled: db 0            ; Sinclair joystick navigation, toggled from the ZX DESK menu
         section bss

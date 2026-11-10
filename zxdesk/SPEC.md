@@ -38,11 +38,12 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   without resetting content. The window record is 8 bytes; no per-window
   bitmap buffers or duplicated application-state slots are retained.
   Mouse-only hit testing is omitted.
-- Original `app.asm` provides 14-byte application descriptors and dispatch
+- Original `app.asm` provides 12-byte application descriptors and dispatch
   for five applications: Notes, About, Clock, Files (Commander) and
-  Console. Each application has exactly one live state record: Note 273
-  bytes (including its 256-byte document), Console 269 bytes, Commander 5
-  bytes; About and Clock need no per-window state. App-local scratch and
+  Console. Each application has exactly one live state record: Notes about
+  275 bytes (a 256-byte text page, a truncation line and the scroll row),
+  Console 269 bytes, Commander 5 bytes; About and Clock need no per-window
+  state. App-local scratch and
   the global clock service remain separate. There are no 273-byte
   window-state slots or app-state copies. `desktop.asm` draws the original
   bitmap desktop icons (NOTE, CLOCK, FILES, ABOUT, CONSOLE) with a compact
@@ -52,35 +53,36 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   provides native drop-down drawing and table-driven actions. Console is
   the only application opened at start.
 - Keyboard: EDIT (CAPS SHIFT+1) opens the menu bar and cycles the menu
-  headings. After EDIT, N cycles windows, X closes the front window and Q
-  quits; a modified note asks Cancel/Discard/Save before the program
-  exits. There are no digit or other letter shortcuts. BREAK is reserved
-  by ZX-UX as a process interrupt, so it is never a GUI shortcut. The
-  status bar reads `EDIT (CAPS SHIFT+1): MENU THEN N=NEXT X=CLOSE Q=QUIT ZX
-  DESK`.
+  headings. After EDIT, M moves the front window (arrow keys, 8 pixels at
+  a time, kept inside the desktop; Enter or EDIT drops it and the status
+  bar shows `ARROWS MOVE THE WINDOW  ENTER=DONE` meanwhile), N cycles
+  windows, X closes the front window and Q quits at once. There are no
+  digit or other letter shortcuts. BREAK is reserved by ZX-UX as a process
+  interrupt, so it is never a GUI shortcut. The status bar reads `EDIT
+  (CAPS+1): MENU THEN M=MOVE N=NEXT X=CLOSE Q=QUIT ZX DESK`.
 - Menus: ZX DESK lists Clock, Console, Files and Notes alphabetically, a
   grey dotted separator, `SINCLAIR JOY OFF/ON` (toggle) and Quit. FILE
-  holds New, Open and Save; VIEW holds Cascade and Tile; HELP holds About.
-  Up/Down skip the separator. Unavailable items are printed in lower case
-  and are never dispatched. Save needs Notes focus; arranging needs two
-  windows; with four windows open only already-open applications launch,
-  and a fifth launch shows a notice. Tile displays only the active FILES
-  pane at half width.
-- Original `note.asm`, `clock.asm` and `commander.asm` run as application
-  vectors. The Note editor retains its original 256-byte document, file
-  read/write and unsaved-work confirm. A note is saved back to the
-  directory it was opened from (new notes: root). Notes opens only regular
-  files of exactly 256 bytes, never replaces unsaved text, and refuses
-  Enter when the last row is occupied. Commander offers directory
-  navigation, file open, copy and delete through ZX-UX, rather than
-  ZXDesk's private storage backends: DELETE asks for confirmation, COPY
-  refuses to overwrite an existing file or copy a directory, and every
-  storage key leaves the shared backend as it found it. Failed saves,
-  opens and copies show a notice.
+  holds Open (launches Files); VIEW holds Cascade and Tile; HELP holds
+  About. Up/Down skip the separator. Unavailable items are printed in
+  lower case and are never dispatched. Arranging needs two windows; with
+  four windows open only already-open applications launch, and a fifth
+  launch shows a notice. Tile displays only the active FILES pane at half
+  width.
+- **ZXDesk never writes to the filesystem.** There is no save, copy,
+  delete, rm or mkdir anywhere. Original `note.asm`, `clock.asm` and
+  `commander.asm` run as application vectors. Notes is a read-only viewer:
+  it shows the first 256 bytes of a file (new lines and printable ASCII
+  only), adds a `[truncated]` line when the file is longer, wraps the text
+  to the window width every time it is drawn (so it re-wraps after Tile)
+  and scrolls with Up/Down. Files (Commander) has two panes, `/bin` on the
+  left and `/usr/doc` on the right, separated by a grey dotted vertical
+  line; Enter on a file shows it in Notes, a directory is refused with a
+  notice, and every storage key leaves the shared backend as it found it.
+  Pressing Enter on a page of `/usr/doc` shows the start of its manual.
 - The ABOUT window displays ZX-Desk and ZX-UX author credits, with
   two copyright marks and the requested attribution.
-- Original `panel.asm` and `dialog.asm` provide the modal Confirm,
-  Save/Discard/Cancel and Alert controls (action and label rows only).
+- Original `panel.asm` and `dialog.asm` provide the one modal control left,
+  a notice with an OK button (closed by Enter or EDIT).
   There is no settings panel and no settings file: the only preference,
   Sinclair joystick navigation, is OFF at start, is toggled from the ZX
   DESK menu and is not saved. There is no sound setting. No mouse support
@@ -90,42 +92,41 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   contains a path, input and eight-line text history. Its default window
   is 20x72 at column 11, row 48 (half the former 30x96 area), showing
   the newest six history rows without duplicating or reducing state. Built-in `help`, `pwd`, `ls`, `cd`,
-  `cat`, `echo`, `rm`, `ps`, `clear` use ZX-UX filesystem calls where
+  `cat`, `echo`, `df`, `ps`, `clear` use ZX-UX filesystem calls where
   applicable; `ps` reads native PID/state/name snapshots through
-  `/dev/mem` without forking. The prompt is `$ ` and `help` lists the
+  `/dev/mem` without forking, and `df` prints the free arena bytes and
+  free i-nodes from ZX-UX call 37. The prompt is `$ ` and `help` lists the
   lowercase commands alphabetically. It does not steal `/dev/tty` or
   impersonate `/bin/sh`.
 - Sinclair Interface 2 joystick 1 uses ordinary ZX-UX keyboard input only:
   `6` left, `7` right, `8` down, `9` up, `0` fire/Enter when enabled.
   Desktop icons (Notes, Clock, Files, About, Console), menus, dialogs and
-  non-text application controls navigate by selection; Note and Console
-  keep all digits as editable text. The five digit keys cannot be
+  non-text application controls navigate by selection; the Console keeps
+  all digits as editable text. The five digit keys cannot be
   distinguished from the physical joystick, so text windows use EDIT for
   GUI commands without sacrificing ordinary letters. No other GUI function
   uses digits, so the mode has no shortcut conflicts.
 - `src/zx-desk/platform/entry.asm`, `api.asm`, `rect.asm`, `storage.asm`, `zxux.asm`
   own the SSX1 lifecycle, screen claim/release, TTY, keyboard mapping,
-  syscall-backed files and user-mode drawing. Commander copies through a
-  small reusable transfer buffer; console filesystem scratch buffers share
-  storage when their live ranges do not overlap. The assembly is optimized
+  syscall-backed (read-only) files and user-mode drawing. Console
+  filesystem scratch buffers share storage when their live ranges do not
+  overlap, and the Commander stat buffer is shared with the open check. The assembly is optimized
   in source and builds without a separate optimizer dependency. No kernel
   or ZX-UX boot cassette changes. ZX-UX owns font storage.
 
-**Memory budget:** ZX-UX lets files use only the arena below the lent
-window, so it can create a 256-byte file only while the resident program
-(SSX1 image + bss + stack) totals under about 9.9 KB; aim for 9.8 KB.
-Above that, Note SAVE and Commander COPY fail with ENOSPC (reported by a
-notice) and packed files may not read back. `rld` prints the image size;
-the total is `image + bss + 384` from the SSX1 header.
+**Memory budget:** the resident program (SSX1 image + bss + stack; `image`
+and `bss` are in the SSX1 header, the stack is 384) totals 8553 bytes. ZX-UX
+lets files use only the arena below the lent window, so a program above
+about 9.9 KB would leave no room to create a file and reading a packed file
+could fail; ZXDesk creates no files, and keeping it under about 9.8 KB
+keeps reads reliable. Do not grow past that without cutting something.
 
-**Still incomplete:** Console `mkdir` (held until usable ZX-UX
-shared-arena RAM is recovered) and the memory budget above. The Calendar
-and KEYS applications, the settings panel, the Setup icon and the
-unavailable FILE/VIEW items (Save As, Print, Delete, Load, Desktop) were
-removed and are not planned. Mouse/pointer support is **intentionally
-excluded**; use Sinclair joystick keyboard emulation, never direct
-device-port I/O. Do not reinstate the lookalike or claim unsupported menu
-functions work.
+**Not planned:** the Calendar and KEYS applications, the settings panel,
+the Setup icon, sound, plain desktop, any save, copy, delete, rm or
+mkdir, and the unavailable FILE/VIEW items (Save As, Print, Delete, Load,
+Desktop). Mouse/pointer support is **intentionally excluded**; use
+Sinclair joystick keyboard emulation, never direct device-port I/O. Do not
+reinstate the lookalike or claim unsupported menu functions work.
 
 ## SDK build (repository root)
 

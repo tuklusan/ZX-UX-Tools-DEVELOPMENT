@@ -4,22 +4,17 @@
         global CmdInit
         global CmdDraw
         global CmdKey
-        global CmdBuf
-        extern DlgConfirm
-        extern DlgAlert
-        extern WndRepaintAll
-        extern zx_syscall
+        global CmdStat
+        extern AddrAt
+        extern WinX
+        extern WinY
+        extern WinH
         extern ApiStIdent
         extern ApiStSelect
         extern ApiStDir
         extern ApiWinRows
         extern WinW
         extern ApiWinPrintIf
-        extern ApiStOpen
-        extern ApiStRead
-        extern ApiStWrite
-        extern ApiStClose
-        extern ApiStDelete
         extern ApiOpenFile
 
 CMDPANEW equ 28
@@ -28,22 +23,13 @@ CMDLISTY equ 22
 WINCAPH equ 10
 
 CmdInit:
-        call ApiStIdent
-        ld (CmdBk0),a
-        ld a,1
-        ld (CmdBk1),a
         xor a
         ld (CmdSel0),a
         ld (CmdSel1),a
         ld (CmdActive),a
         ret
-CmdUse:
+CmdUse:                         ; pane 0 is backend 0 (/bin), pane 1 is /usr/doc
         ld (CmdPane),a
-        or a
-        ld a,(CmdBk0)
-        jr z,CmuGo
-        ld a,(CmdBk1)
-CmuGo:
         jp ApiStSelect
 CmdSelAt:
         ld a,(CmdPane)
@@ -97,6 +83,7 @@ CmdBothPanes:
         call CmdPane1
         ld a,1
         call CmdPane1
+        call CmdVLine
 CmdDrawDone:
         ld a,(CmdWasD)
         jp ApiStSelect
@@ -194,9 +181,9 @@ CmpInv:
 CmdDevName:
         call ApiStIdent
         or a
-        ld hl,TxtCmdRoot
-        ret z
         ld hl,TxtCmdBin
+        ret z
+        ld hl,TxtCmdDoc
         ret
 
 ; Original keyboard navigation, with filesystem actions handed to ZX-UX.
@@ -249,26 +236,15 @@ CmkNotL:
         ret
 CmkNotR:
         cp 13
-	jr z,CmdOpen
-        cp 'C'
-        jr z,CmkCopy
-        cp 'c'
-        jr z,CmkCopy
-        cp 'D'
-        jr z,CmkDelete
-        cp 'd'
         ret nz
-CmkDelete:
-        jp CmdDelete
-CmkCopy:
-        call CmdCopy
-        ret nc
-        ld hl,TxtCmdCopyBad
-        ld de,0
-        jp DlgAlert
-
-; Original ZXDesk Commander file selection and operations (commander.inc).
-; Paths and handles are translated by the ZX-UX storage adapter.
+; Enter shows the selected file in Notes. CmdPicked has copied its name into
+; CmdWork.
+CmdOpen:
+        call CmdPicked
+        ret c
+        ld hl,CmdWork
+        jp ApiOpenFile
+; Selected directory entry: HL=name, name copied into CmdWork. Carry past the end.
 CmdPicked:
         ld a,(CmdActive)
         call CmdUse
@@ -291,166 +267,37 @@ CmpkCopy:
 CmpkDone:
         or a
         ret
-; CmdPicked has already copied the selected name into CmdWork.
-CmdOpen:
-        call CmdPicked
-        ret c
-        ld hl,CmdWork
-        jp ApiOpenFile
-CmdCopy:
-        call CmdPicked
-        jr nc,CmcStart
-        or a                   ; nothing selected: nothing to report
-        ret
-CmcStart:
-        ld a,(CmdWork)
-        cp '.'
-        ret z                  ; "." and ".." are not files
-        ld a,(CmdActive)
-        call CmdUse
-        ld hl,CmdWork
-        ld b,0
-        call ApiStOpen
-        ret c
-        ld (CmdHandle),a
-        ld l,a                 ; a directory cannot be copied as a file
-        ld h,0
-        ld de,CmdBuf
-        ld a,28
-        call zx_syscall
-        jp c,CmcNoRoom
-        ld a,(CmdBuf+3)
-        and $40
-        jp nz,CmcNoRoom
-        ld a,(CmdActive)       ; never overwrite an existing file
-        xor 1
-        call CmdUse
-        ld hl,CmdWork
-        ld b,0
-        call ApiStOpen
-        jr c,CmcFree
-        call ApiStClose
-        call CmcSrcClose
-        ld hl,TxtCmdExists
-        ld de,0
-        call DlgAlert
-        or a
-        ret
-CmcFree:
-        ld hl,CmdWork
-        ld b,1
-        call ApiStOpen
-        jr c,CmcNoRoom
-        ld (CmdOut),a
-CmcChunk:
-        ld a,(CmdActive)
-        call CmdUse
-        ld a,(CmdHandle)
-        ld hl,CmdBuf
-        ld bc,64
-        call ApiStRead
-        jr c,CmcReadFailed
-        ld (CmdGot),bc
-        ld a,(CmdActive)
-        xor 1
-        call CmdUse
-        ld bc,(CmdGot)
-        ld a,b
-        or c
-        jr z,CmcCopied
-        ld a,(CmdOut)
-        ld hl,CmdBuf
-        call ApiStWrite
-        jr c,CmcWriteFailed
-        ld hl,(CmdGot)
-        or a
-        sbc hl,bc
-        jr z,CmcChunk
-CmcWriteFailed:
-        ld a,(CmdOut)
-        call ApiStClose
-        jr CmcScrap
-CmcReadFailed:
-        ld a,(CmdActive)
-        xor 1
-        call CmdUse
-        jr CmcWriteFailed
-CmcCopied:
-        ld a,(CmdOut)
-        call ApiStClose
-        jr c,CmcScrap
-        call CmcSrcClose
-        or a
-        ret
-CmcNoRoom:
-        ; Closing the source remains mandatory when opening the
-        ; destination fails; no destination file was created.
-        call CmcSrcClose
-        scf
-        ret
-CmcScrap:
-        ld hl,CmdWork
-        call ApiStDelete
-        call CmcSrcClose
-        scf
-        ret
-CmcSrcClose:
-        ld a,(CmdActive)
-        call CmdUse
-        ld a,(CmdHandle)
-        jp ApiStClose
-; DELETE asks first (default answer NO). The answer arrives in CmdDelAnswer
-; after the dialog has closed, with CmdWork still holding the file name.
-CmdDelete:
-        call CmdPicked
-        ret c
-        ld a,(CmdWork)
-        cp '.'
-        ret z                  ; "." and ".." are not files
-        ld hl,TxtCmdAsk
-        ld de,CmdWork
-        ld bc,CmdDelAnswer
-        jp DlgConfirm
-CmdDelAnswer:
-        or a
-        ret z
-        call ApiStIdent
-        ld (CmdWasK),a
-        ld a,(CmdActive)
-        call CmdUse
-        ld hl,CmdWork
-        call ApiStDelete
-        jr c,CmdDelBad
-        call CmdFixSel
-        ld a,(CmdWasK)
-        call ApiStSelect
-        jp WndRepaintAll
-CmdDelBad:
-        ld a,(CmdWasK)
-        call ApiStSelect
-        ld hl,TxtCmdDelBad
-        ld de,0
-        jp DlgAlert
-CmdFixSel:
-        ld a,(CmdActive)
-        call CmdCount
+
+; A dotted grey line (every other pixel row) between the two panes, drawn
+; only while both are showing.
+CmdVLine:
+        ld a,(WinX)
+        add a,15
+        ld c,a
+        ld a,(WinY)
+        add a,WINCAPH
+        ld e,a
+        ld a,(WinH)
+        sub WINCAPH+1
         ld b,a
-        ld a,(CmdActive)
-        ld (CmdPane),a
-        call CmdSelAt
+CvlRow:
+        push bc
+        push de
+        ld a,e
+        call AddrAt
+        pop de
+        bit 0,e
+        jr nz,CvlSkip
         ld a,(hl)
-        cp b
-        ret c
-        ld a,b
-        or a
-        ret z
-        dec a
+        or $01
         ld (hl),a
+CvlSkip:
+        inc e
+        pop bc
+        djnz CvlRow
         ret
 
         section data
-CmdBk0: db 0
-CmdBk1: db 1
 CmdSel0: db 0
 CmdSel1: db 0
 CmdActive: db 0
@@ -464,15 +311,8 @@ CmdName: dw 0
 CmdWasD: db 0
 CmdKeyCh: db 0
 CmdWasK: db 0
-CmdHandle: db 0
-CmdOut: db 0
-CmdGot: dw 0
 CmdWork: ds 13
-CmdBuf: ds 64
-TxtCmdRoot: db 'ROOT',0
-TxtCmdBin: db 'BIN',0
+CmdStat: ds 34
+TxtCmdBin: db '/bin',0
+TxtCmdDoc: db '/usr/doc',0
 TxtCmdBlank: db ' ',0
-TxtCmdAsk: db 'DELETE THIS FILE?',0
-TxtCmdExists: db 'FILE ALREADY EXISTS',0
-TxtCmdCopyBad: db 'COPY FAILED',0
-TxtCmdDelBad: db 'DELETE FAILED',0

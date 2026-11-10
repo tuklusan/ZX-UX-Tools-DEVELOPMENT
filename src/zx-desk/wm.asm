@@ -5,7 +5,6 @@
         global WndInit
         global WndOpen
         global WndClose
-        global WndCloseNow
         global WndSelect
         global WndRepaintAll
         global WndFocusTo
@@ -36,7 +35,6 @@ APP_TITLE equ 6
 APP_X equ 8
 APP_DRAW equ 2
 APP_INIT equ 0
-APP_CLOSE equ 12
 
 WndInit:
         xor a
@@ -223,9 +221,6 @@ WndNoRoom:
         ret
 
 ; Original close-on-front / z-list shift (with process-local slot release).
-WndCloseNow:
-        ld a,1
-        ld (WndForce),a
 WndClose:
         ld a,(WndCount)
         or a
@@ -233,15 +228,6 @@ WndClose:
         ld a,(WndZ)
         ld (WndClosing),a
         call WndSelect
-        ld a,(WndForce)
-        or a
-        jr nz,WcGo
-        ld c,APP_CLOSE
-        call AppCall
-        ret c
-WcGo:
-        xor a
-        ld (WndForce),a
         ld a,(WndCount)
         dec a
         jr z,WcShifted
@@ -318,6 +304,5 @@ WndPaintOne:
         section data
 TxtNoRoom: db 'CLOSE A WINDOW FIRST',0
 WndUsed: db 0
-WndForce: db 0
 WndClosing: db 0
 WndWantApp: dw 0

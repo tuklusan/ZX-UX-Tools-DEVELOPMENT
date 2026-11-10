@@ -1,14 +1,13 @@
-; ZXDesk directory functions use ZX-UX filesystem calls.
+; ZXDesk directory functions use ZX-UX filesystem calls, read-only.
 ; Directory records in ZX-UX are ten bytes (inode + eight-byte name).
+; The two Commander panes are backend 0 = /bin and backend 1 = /usr/doc.
         section text
         global ApiStSelect
         global ApiStIdent
         global ApiStDir
         global ApiStOpen
         global ApiStRead
-        global ApiStWrite
         global ApiStClose
-        global ApiStDelete
         extern zx_syscall
 ApiStSelect:
         cp 2
@@ -22,15 +21,15 @@ StBad:
 ApiStIdent:
         ld a,(StBackend)
         ret
-; A=one-based? Original routine uses zero-based entry index.
-; Select root or /bin; returns HL=name, carry on end.
+; A = zero-based entry index in the selected directory; returns HL=name,
+; carry on end.
 ApiStDir:
         ld (StWanted),a
+        ld hl,StBin
         ld a,(StBackend)
         or a
-        ld hl,StRoot
         jr z,SdPath
-        ld hl,StBin
+        ld hl,StDoc
 SdPath:
         ld de,0
         ld a,5
@@ -79,24 +78,25 @@ SdEnd:
         call zx_syscall
         scf
         ret
-; Translate a ZXDesk device/name into a ZX-UX absolute path. The
-; two Commander panes are / and /bin, not separate physical disk devices.
-; HL=basename (up to 8 bytes), return HL=process-local pathname.
+; HL=basename (up to 8 bytes) -> HL=absolute path in the selected directory.
 StPath:
         push hl
-        ld de,StFilePath
+        ld hl,StBinPrefix
         ld a,(StBackend)
         or a
-        jr z,StPathRoot
-        ld hl,StBinPrefix
-        ld bc,5
-        ldir
-        jr StPathCopy
-StPathRoot:
-        ld a,'/'
+        jr z,StPathPfx
+        ld hl,StDocPrefix
+StPathPfx:
+        ld de,StFilePath
+StPfxCopy:
+        ld a,(hl)
+        or a
+        jr z,StPfxDone
         ld (de),a
+        inc hl
         inc de
-StPathCopy:
+        jr StPfxCopy
+StPfxDone:
         pop hl
         ld b,8
 StPathLoop:
@@ -113,16 +113,10 @@ StPathEnd:
         ld hl,StFilePath
         ret
 
-; ZXDesk's original file interface returns the descriptor in A;
-; ZX-UX returns it in HL. Carry retains the kernel's error status.
-; HL=name, B=0 read, B!=0 create/overwrite.
+; ZXDesk's original file interface returns the descriptor in A; ZX-UX returns
+; it in HL. Carry retains the kernel's error status. HL=name; read-only.
 ApiStOpen:
-        push bc
         call StPath
-        pop bc
-        ld a,b
-        or a
-        jr nz,StCreate
         ld de,0
         ld a,5
         call zx_syscall
@@ -130,18 +124,6 @@ ApiStOpen:
         ld a,l
         or a
         ret
-StCreate:
-        ld de,$01b6
-        ld a,8
-        call zx_syscall
-        ret c
-        ld a,l
-        or a
-        ret
-ApiStDelete:
-        call StPath
-        ld a,10
-        jp zx_syscall
 ; A=fd, HL=buffer, BC=count; out BC=count (or carry).
 ApiStRead:
         ld e,l
@@ -149,16 +131,6 @@ ApiStRead:
         ld l,a
         ld h,0
         ld a,3
-        call zx_syscall
-        ld b,h
-        ld c,l
-        ret
-ApiStWrite:
-        ld e,l
-        ld d,h
-        ld l,a
-        ld h,0
-        ld a,4
         call zx_syscall
         ld b,h
         ld c,l
@@ -173,9 +145,10 @@ StBackend: db 0
 StWanted: db 0
 StIx: db 0
 StFD: dw 0
-StRoot: db '/',0
 StBin: db '/bin',0
-StBinPrefix: db '/bin/'
-StFilePath: ds 15
+StDoc: db '/usr/doc',0
+StBinPrefix: db '/bin/',0
+StDocPrefix: db '/usr/doc/',0
+StFilePath: ds 18               ; '/usr/doc/' + 8 + end mark
 StEntry: ds 10
 StName: ds 9

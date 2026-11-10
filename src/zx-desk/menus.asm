@@ -25,17 +25,14 @@
         extern PxRow
         extern PrintInv
         extern PrintDim
-        extern WinApp
-        extern AppNote
         extern WndCount
         extern WndZ
         extern WndRecAt
         extern AppAt
         extern PrintStrPx
         extern WndOpen
-        extern NoteMenuSave
         extern WndRepaintAll
-        extern quit_try
+        extern clean_exit
         extern SetJoyEnabled
         extern WndCascade
         extern WndTile
@@ -259,24 +256,9 @@ MenuEnabled:
         add hl,de
         ld a,(hl)
         jr MeHasSlot
-MeFile:
-        ld a,c
-        cp 2
-        jr z,MeSave
-        or a                    ; 0 = NEW (Notes), 1 = OPEN (Files)
-        ld a,0
-        jr z,MeHasSlot
+MeFile:                         ; FILE holds OPEN, which launches Files
         ld a,3
         jr MeHasSlot
-MeSave:
-        ld a,(WndCount)
-        or a
-        jr z,MeNo
-        ld hl,(WinApp)
-        ld de,AppNote
-        or a
-        sbc hl,de
-        jr nz,MeNo
 MeYes:
         ld a,1
         ret
@@ -355,7 +337,7 @@ MnaNext:
         add hl,de
         jr MnaLoop
 ; Application opening uses the upstream ZXDesk indices (not menu IDs).
-NoteMenuNew:
+NotesOpen:
         xor a
         jp WndOpen
 AboutOpen:
@@ -371,7 +353,7 @@ TermOpen:
         ld a,4
         jp WndOpen
 QuitAction:
-        jp quit_try
+        jp clean_exit
 ; Sinclair joystick navigation on/off. The label shows the new state.
 JoyToggle:
         ld a,(SetJoyEnabled)
@@ -390,14 +372,14 @@ JtLabel:
 MenuDefs:
         db 1,8,10,7
         dw MnPtrs1
-        db 10,6,6,3
+        db 10,6,6,1
         dw MnPtrs2
         db 17,6,8,2
         dw MnPtrs3
         db 24,6,6,1
         dw MnPtrs4
 MnPtrs1: dw MnClock, MnConsole, MnFiles, MnNotes, MnSep, MnJoy, MnQuit
-MnPtrs2: dw MnNew, MnOpen, MnSave
+MnPtrs2: dw MnOpen
 MnPtrs3: dw MnCascade, MnTile
 MnPtrs4: dw MnAbout
 MnClock: db 'CLOCK',0
@@ -407,9 +389,7 @@ MnNotes: db 'NOTES',0
 MnSep: db 0
 MnJoy: db 'SINCLAIR JOY OFF',0
 MnQuit: db 'QUIT',0
-MnNew: db 'NEW',0
 MnOpen: db 'OPEN',0
-MnSave: db 'SAVE',0
 MnCascade: db 'CASCADE',0
 MnTile: db 'TILE',0
 MnAbout: db 'ABOUT',0
@@ -425,17 +405,13 @@ MnActions:
         db 1,2
         dw CmdOpenWin
         db 1,3
-        dw NoteMenuNew
+        dw NotesOpen
         db 1,5
         dw JoyToggle
         db 1,6
         dw QuitAction
         db 2,0
-        dw NoteMenuNew
-        db 2,1
         dw CmdOpenWin
-        db 2,2
-        dw NoteMenuSave
         db 3,0
         dw WndCascade
         db 3,1

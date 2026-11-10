@@ -1,15 +1,10 @@
-; ZXDesk D3 modal Confirm / Save3 / Alert (src/dialog.inc), MIT.
-; ZX-UX adaptation: overlay restoration via back-to-front recomposition,
-; not private screen save-under or pointer/beeper hardware access.
+; ZXDesk D3 modal Alert (src/dialog.inc), MIT. The only dialog left: a notice
+; with one OK button. ZX-UX adaptation: the overlay is removed by back-to-front
+; recomposition, not private screen save-under or pointer/beeper hardware.
         section text
-        global DlgConfirm
-        global DlgSave3
         global DlgAlert
-        global TxtNoSave
+        global DlgClose
         global DlgUp
-        global DgEscape
-        extern PnlPush
-        extern PnlPop
         extern PnlPaint
         extern PnlX
         extern PnlY
@@ -25,69 +20,16 @@ DGX equ 10
 DGY equ 52
 DGW equ 14
 DGROW0 equ DGY+10
-DGH equ 52
+DGH equ 36
 PT_LABEL equ 0
 PT_ACTION equ 1
 PTSIZE equ 5
-DlgConfirm:
-        ld (DgLine1),hl
-        ld (DgLine2),de
-        ld (DgAfter),bc
-        ld hl,DgConfirmRows
-        ld (DgTab),hl
-        ld a,4
-        ld (DgCount),a
-        ld a,2
-        ld (DgFocus),a
-        ld hl,TxtDdConfirm
-        ld (DgTitle),hl
-        jr DgOpen
-DlgSave3:
-        ld (DgLine1),hl
-        ld (DgLine2),de
-        ld (DgAfter),bc
-        ld hl,DgSaveRows
-        ld (DgTab),hl
-        ld a,5
-        ld (DgCount),a
-        ld a,2
-        ld (DgFocus),a
-        ld hl,TxtDdSave
-        ld (DgTitle),hl
-        jr DgOpen
+; HL = line 1, DE = line 2 (0 = none). Close it with Enter or EDIT.
 DlgAlert:
-        ld (DgLine1),hl
-        ld (DgLine2),de
-        ld hl,0
-        ld (DgAfter),hl
-        ld hl,DgAlertRows
-        ld (DgTab),hl
-        ld a,3
-        ld (DgCount),a
-        ld a,2
-        ld (DgFocus),a
-        ld hl,TxtDdAlert
-        ld (DgTitle),hl
-DgOpen:
-        ld hl,(DgTab)
-        inc hl
-        ld de,(DgLine1)
-        ld (hl),e
-        inc hl
-        ld (hl),d
-        ld hl,(DgTab)
-        ld de,PTSIZE+1
-        add hl,de
-        ld de,(DgLine2)
-        ld (hl),e
-        inc hl
-        ld (hl),d
-        call PnlPush
-        ret c
-        ld hl,DlgUp
-        inc (hl)
-        ld hl,DgDepth
-        inc (hl)
+        ld (DgRows+1),hl
+        ld (DgRows+PTSIZE+1),de
+        ld a,1
+        ld (DlgUp),a
         ld a,DGX
         ld (PnlX),a
         ld a,DGY
@@ -98,101 +40,27 @@ DgOpen:
         ld (PnlH),a
         ld a,DGROW0
         ld (PnlRow0),a
-        ld a,(DgCount)
+        ld a,3
         ld (PnlRows),a
-        ld hl,(DgTab)
-        ld (PnlTab),hl
-        ld hl,(DgTitle)
-        ld (PnlTitle),hl
-        ld a,(DgFocus)
-        ld (PnlFocus),a
-        jp PnlPaint
-DgSave:
-        ld a,2
-        jr DgAnswer
-DgDiscard:
-        ld a,1
-        jr DgAnswer
-DgEscape:
-DgCancel:
-        xor a
-        jr DgAnswer
-DgYes:
-        ld a,1
-        jr DgAnswer
-DgNo:
-        xor a
-        jr DgAnswer
-DgOk:
-        xor a
-DgAnswer:
-        ld (DgResult),a
-        call DgClose
-        ld hl,(DgAfter)
-        ld a,h
-        or l
-        ret z
-        ld a,(DgResult)
-        jp (hl)
-DgClose:
-        ld a,(DgDepth)
-        or a
-        ret z
         dec a
-        ld (DgDepth),a
-        ld hl,DlgUp
-        dec (hl)
-        call PnlPop
-        call WndRepaintAll
-        ld a,(DlgUp)
-        or a
-        ret z
+        ld (PnlFocus),a
+        ld hl,DgRows
+        ld (PnlTab),hl
+        ld hl,TxtDdAlert
+        ld (PnlTitle),hl
         jp PnlPaint
+DlgClose:
+        xor a
+        ld (DlgUp),a
+        jp WndRepaintAll
         section data
-DgConfirmRows:
+DgRows:
         db PT_LABEL
         dw 0,0
         db PT_LABEL
         dw 0,0
         db PT_ACTION
-        dw TxtDdNo,DgNo
-        db PT_ACTION
-        dw TxtDdYes,DgYes
-DgSaveRows:
-        db PT_LABEL
-        dw 0,0
-        db PT_LABEL
-        dw 0,0
-        db PT_ACTION
-        dw TxtDdCancel,DgCancel
-        db PT_ACTION
-        dw TxtDdDiscard,DgDiscard
-        db PT_ACTION
-        dw TxtDdSaveIt,DgSave
-DgAlertRows:
-        db PT_LABEL
-        dw 0,0
-        db PT_LABEL
-        dw 0,0
-        db PT_ACTION
-        dw TxtDdOk,DgOk
-TxtDdConfirm: db 'CONFIRM',0
+        dw TxtDdOk,0
 TxtDdAlert: db 'NOTICE',0
-TxtDdYes: db 'YES',0
-TxtDdNo: db 'NO',0
 TxtDdOk: db 'OK',0
-TxtDdSave: db 'UNSAVED',0
-TxtDdCancel: db 'CANCEL',0
-TxtDdDiscard: db 'DISCARD',0
-TxtDdSaveIt: db 'SAVE',0
-TxtNoSave: db 'COULD NOT SAVE',0
-DgLine1: dw 0
-DgLine2: dw 0
-DgAfter: dw 0
-DgTab: dw 0
-DgTitle: dw 0
-DgCount: db 0
-DgFocus: db 0
-DgResult: db 0
-DgDepth: db 0
 DlgUp: db 0
