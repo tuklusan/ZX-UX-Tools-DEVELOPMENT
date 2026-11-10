@@ -64,6 +64,24 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   changed, `ClkTick` redraws the Clock window alone, without touching focus
   or the other windows, and only if no window above it overlaps it; it does
   nothing while a menu or a notice is on screen or the Clock is closed.
+- Repainting: a full repaint (`WndRepaintAll`: desktop, then every window
+  back to front) is only done when the picture under a window can have
+  changed (open, close, next window, arrange, move, a notice closing, a menu
+  being erased). A key handled by the front window repaints that window
+  alone (`WndPaintOne`), because it is on top; the application can refine
+  that through `KeyPaint` (0 its window, 1 only the Console's input line,
+  2 nothing): typing or deleting in the Console redraws just the input row,
+  and a key an application ignores (arrows in the Console, a scroll past
+  either end of a Notes page, any key in Clock or About) repaints nothing.
+  Opening a menu, and moving the
+  selection inside it, draws the menu over the screen as it is; only cycling
+  to another menu and closing one repaint. The desktop background is drawn
+  in one pass over all 192 rows, so the screen is never blanked. Files reads
+  each directory once per pane per redraw (`ApiStDirOpen`/`Next`/`Close`)
+  instead of once per row. A full 6912-byte off-screen buffer is not
+  possible within the memory budget. Measured per key (20 ms frames): typing
+  in the Console 13.6 -> 0.6, menu Up/Down 16.3 -> 2.8, Files arrows
+  44 -> 7.7, window move 13.1 -> 11.0, menu switch 15.7 -> 11.8.
 - Keyboard: EDIT (CAPS SHIFT+1) opens the menu bar and cycles the menu
   headings. After EDIT, M moves the front window (arrow keys, 8 pixels at
   a time, kept inside the desktop; Enter or EDIT drops it and the status
@@ -135,7 +153,7 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
 
 **Memory budget:** the resident program (SSX1 image + bss + stack; `image`
 and `bss` are in the SSX1 header, the stack is 192: the deepest use measured
-over every regression scenario is 79 bytes) totals 8474 bytes. ZX-UX
+over every regression scenario is 79 bytes) totals 8630 bytes. ZX-UX
 lets files use only the arena below the lent window, so a program above
 about 9.9 KB would leave no room to create a file and reading a packed file
 could fail; ZXDesk creates no files, and keeping it under about 9.8 KB

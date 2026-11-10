@@ -16,6 +16,7 @@
         extern ApiStOpen
         extern ApiStRead
         extern ApiStClose
+        extern KeyPaint
 
 ; -> A = visible text rows in the window.
 NoteVisRows:
@@ -127,14 +128,14 @@ NoteKey:
         cp 11
         jr z,NkUp
         cp 10
-        ret nz
+        jr nz,NkNone
         call NoteVisRows
         ld hl,NoteTop
         add a,(hl)
         call NoteSkip          ; HL = first row below the page
         ld a,(hl)
         or a
-        ret z                  ; nothing below
+        jr z,NkNone            ; nothing below
         ld hl,NoteTop
         inc (hl)
         ret
@@ -142,8 +143,12 @@ NkUp:
         ld hl,NoteTop
         ld a,(hl)
         or a
-        ret z
+        jr z,NkNone
         dec (hl)
+        ret
+NkNone:
+        ld a,2                 ; the page did not change: nothing to repaint
+        ld (KeyPaint),a
         ret
 
 ; HL = basename in the selected directory (ApiOpenFile has checked it is not a

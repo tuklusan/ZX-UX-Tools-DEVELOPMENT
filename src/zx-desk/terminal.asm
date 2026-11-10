@@ -6,11 +6,23 @@
         global TermInit
         global TermDraw
         global TermKey
+        global TermRepaintLine
         extern ApiWinPrint
         extern ApiWinPrintInv
+        extern DevFillRect
+        extern FrX
+        extern FrY
+        extern FrW
+        extern FrH
+        extern FrPat
+        extern WinX
+        extern WinY
+        extern WinW
+        extern KeyPaint
         extern zx_syscall
 
 TERMROWS equ 6
+PROMPTROW equ 48           ; pixel row of the input line inside the window
 TERMWIDTH equ 28
 TERMLINE equ 26
 ; Console has one 269-byte record, shared by its single window.
@@ -49,20 +61,40 @@ TdLoop:
         pop de
         dec d
         jr nz,TdLoop
+TermDrawLine:
         ld hl,TextPrompt
-        ld b,48
+        ld b,PROMPTROW
         ld c,0
         call ApiWinPrint
         ld hl,TermInput
-        ld b,48
+        ld b,PROMPTROW
         ld c,2
         call ApiWinPrint
         ld hl,TextCaret
         ld a,(TermLen)
         add a,2
         ld c,a
-        ld b,48
+        ld b,PROMPTROW
         jp ApiWinPrintInv
+
+; Only the input line changed (a character typed or deleted): blank its row
+; inside the window borders and draw it again, nothing else.
+TermRepaintLine:
+        ld a,(WinX)
+        inc a
+        ld (FrX),a
+        ld a,(WinY)
+        add a,10+PROMPTROW
+        ld (FrY),a
+        ld a,(WinW)
+        sub 2
+        ld (FrW),a
+        ld a,8
+        ld (FrH),a
+        ld hl,0
+        ld (FrPat),hl
+        call DevFillRect
+        jr TermDrawLine
 
 ; A complete command line is run only when ENTER arrives.
 TermKey:
@@ -71,21 +103,21 @@ TermKey:
         cp 12
         jr z,TkBack
         cp 8
-        ret z
+        jr z,TkNone
         cp 9
-        ret z
+        jr z,TkNone
         cp 10
-        ret z
+        jr z,TkNone
         cp 11
-        ret z
+        jr z,TkNone
         cp ' '
-        ret c
+        jr c,TkNone
         cp 127
-        ret nc
+        jr nc,TkNone
         ld (TermChar),a
         ld a,(TermLen)
         cp TERMLINE-1
-        ret nc
+        jr nc,TkNone
         ld e,a
         ld d,0
         ld hl,TermInput
@@ -96,11 +128,11 @@ TermKey:
         ld (hl),0
         ld hl,TermLen
         inc (hl)
-        ret
+        jr TkLine
 TkBack:
         ld a,(TermLen)
         or a
-        ret z
+        jr z,TkNone
         dec a
         ld (TermLen),a
         ld e,a
@@ -108,6 +140,16 @@ TkBack:
         ld hl,TermInput
         add hl,de
         ld (hl),0
+        jr TkLine
+; What the entry loop must repaint after this key (KeyPaint): 0 the window,
+; 1 only the input line, 2 nothing.
+TkNone:
+        ld a,2
+        jr TkSet
+TkLine:
+        ld a,1
+TkSet:
+        ld (KeyPaint),a
         ret
 TkEnter:
         ld hl,TextPrompt

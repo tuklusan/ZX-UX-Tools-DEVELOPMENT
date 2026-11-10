@@ -7,6 +7,7 @@
         global AppClock
         global AppTerm
         extern WinApp
+        extern KeyPaint
         extern NoteInit
         extern NoteDrawInterior
         extern NoteKey
@@ -65,6 +66,8 @@ AppCall:
         jp (hl)
 AcNone:
         pop af
+        ld hl,KeyPaint         ; an application without this vector: nothing changed
+        ld (hl),2
         ret
         section data
  ; One descriptor per app. No duplicate state-copy metadata or unused callbacks.

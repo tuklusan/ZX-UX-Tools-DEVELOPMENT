@@ -5,6 +5,9 @@
         global ApiStSelect
         global ApiStIdent
         global ApiStDir
+        global ApiStDirOpen
+        global ApiStDirNext
+        global ApiStDirClose
         global ApiStOpen
         global ApiStRead
         global ApiStClose
@@ -21,10 +24,10 @@ StBad:
 ApiStIdent:
         ld a,(StBackend)
         ret
-; A = zero-based entry index in the selected directory; returns HL=name,
-; carry on end.
-ApiStDir:
-        ld (StWanted),a
+; Directory streaming: one open directory at a time. ApiStDirOpen, then
+; ApiStDirNext for each entry (HL = its name, carry at the end or on an error),
+; then ApiStDirClose.
+ApiStDirOpen:
         ld hl,StBin
         ld a,(StBackend)
         or a
@@ -34,35 +37,28 @@ SdPath:
         ld de,0
         ld a,5
         call zx_syscall
-        ret c
+        jr c,SdBad
         ld (StFD),hl
-        xor a
-        ld (StIx),a
-SdNext:
+        ret
+SdBad:
+        ld hl,$ffff            ; later reads and the close just fail
+        ld (StFD),hl
+        scf
+        ret
+ApiStDirNext:
         ld hl,(StFD)
         ld de,StEntry
         ld bc,10
         ld a,3
         call zx_syscall
-        jr c,SdEnd
+        ret c
         ld a,l
         cp 10
         jr nz,SdEnd
         ld hl,(StEntry)
         ld a,h
         or l
-        jr z,SdNext
-        ld a,(StIx)
-        ld hl,StWanted
-        cp (hl)
-        jr z,SdFound
-        ld hl,StIx
-        inc (hl)
-        jr SdNext
-SdFound:
-        ld hl,(StFD)
-        ld a,6
-        call zx_syscall
+        jr z,ApiStDirNext      ; an unused slot
         ld hl,StEntry+2
         ld de,StName
         ld bc,8
@@ -70,12 +66,40 @@ SdFound:
         xor a
         ld (StName+8),a
         ld hl,StName
-        or a
         ret
 SdEnd:
+        scf
+        ret
+ApiStDirClose:
         ld hl,(StFD)
         ld a,6
-        call zx_syscall
+        jp zx_syscall
+; A = zero-based entry index in the selected directory; returns HL=name,
+; carry past the end.
+ApiStDir:
+        push af                ; the open call may change every register
+        call ApiStDirOpen
+        pop bc
+        ret c
+        ld c,b                 ; C = how many entries to skip
+SdSkip:
+        push bc
+        call ApiStDirNext
+        pop bc
+        jr c,SdIdxEnd
+        ld a,c
+        or a
+        jr z,SdIdxFound
+        dec c
+        jr SdSkip
+SdIdxFound:
+        push hl
+        call ApiStDirClose
+        pop hl
+        or a
+        ret
+SdIdxEnd:
+        call ApiStDirClose
         scf
         ret
 ; HL=basename (up to 8 bytes) -> HL=absolute path in the selected directory.
@@ -142,8 +166,6 @@ ApiStClose:
         jp zx_syscall
         section data
 StBackend: db 0
-StWanted: db 0
-StIx: db 0
 StFD: dw 0
 StBin: db '/bin',0
 StDoc: db '/usr/doc',0

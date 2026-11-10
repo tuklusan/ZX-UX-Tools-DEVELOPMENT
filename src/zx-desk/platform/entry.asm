@@ -3,6 +3,7 @@
         section text
         global start
         global clean_exit
+        global KeyPaint
         global SetJoyEnabled
         global DrawDesktop
         global MenuSel
@@ -16,6 +17,8 @@
         extern WndOpen
         extern WndClose
         extern WndRepaintAll
+        extern WndPaintOne
+        extern TermRepaintLine
         extern WndFocusTo
         extern WndCount
         extern WndZ
@@ -125,9 +128,8 @@ mainloop:
         jr z,desktop_key
         ; Each window's key goes to its original application vector.
         ld a,b
-        ld c,APP_KEY
-        call AppCall
-        jp repaint
+        call KeyToApp
+        jp repaint_front
 
 desktop_key:
         ld a,(SetJoyEnabled)
@@ -285,9 +287,8 @@ quit_key:
         jp z,clean_exit
         ; q is part of a document while a window has focus.
         ld a,'q'
-        ld c,APP_KEY
-        call AppCall
-        jp repaint
+        call KeyToApp
+        jp repaint_front
 ; EDIT (CAPS SHIFT+1) opens/cycles the menu and begins a shortcut.
 ; BREAK (CAPS SHIFT+SPACE) is reserved by the ZX-UX kernel.
 menu_dispatch:
@@ -344,9 +345,10 @@ menu_tab_set:
         push af
         xor a
         ld (MenuSel),a
+        call WndRepaintAll     ; erase the menu that was showing
         pop af
-        call MenuOpenDrop
-	jr repaint
+        call MenuOpenDrop      ; and draw the new one on top
+        jp mainloop
 ; Up/Down skip the dotted separator line.
 menu_previous:
         ld a,(MenuSel)
@@ -361,7 +363,7 @@ MpvLoop:
         jr z,MpvLoop
         ld a,b
         ld (MenuSel),a
-        jr repaint
+        jp menu_redraw
 menu_next:
         ld a,(MenuSel)
         ld b,a
@@ -376,7 +378,7 @@ MnxLoop:
         jr z,MnxLoop
         ld a,b
         ld (MenuSel),a
-        jr repaint
+        jp menu_redraw
 menu_choose:
         ld a,(MenuOpen)
         ld (MnLastMenu),a
@@ -400,12 +402,46 @@ menu_key:
         xor a
         ld (MenuSel),a
         ld a,(MenuOpen)
+        or a
+        jr z,MkOpen
+        push af
+        call WndRepaintAll     ; cycling: erase the menu that was showing
+        pop af
+MkOpen:
         inc a
         cp 5
         jr c,MkSet
         ld a,1
 MkSet:
-        call MenuOpenDrop
+        call MenuOpenDrop      ; draws the menu over the screen as it is
+        jp mainloop
+; The same menu box with another item selected: nothing under it changed.
+menu_redraw:
+        call MenuPaint
+        jp mainloop
+; A key handled by the front window: it is on top, so redrawing it alone is exact.
+repaint_front:
+        ld a,(DlgUp)
+        or a
+        jp nz,mainloop
+        ld a,(KeyPaint)
+        or a
+        jr z,RfWindow
+        cp 2
+        jp z,mainloop          ; the application says nothing changed
+        call TermRepaintLine   ; 1: only the Console's input line changed
+        jp mainloop
+RfWindow:
+        call WndPaintOne
+        jp mainloop
+; A = key. Give it to the front window's application, which may set KeyPaint
+; to say what to repaint: 0 its window (the default), 1 the Console's input
+; line, 2 nothing.
+KeyToApp:
+        ld c,APP_KEY
+        ld hl,KeyPaint
+        ld (hl),0
+        jp AppCall
 repaint:
         ; A dialog opened by the key just handled stays on screen untouched.
         ld a,(DlgUp)
@@ -517,12 +553,37 @@ done:
 
 ; ZXDesk bitmap desktop under ZX-UX's claimed Spectrum screen.
 DrawDesktop:
-        ld hl,SCREEN
-        ld de,SCREEN+1
-        ld bc,6143
-        ld (hl),0
+        xor a
+BgLoop:
+        ld (BgRow),a
+        ld c,0                 ; rows 0..8 and 183..191 are blank
+        cp 9
+        jr c,BgFill
+        cp 183
+        jr nc,BgFill
+        and 3                  ; the lattice: $88 on rows = 0 mod 4, $22 on rows = 2 mod 4
+        jr z,BgA
+        cp 2
+        jr nz,BgFill
+        ld c,$22
+        jr BgFill
+BgA:
+        ld c,$88
+BgFill:
+        ld a,(BgRow)
+        push bc
+        call RowAddr
+        pop bc
+        ld (hl),c
+        ld d,h
+        ld e,l
+        inc e
+        ld bc,31
         ldir
-        call DrawLattice
+        ld a,(BgRow)
+        inc a
+        cp 192
+        jr c,BgLoop
         xor a
         ld (PrintInv),a
         ld a,1
@@ -552,41 +613,6 @@ DdStat:
         ldir
         ret
 
- ; ZXDesk lattice: $88 on pixel rows modulo four 0 and $22 on 2.
-; Draw only after ZX-UX grants the process the screen.
-DrawLattice:
-        ld a,9
-LdRow:
-        ld (BgRow),a
-        and 3
-        ld c,0
-        jr z,LdDotA
-        cp 2
-        jr z,LdDotB
-        jr LdNext
-LdDotA:
-        ld c,$88
-        jr LdPaint
-LdDotB:
-        ld c,$22
-LdPaint:
-        ld a,(BgRow)
-        push bc
-        call RowAddr
-        pop bc
-        ld a,c
-        ld b,32
-LdFill:
-        ld (hl),a
-        inc hl
-        djnz LdFill
-LdNext:
-        ld a,(BgRow)
-        inc a
-        cp 183
-        jr c,LdRow
-        ret
-
         section data
 rawtty: db 0,0,0,0,$a0,0
 owned: db 0
@@ -597,6 +623,7 @@ TxtMenu: db 'ZX DESK           FILE          VIEW          HELP',0
 TxtStatus: db 'EDIT (CAPS+1): MENU THEN M=MOVE N=NEXT X=CLOSE Q=QUIT ZX DESK',0
 TxtMove: db 'ARROWS MOVE THE WINDOW  ENTER=DONE',0
 MoveMode: db 0
+KeyPaint: db 0
 TxtMem: db '/dev/mem',0
 MemFd: db 0
 KeyPair: ds 2

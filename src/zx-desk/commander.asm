@@ -12,6 +12,9 @@
         extern ApiStIdent
         extern ApiStSelect
         extern ApiStDir
+        extern ApiStDirOpen
+        extern ApiStDirNext
+        extern ApiStDirClose
         extern ApiWinRows
         extern WinW
         extern ApiWinPrintIf
@@ -52,11 +55,12 @@ CmrOne:
         ret
 CmdCount:
         call CmdUse
-        ld b,0
+        call ApiStDirOpen
+        ld b,0                 ; (the open call changes B, so after it)
+        jr c,CmcNone
 CmcLoop:
-        ld a,b
         push bc
-        call ApiStDir
+        call ApiStDirNext
         pop bc
         jr c,CmcDone
         inc b
@@ -64,6 +68,10 @@ CmcLoop:
         cp 99
         jr c,CmcLoop
 CmcDone:
+        push bc
+        call ApiStDirClose
+        pop bc
+CmcNone:
         ld a,b
         ret
 
@@ -127,19 +135,28 @@ CmpTop0:
         xor a
 CmpTopSet:
         ld (CmdTop),a
+        call ApiStDirOpen      ; read the directory once for the whole pane
+        ld a,(CmdTop)
+        ld b,a
+CmpSkip:
+        ld a,b
+        or a
+        jr z,CmpSkipDone
+        push bc
+        call ApiStDirNext      ; the entries scrolled off the top
+        pop bc
+        dec b
+        jr CmpSkip
+CmpSkipDone:
         xor a
         ld (CmdRow),a
 CmpRow:
-        ld a,(CmdRow)
-        push af
-        ld hl,CmdTop
-        add a,(hl)
-        call ApiStDir
+        call ApiStDirNext
         jr nc,CmpPaint
         ld hl,TxtCmdBlank
 CmpPaint:
         ld (CmdName),hl
-        pop af
+        ld a,(CmdRow)
         ld b,a
         add a,a
         add a,a
@@ -177,7 +194,7 @@ CmpInv:
         ld hl,CmdN
         cp (hl)
         jr c,CmpRow
-        ret
+        jp ApiStDirClose
 CmdDevName:
         call ApiStIdent
         or a
