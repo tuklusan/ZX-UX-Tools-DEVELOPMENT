@@ -10,7 +10,7 @@
         extern ApiWinPrintInv
         extern zx_syscall
 
-TERMROWS equ 8
+TERMROWS equ 6
 TERMWIDTH equ 28
 TERMLINE equ 26
 ; Console has one 269-byte record, shared by its single window.
@@ -29,7 +29,7 @@ TermInit:
         jp TermSay
 
 TermDraw:
-        ld hl,TermRows+2*TERMWIDTH
+        ld hl,TermRows
         xor a
         ld (TermY),a
         ld d,6
@@ -212,42 +212,30 @@ TermDispatch:
         ld a,(TermInput)
         or a
         ret z
+        ld hl,TdTable
+TcLoop:
+        ld e,(hl)
+        inc hl
+        ld d,(hl)
+        inc hl                 ; HL = the command's handler pointer
+        ld a,d
+        or e
+        jr z,TcUnknown
+        push hl
         ld hl,TermInput
-        ld de,CmdHelp
         call TermEqual
-	jr z,TermHelp
-        ld hl,TermInput
-        ld de,CmdPwd
-        call TermEqual
-	jr z,TermPwd
-        ld hl,TermInput
-        ld de,CmdLs
-        call TermEqual
-        jp z,TermLs
-        ld hl,TermInput
-        ld de,CmdCd
-        call TermEqual
-        jp z,TermCd
-        ld hl,TermInput
-        ld de,CmdCat
-        call TermEqual
-        jp z,TermCat
-        ld hl,TermInput
-        ld de,CmdEcho
-        call TermEqual
-	jr z,TermEcho
-        ld hl,TermInput
-        ld de,CmdDf
-        call TermEqual
-        jp z,TermDf
-        ld hl,TermInput
-        ld de,CmdPs
-        call TermEqual
-        jp z,TermPs
-        ld hl,TermInput
-        ld de,CmdClear
-        call TermEqual
-	jr z,TermClear
+        pop hl
+        jr z,TcFound
+        inc hl
+        inc hl
+        jr TcLoop
+TcFound:
+        ld e,(hl)
+        inc hl
+        ld d,(hl)
+        ex de,hl
+        jp (hl)
+TcUnknown:
         ld hl,TextUnknown
         jp TermSay
 TermHelp:
@@ -687,6 +675,8 @@ CmdEcho: db 'echo',0
 CmdDf: db 'df',0
 CmdPs: db 'ps',0
 CmdClear: db 'clear',0
+TdTable: dw CmdHelp,TermHelp,CmdPwd,TermPwd,CmdLs,TermLs,CmdCd,TermCd,CmdCat,TermCat
+        dw CmdEcho,TermEcho,CmdDf,TermDf,CmdPs,TermPs,CmdClear,TermClear,0
 TextPrompt: db '$ ',0
 TextCaret: db '_',0
 TextGreeting: db 'ZX-UX command console',0

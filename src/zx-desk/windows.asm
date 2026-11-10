@@ -23,6 +23,7 @@
         global WndFlush
         global WdAbout
         extern AddrAt
+        extern DrawEdges
         extern ScrDown
         extern DevFillRect
         extern FrX
@@ -45,29 +46,12 @@ WdEdges:
                 ld      a,(WinH)
                 sub     WinCapH+1
                 ld      b,a
-WdEdge:
-                push    bc
                 ld      a,(WinX)
                 ld      c,a
-                ld      a,(PxRow)
-                call    AddrAt
-                ld      a,(hl)
-                or      $80
-                ld      (hl),a
                 ld      a,(WinW)
                 dec     a
                 ld      e,a
-                ld      d,0
-                add     hl,de
-                ld      a,(hl)
-                or      $01
-                ld      (hl),a
-                ld      a,(PxRow)
-                inc     a
-                ld      (PxRow),a
-                pop     bc
-                djnz    WdEdge
-                ret
+                jp      DrawEdges
 
 ; Original ZXDesk: close-box image on the window title cap.
 WdCloseBox:
@@ -133,28 +117,12 @@ WdFills:
         inc a
         ld (PxRow),a
         ld b,WinCapH-2
-WdfCapEdge:
-        push bc
         ld a,(WinX)
         ld c,a
-        ld a,(PxRow)
-        call AddrAt
-        ld a,(hl)
-        or $80
-        ld (hl),a
         ld a,(WinW)
         dec a
         ld e,a
-        ld d,0
-        add hl,de
-        ld a,(hl)
-        or $01
-        ld (hl),a
-        ld a,(PxRow)
-        inc a
-        ld (PxRow),a
-        pop bc
-        djnz WdfCapEdge
+        call DrawEdges
         ld a,(WinX)
         ld (FrX),a
         ld a,(WinW)

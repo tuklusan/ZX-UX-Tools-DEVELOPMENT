@@ -20,6 +20,7 @@
         extern FrH
         extern FrPat
         extern AddrAt
+        extern DrawEdges
         extern PxRow
         extern PrintInv
         extern PrintStrPx
@@ -123,28 +124,12 @@ PnlPaint:
         push bc
         call DevFillRect
         pop bc
-PnpEdge:
-        push bc
         ld a,(PnlX)
         ld c,a
-        ld a,(PxRow)
-        call AddrAt
-        ld a,(hl)
-        or $80
-        ld (hl),a
         ld a,(PnlW)
         dec a
         ld e,a
-        ld d,0
-        add hl,de
-        ld a,(hl)
-        or $01
-        ld (hl),a
-        ld a,(PxRow)
-        inc a
-        ld (PxRow),a
-        pop bc
-        djnz PnpEdge
+        call DrawEdges
         ld a,1
         ld (PrintInv),a
         ld a,(PnlY)

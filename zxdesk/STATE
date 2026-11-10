@@ -1,4 +1,4 @@
 phase=read-only-viewer
 tape=present
 next=Reduce full-screen repainting (the whole desktop is redrawn on every key) and evaluate double buffering within the memory budget.
-blocker=none; resident total is 8831 bytes (image+bss+stack) against a 9.8 KB budget, and ZXDesk writes nothing to the filesystem.
+blocker=none; resident total is 8474 bytes (image+bss+stack) against a 9.8 KB budget, and ZXDesk writes nothing to the filesystem.

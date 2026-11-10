@@ -42,7 +42,7 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   for five applications: Notes, About, Clock, Files (Commander) and
   Console. Each application has exactly one live state record: Notes about
   275 bytes (a 256-byte text page, a truncation line and the scroll row),
-  Console 269 bytes, Commander 5 bytes; About and Clock need no per-window
+  Console 213 bytes, Commander 5 bytes; About and Clock need no per-window
   state. App-local scratch remains separate. There are no 273-byte
   window-state slots or app-state copies. `desktop.asm` draws the original
   bitmap desktop icons (NOTE, CLOCK, FILES, ABOUT, CONSOLE) with a compact
@@ -106,10 +106,11 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   DESK menu and is not saved. There is no sound setting. No mouse support
   is planned.
 - `terminal.asm` adds a small command-console application using the
-  ZXDesk application descriptor model. Its single 269-byte live state
-  contains a path, input and eight-line text history. Its default window
+  ZXDesk application descriptor model. Its single 213-byte live state
+  contains a path, input and a six-line text history. Its default window
   is 20x72 at column 11, row 48 (half the former 30x96 area), showing
-  the newest six history rows without duplicating or reducing state. Built-in `help`, `pwd`, `ls`, `cd`,
+  all six history rows without duplicating or reducing state. Commands are
+  found through a name/handler table. Built-in `help`, `pwd`, `ls`, `cd`,
   `cat`, `echo`, `df`, `ps`, `clear` use ZX-UX filesystem calls where
   applicable; `ps` reads native PID/state/name snapshots through
   `/dev/mem` without forking, and `df` prints the free arena bytes and
@@ -133,7 +134,8 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   or ZX-UX boot cassette changes. ZX-UX owns font storage.
 
 **Memory budget:** the resident program (SSX1 image + bss + stack; `image`
-and `bss` are in the SSX1 header, the stack is 384) totals 8831 bytes. ZX-UX
+and `bss` are in the SSX1 header, the stack is 192: the deepest use measured
+over every regression scenario is 79 bytes) totals 8474 bytes. ZX-UX
 lets files use only the arena below the lent window, so a program above
 about 9.9 KB would leave no room to create a file and reading a packed file
 could fail; ZXDesk creates no files, and keeping it under about 9.8 KB
@@ -156,7 +158,7 @@ done
 for m in app wm note commander screen text windows desktop menus clock panel dialog arrange terminal; do
   python3 sdk/bin/py/ras.py -o zxdesk/build/$m.sso src/zx-desk/$m.asm
 done
-python3 sdk/bin/py/rld.py --entry start --stack 384 --heap 0 \
+python3 sdk/bin/py/rld.py --entry start --stack 192 --heap 0 \
   -o zxdesk/build/zxdesk.ssx \
   $(for m in entry api storage rect zxux app wm note commander screen text windows desktop menus clock panel dialog arrange terminal; do printf 'zxdesk/build/%s.sso ' "$m"; done)
 python3 sdk/bin/py/rtap.py -o zxdesk/tzx/ZXDESK.tzx \

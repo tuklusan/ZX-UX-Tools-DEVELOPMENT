@@ -21,7 +21,7 @@
         extern FrW
         extern FrH
         extern FrPat
-        extern AddrAt
+        extern DrawEdges
         extern PxRow
         extern PrintInv
         extern PrintDim
@@ -119,28 +119,12 @@ MenuPaint:
         ld a,(MnH)
         sub 2
         ld b,a
-MpEdge:
-        push bc
         ld a,(MnX)
         ld c,a
-        ld a,(PxRow)
-        call AddrAt
-        ld a,(hl)
-        or $80
-        ld (hl),a
         ld a,(MnW)
         dec a
         ld e,a
-        ld d,0
-        add hl,de
-        ld a,(hl)
-        or $01
-        ld (hl),a
-        ld a,(PxRow)
-        inc a
-        ld (PxRow),a
-        pop bc
-        djnz MpEdge
+        call DrawEdges
         ld a,(MnY)
         inc a
         ld (PxRow),a

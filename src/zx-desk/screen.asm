@@ -6,6 +6,8 @@
         global RowAddr
         global ScrDown
         global AddrAt
+        global DrawEdges
+        extern PxRow
         global FillRowSolid
 
 SCRROWS equ 192
@@ -77,3 +79,26 @@ FrsLoop:
                 ret
 
 ; in: A = pixel row
+
+; Border sides of a box. PxRow = first pixel row, B = rows, C = left screen byte,
+; E = width - 1: set the left pixel (bit 7 of byte C) and the right pixel (bit 0
+; of byte C+E) on each of the rows.
+DrawEdges:
+                push    bc
+                push    de
+                ld      a,(PxRow)
+                call    AddrAt
+                pop     de
+                ld      a,(hl)
+                or      $80
+                ld      (hl),a
+                ld      d,0
+                add     hl,de
+                ld      a,(hl)
+                or      $01
+                ld      (hl),a
+                ld      hl,PxRow
+                inc     (hl)
+                pop     bc
+                djnz    DrawEdges
+                ret
