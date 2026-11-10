@@ -1,4 +1,4 @@
-phase=source-layout-src-zx-desk
+phase=tile-window-bounds
 tape=present
 next=Recover enough ZX-UX shared arena RAM to restore console mkdir without kernel or boot changes, then finish remaining FILE and VIEW actions.
-blocker=Console mkdir is temporarily replaced by ps because shared arena RAM is exhausted despite free inodes. ZXDesk resident is 12081 bytes (11279 image, 418 BSS, 384 stack).
+blocker=Console mkdir is temporarily replaced by ps because shared arena RAM is exhausted despite free inodes.

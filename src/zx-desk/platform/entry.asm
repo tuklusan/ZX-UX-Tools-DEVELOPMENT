@@ -92,10 +92,10 @@ mainloop:
         ld bc,1
         ld a,3
         call zx_syscall
-        jp c,release
+        jp c,clean_exit
         ld a,h
         or l
-        jp z,release
+        jp z,clean_exit
         call ClkService
         ld a,(key)
         ld b,a
@@ -301,7 +301,7 @@ close_key:
 quit_key:
         ld a,(WndCount)
         or a
-        jp z,release
+        jp z,clean_exit
         ; q is part of a document while a window has focus.
         ld a,'q'
         ld c,APP_KEY
@@ -311,6 +311,10 @@ quit_key:
 ; BREAK (CAPS SHIFT+SPACE) is reserved by the ZX-UX kernel.
 menu_dispatch:
         ld a,b
+        cp 'q'
+        jp z,clean_exit
+        cp 'Q'
+        jp z,clean_exit
         cp 'm'
         jp z,menu_key
         cp 'M'
@@ -441,6 +445,18 @@ repaint:
         or a
         call nz,MenuPaint
         jp mainloop
+
+ ; Normal exit clears the application's bitmap before ZX-UX
+; returns the screen to its text console. BREAK is a kernel kill
+; and cannot execute this process-side cleanup.
+clean_exit:
+        ld hl,SCREEN
+        ld de,SCREEN+1
+        ld bc,6143
+        xor a
+        ld (hl),a
+        ldir
+        jp release
 
 release:
         ld a,(owned)

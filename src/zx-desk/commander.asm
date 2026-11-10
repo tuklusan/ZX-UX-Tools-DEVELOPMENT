@@ -10,6 +10,7 @@
         extern ApiStCaps
         extern ApiStDir
         extern ApiWinRows
+        extern WinW
         extern ApiWinPrintIf
         extern ApiStOpen
         extern ApiStRead
@@ -88,19 +89,34 @@ CmcNone:
 CmdDraw:
         call ApiStIdent
         ld (CmdWasD),a
+        ld a,(WinW)
+        cp 30
+        jr nc,CmdBothPanes
+        ; A tiled half-width window holds one 28-character pane.
+        ld a,(CmdActive)
+        call CmdPane1
+        jr CmdDrawDone
+CmdBothPanes:
         xor a
         call CmdPane1
         ld a,1
         call CmdPane1
+CmdDrawDone:
         ld a,(CmdWasD)
         jp ApiStSelect
 CmdPane1:
         call CmdUse
+        ld a,(WinW)
+        cp 30
+        jr c,CmdNarrowPane
         ld a,(CmdPane)
         or a
         ld a,0
         jr z,CmpLeft
         ld a,CMDPANEW+2
+        jr CmpLeft
+CmdNarrowPane:
+        xor a
 CmpLeft:
         ld (CmdCol),a
         ld c,a

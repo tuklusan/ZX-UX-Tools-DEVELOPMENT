@@ -2,6 +2,7 @@
         section text
         global KeysDraw
         extern WinY
+        extern WinH
         extern WinX
         extern PxRow
         extern PrintInv
@@ -15,6 +16,17 @@ KdLoop:
         ld a,(hl)
         or a
         ret z
+        ; Do not let the final eight scanlines cross this window's bottom.
+        ; Pixel rows 192+ map into the Spectrum's attribute memory.
+        ld a,(WinY)
+        ld b,a
+        ld a,(WinH)
+        add a,b
+        ld b,a
+        ld a,(KeyRow)
+        add a,7
+        cp b
+        ret nc
         push hl
         ld a,(KeyRow)
         ld (PxRow),a
@@ -47,7 +59,7 @@ KeysText:
         db 'EDIT 5: ABOUT',0
         db 'EDIT 6: KEYS',0
         db 'EDIT 7: CONSOLE',0
-        db 'EDIT M: MENU',0
+        db 'EDIT M: MENU Q: QUIT',0
         db 'EDIT N: NEXT WINDOW',0
         db 'EDIT X: CLOSE WINDOW',0
         db 0

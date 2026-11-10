@@ -51,9 +51,11 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   EDIT (CAPS SHIFT+1) cycles menus; EDIT followed by 1..7 launches or
   focuses applications even if windows cover desktop icons. EDIT then N
   cycles windows, EDIT then X closes the front window; EDIT then M
-  cycles the menu headings, as shown in HELP > KEYS. BREAK is reserved
+  cycles the menu headings, and EDIT then Q exits cleanly to the shell,
+  as shown in HELP > KEYS. BREAK is reserved
   by ZX-UX as a process interrupt, so it is never a GUI shortcut. Disabled items are dimmed and
-  never dispatched. VIEW orders Calendar, Clock, Console, Cascade, Tile,
+  never dispatched. Tile clips KEYS to its window and displays only the
+  active FILES pane at half width. VIEW orders Calendar, Clock, Console, Cascade, Tile,
   Desktop. HELP contains KEYS and ABOUT. Save needs Notes focus;
   arranging needs two windows.
 - Original `note.asm`, `calendar.asm`, `clock.asm`, `commander.asm` and
@@ -91,8 +93,7 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   small reusable transfer buffer; console filesystem scratch buffers share
   storage when their live ranges do not overlap. The assembly is optimized
   in source and builds without a separate optimizer dependency. No kernel
-  or ZX-UX boot cassette changes. Current resident size is 12,081 bytes
-  (11,279 image + 418 BSS + 384 stack); ZX-UX owns font storage.
+  or ZX-UX boot cassette changes. ZX-UX owns font storage.
 
 **Still incomplete:** remaining upstream FILE panels (Save As, Print,
 menu Delete and Load), VIEW Desktop action and Console `mkdir`
