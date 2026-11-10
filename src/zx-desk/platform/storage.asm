@@ -3,7 +3,6 @@
         section text
         global ApiStSelect
         global ApiStIdent
-        global ApiStCaps
         global ApiStDir
         global ApiStOpen
         global ApiStRead
@@ -22,9 +21,6 @@ StBad:
         ret
 ApiStIdent:
         ld a,(StBackend)
-        ret
-ApiStCaps:
-        ld a,1
         ret
 ; A=one-based? Original routine uses zero-based entry index.
 ; Select root or /bin; returns HL=name, carry on end.

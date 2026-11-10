@@ -5,6 +5,8 @@
         global DlgConfirm
         global DlgSave3
         global DlgAlert
+        global TxtNoSave
+        global DlgUp
         global DgEscape
         extern PnlPush
         extern PnlPop
@@ -17,10 +19,7 @@
         extern PnlRows
         extern PnlTab
         extern PnlTitle
-        extern PnlAfter
         extern PnlFocus
-        extern DlgUp
-        extern DlgClose
         extern WndRepaintAll
 DGX equ 10
 DGY equ 52
@@ -29,7 +28,7 @@ DGROW0 equ DGY+10
 DGH equ 52
 PT_LABEL equ 0
 PT_ACTION equ 1
-PTSIZE equ 8
+PTSIZE equ 5
 DlgConfirm:
         ld (DgLine1),hl
         ld (DgLine2),de
@@ -105,8 +104,6 @@ DgOpen:
         ld (PnlTab),hl
         ld hl,(DgTitle)
         ld (PnlTitle),hl
-        ld hl,0
-        ld (PnlAfter),hl
         ld a,(DgFocus)
         ld (PnlFocus),a
         jp PnlPaint
@@ -116,6 +113,7 @@ DgSave:
 DgDiscard:
         ld a,1
         jr DgAnswer
+DgEscape:
 DgCancel:
         xor a
         jr DgAnswer
@@ -150,63 +148,34 @@ DgClose:
         or a
         ret z
         jp PnlPaint
-DgEscape:
-        ld a,(DgDepth)
-        or a
-        jp z,DlgClose
-	jr DgCancel
         section data
 DgConfirmRows:
         db PT_LABEL
         dw 0,0
-        db 0
-        dw 0
         db PT_LABEL
         dw 0,0
-        db 0
-        dw 0
         db PT_ACTION
         dw TxtDdNo,DgNo
-        db 0
-        dw 0
         db PT_ACTION
         dw TxtDdYes,DgYes
-        db 0
-        dw 0
 DgSaveRows:
         db PT_LABEL
         dw 0,0
-        db 0
-        dw 0
         db PT_LABEL
         dw 0,0
-        db 0
-        dw 0
         db PT_ACTION
         dw TxtDdCancel,DgCancel
-        db 0
-        dw 0
         db PT_ACTION
         dw TxtDdDiscard,DgDiscard
-        db 0
-        dw 0
         db PT_ACTION
         dw TxtDdSaveIt,DgSave
-        db 0
-        dw 0
 DgAlertRows:
         db PT_LABEL
         dw 0,0
-        db 0
-        dw 0
         db PT_LABEL
         dw 0,0
-        db 0
-        dw 0
         db PT_ACTION
         dw TxtDdOk,DgOk
-        db 0
-        dw 0
 TxtDdConfirm: db 'CONFIRM',0
 TxtDdAlert: db 'NOTICE',0
 TxtDdYes: db 'YES',0
@@ -216,6 +185,7 @@ TxtDdSave: db 'UNSAVED',0
 TxtDdCancel: db 'CANCEL',0
 TxtDdDiscard: db 'DISCARD',0
 TxtDdSaveIt: db 'SAVE',0
+TxtNoSave: db 'COULD NOT SAVE',0
 DgLine1: dw 0
 DgLine2: dw 0
 DgAfter: dw 0
@@ -225,3 +195,4 @@ DgCount: db 0
 DgFocus: db 0
 DgResult: db 0
 DgDepth: db 0
+DlgUp: db 0

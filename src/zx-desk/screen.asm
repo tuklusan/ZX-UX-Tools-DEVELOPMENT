@@ -2,7 +2,6 @@
 ; Damian Cooper, MIT; see zxdesk/NOTICE.txt.
 ; ZX-UX holds screen ownership. No private ROM/IM2 or fixed code origin.
         section text
-        global BuildScrTab
         global CalcScr
         global RowAddr
         global ScrDown
@@ -11,9 +10,6 @@
 
 SCRROWS equ 192
 SCRCOLS equ 32
-
-BuildScrTab:
-                ret
 
 ; in: A = pixel row, out: DE = screen address of column 0
 CalcScr:

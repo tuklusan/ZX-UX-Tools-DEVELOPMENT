@@ -2,17 +2,16 @@
 ; This is not a separate desktop, ROM or operating system.
         section text
         global start
+        global quit_try
+        global SetJoyEnabled
         global DrawDesktop
         global MenuSel
         extern zx_syscall
-        extern BuildScrTab
-        extern DskInit
         extern DskPaintAll
         extern DskSelected
         extern AppNote
         extern AppTerm
         extern WinApp
-        extern SetJoyEnabled
         extern ClkInit
         extern ClkService
         extern WndInit
@@ -20,12 +19,8 @@
         extern WndClose
         extern WndRepaintAll
         extern WndFocusTo
-        extern WndCur
         extern WndCount
         extern WndZ
-        extern WinX
-        extern WinY
-        extern WndFlush
         extern MenuOpen
         extern MenuOpenDrop
         extern MenuClose
@@ -39,22 +34,22 @@
         extern PrintInv
         extern FontBase
         extern AppCall
-        extern ApiStSelect
-        extern ApiStIdent
-        extern CalNextDay
-        extern SetDefaults
-        extern SetLoad
-        extern SetApply
-        extern SetLattice
+        extern NoteModified
+        extern NoteName
+        extern NoteSave
+        extern DlgSave3
+        extern DlgAlert
+        extern TxtNoSave
         extern DlgUp
-        extern DlgClose
-        extern DlgKey
+        extern PnlKey
+        extern MenuIsSep
         extern DgEscape
         extern RowAddr
 
 SCREEN equ $4000
 ATTRS equ $5800
 APP_KEY equ 4
+APP_CONSOLE equ 4
 
 start:
         ld hl,0
@@ -77,14 +72,9 @@ start:
         ld a,e
         or a
         jp nz,release
-        call BuildScrTab
-        call SetDefaults
-        call SetLoad
-        call SetApply
-        call DskInit
         call ClkInit
         call WndInit
-        xor a
+        ld a,APP_CONSOLE       ; the console is the default application
         call WndOpen
 mainloop:
         ld hl,0
@@ -106,15 +96,17 @@ mainloop:
         ld a,b
         cp 7                   ; EDIT = CAPS SHIFT+1 (ZX-UX raw key)
         jp z,menu_key
+        ; An open menu owns the keyboard, so EDIT then Q reaches menu_dispatch
+        ; even while windows are open.
+        ld a,(MenuOpen)
+        or a
+        jp nz,menu_dispatch
+        ld a,b
         cp 'q'
         jp z,quit_key
         cp 'Q'
         jp z,quit_key
         ; All ordinary letters, including M, reach the focused application.
-normal_key:
-        ld a,(MenuOpen)
-        or a
-        jp nz,menu_dispatch
         ld a,(WndCount)
         or a
         jr z,desktop_key
@@ -127,7 +119,7 @@ normal_key:
 desktop_key:
         ld a,(SetJoyEnabled)
         or a
-        jr z,desktop_keys
+        jp z,mainloop          ; apps launch from the ZX DESK menu
         ld a,b
         cp '0'
         jp z,JoyActivate
@@ -139,41 +131,7 @@ desktop_key:
         jp z,JoyNext
         cp '8'
         jp z,JoyNext
-desktop_keys:
-        ld a,b
-        cp '1'
-        jr nz,Dk2
-        xor a
-	jr open_key
-Dk2:
-        cp '2'
-        jr nz,Dk3
-        ld a,2
-	jr open_key
-Dk3:
-        cp '3'
-        jr nz,Dk4
-        ld a,3
-	jr open_key
-Dk4:
-        cp '4'
-        jr nz,Dk5
-        ld a,4
-	jr open_key
-Dk5:
-        cp '5'
-        jr nz,Dk6
-        ld a,1
-	jr open_key
-Dk6:
-        cp '6'
-        jr nz,Dk7
-        ld a,5
-	jr open_key
-Dk7:
-        cp '7'
-        jp nz,mainloop
-        ld a,6
+        jp mainloop
 open_key:
         call WndOpen
         jp repaint
@@ -236,7 +194,7 @@ JoyPrevious:
         ld a,(DskSelected)
         or a
         jr nz,JpDec
-        ld a,7
+        ld a,5
 JpDec:
         dec a
         ld (DskSelected),a
@@ -244,7 +202,7 @@ JpDec:
 JoyNext:
         ld a,(DskSelected)
         inc a
-        cp 7
+        cp 5
         jr c,JnSave
         xor a
 JnSave:
@@ -252,38 +210,12 @@ JnSave:
         jp repaint
 JoyActivate:
         ld a,(DskSelected)
-        cp 5
-        jr z,JoySettings
-        cp 6
-        jr z,JoyConsole
-        cp 4
-        jr z,JoyAbout
-        cp 3
-        jr z,JoyFiles
-        cp 2
-        jr z,JoyCalendar
-        cp 1
-        jr z,JoyClock
-        xor a
+        ld e,a
+        ld d,0
+        ld hl,JoyApps
+        add hl,de
+        ld a,(hl)
         jp open_key
-JoyClock:
-        ld a,2
-        jp open_key
-JoyCalendar:
-        ld a,3
-        jp open_key
-JoyFiles:
-        ld a,4
-        jp open_key
-JoyAbout:
-        ld a,1
-        jp open_key
-JoyConsole:
-        ld a,6
-        jp open_key
-JoySettings:
-        call DlgOpen
-        jp mainloop
 next_window:
         ld a,(WndCount)
         cp 2
@@ -301,7 +233,7 @@ close_key:
 quit_key:
         ld a,(WndCount)
         or a
-        jp z,clean_exit
+        jp z,quit_try
         ; q is part of a document while a window has focus.
         ld a,'q'
         ld c,APP_KEY
@@ -312,13 +244,9 @@ quit_key:
 menu_dispatch:
         ld a,b
         cp 'q'
-        jp z,clean_exit
+        jp z,quit_try
         cp 'Q'
-        jp z,clean_exit
-        cp 'm'
-        jp z,menu_key
-        cp 'M'
-        jp z,menu_key
+        jp z,quit_try
         cp 'n'
         jr z,menu_cycle
         cp 'N'
@@ -327,21 +255,7 @@ menu_dispatch:
         jr z,menu_close_front
         cp 'X'
         jr z,menu_close_front
-        cp '1'
-        jr c,menu_navigation
-        cp '8'
-        jr nc,menu_navigation
-        sub '1'
-        ld e,a
-        ld d,0
-        ld hl,QuickApps
-        add hl,de
-        ld a,(hl)
-        push af
-        call MenuClose
-        pop af
-        call WndOpen
-        jp repaint
+        jr menu_navigation
 menu_cycle:
         call MenuClose
         jp next_window
@@ -380,24 +294,36 @@ menu_tab_set:
         pop af
         call MenuOpenDrop
 	jr repaint
+; Up/Down skip the dotted separator line.
 menu_previous:
         ld a,(MenuSel)
+        ld b,a
+MpvLoop:
+        ld a,b
         or a
         jp z,mainloop
-        dec a
+        dec b
+        ld c,b
+        call MenuIsSep
+        jr z,MpvLoop
+        ld a,b
         ld (MenuSel),a
-	jr repaint
+        jr repaint
 menu_next:
         ld a,(MenuSel)
-        inc a
         ld b,a
+MnxLoop:
+        inc b
         ld a,(MnCount)
         cp b
         jp z,mainloop
         jp c,mainloop
+        ld c,b
+        call MenuIsSep
+        jr z,MnxLoop
         ld a,b
         ld (MenuSel),a
-	jr repaint
+        jr repaint
 menu_choose:
         ld a,(MenuOpen)
         ld (MnLastMenu),a
@@ -412,40 +338,54 @@ modal_dispatch:
         ld a,b
         cp 7
         jr z,modal_close
-        call DlgKey
+        call PnlKey
         jp mainloop
 modal_close:
         call DgEscape
         jp mainloop
 menu_key:
-        ld a,(MenuOpen)
-        or a
-        jr z,MkFirst
-        inc a
-        cp 5
-        jr c,MkOpen
-MkFirst:
-        ld a,1
-MkOpen:
         xor a
         ld (MenuSel),a
         ld a,(MenuOpen)
-        or a
-        jr z,MkZero
         inc a
         cp 5
         jr c,MkSet
-MkZero:
         ld a,1
 MkSet:
         call MenuOpenDrop
 repaint:
+        ; A dialog opened by the key just handled stays on screen untouched.
+        ld a,(DlgUp)
+        or a
+        jp nz,mainloop
         call WndRepaintAll
         ld a,(MenuOpen)
         or a
         call nz,MenuPaint
         jp mainloop
 
+; Quit never discards a modified note silently.
+quit_try:
+        call MenuClose
+        ld a,(NoteModified)
+        or a
+        jp z,clean_exit
+        call WndRepaintAll     ; wipe the menu before the dialog goes up
+        ld hl,NoteName
+        ld de,TxtQuitLose
+        ld bc,QuitAnswer
+        call DlgSave3
+        jp mainloop
+QuitAnswer:
+        or a
+        ret z                  ; CANCEL
+        cp 2
+        jp nz,clean_exit       ; DISCARD
+        call NoteSave
+        jp nc,clean_exit
+        ld hl,TxtNoSave
+        ld de,0
+        jp DlgAlert
  ; Normal exit clears the application's bitmap before ZX-UX
 ; returns the screen to its text console. BREAK is a kernel kill
 ; and cannot execute this process-side cleanup.
@@ -510,9 +450,6 @@ DrawDesktop:
  ; ZXDesk lattice: $88 on pixel rows modulo four 0 and $22 on 2.
 ; Draw only after ZX-UX grants the process the screen.
 DrawLattice:
-        ld a,(SetLattice)
-        cp 1
-        ret nz
         ld a,9
 LdRow:
         ld (BgRow),a
@@ -552,7 +489,9 @@ MenuSel: db 0
 BgRow: db 0
 key: db 0
 TxtMenu: db 'ZX DESK           FILE          VIEW          HELP',0
-TxtStatus: db 'EDIT: 1-7 APPS  N NEXT  X CLOSE',0
-QuickApps: db 0,2,3,4,1,5,6
+TxtStatus: db 'EDIT (CAPS SHIFT+1): MENU THEN N=NEXT X=CLOSE Q=QUIT ZX DESK',0
+TxtQuitLose: db 'QUIT WITH UNSAVED NOTE',0
+JoyApps: db 0,2,3,1,4          ; desktop icon order: Notes Clock Files About Console
+SetJoyEnabled: db 0            ; Sinclair joystick navigation, toggled from the ZX DESK menu
         section bss
 oldtty: ds 6

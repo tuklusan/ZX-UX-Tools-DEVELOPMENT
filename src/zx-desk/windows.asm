@@ -17,9 +17,6 @@
         global WinH
         global WinTitle
         global WinApp
-        global WinOldX
-        global WinOldY
-        global WinMoved
         global WinY
         global WdFills
         global WndRaise
@@ -38,7 +35,7 @@
         extern PxRow
 
 WinCapH equ 10
-WNDRECSZ equ 11
+WNDRECSZ equ 8
 
 ; Original ZXDesk: left/right window edges in pixel coordinates.
 WdEdges:
@@ -92,8 +89,6 @@ WdClose:
 ; Original ZXDesk descriptor indexing and focus test.
 ; A = window slot, HL = descriptor in WndTab.
 WndRecAt:
-                ld      l,a
-                ld      h,0
                 ld      de,WNDRECSZ
                 ld      b,a
                 ld      hl,WndTab
@@ -250,7 +245,6 @@ WrFind:
         jr z,WrFound
         inc hl
         inc c
-        ld a,c
         ld de,WndCount
         ld a,(de)
         cp c
@@ -288,7 +282,7 @@ WndIsFront:
                 ret
 
         section data
-; Original 13-byte WinRec record with platform-owned pointers initially null.
+; WinRec: x, y, w, h, title pointer, application pointer (8 bytes).
 WinRec:
 WinX:           db      4
 WinY:           db      32
@@ -296,9 +290,6 @@ WinW:           db      24
 WinH:           db      88
 WinTitle:       dw      0
 WinApp:         dw      0
-WinOldX:       db      4
-WinOldY:       db      32
-WinMoved:      db      0
 CloseBox:       db      $FF,$81,$BD,$BD,$BD,$BD,$81,$FF
 AboutLines: dw TxtAb1,TxtAb2,TxtAb3,TxtAb4,TxtAb5,TxtAb6,TxtAb7,0
 TxtAb1: db 'ZX-Desk',0

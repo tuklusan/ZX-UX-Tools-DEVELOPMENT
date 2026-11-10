@@ -2,7 +2,6 @@
 ; shapes from upstream src/desktop.inc. Damian Cooper, MIT.
 ; The original desktop owns its image and labels; ZX-UX owns hardware.
         section text
-        global DskInit
         global DskPaintAll
         global DskPaintOne
         global DskShapeAt
@@ -14,7 +13,7 @@
         extern PrintInv
         extern PxRow
         extern SetJoyEnabled
-DSKMAX equ 7
+DSKMAX equ 5
 DSKENTSZ equ 8
 DSKBITMAP equ 7
 DSKLABEL equ 3
@@ -23,22 +22,14 @@ DSKICONW equ 2
 DSKSLOTH equ 25
 DSKLABELY equ 17
 
-DskInit:
-        ld hl,DskDefault
-        ld de,DskTab
-        ld bc,DSKMAX*DSKENTSZ
-        ldir
-        xor a
-        ld (DskSelected),a
-        ret
-
+; The icon table is constant (no icon dragging), so it is read in place.
 DskEntry:
         ld l,a
         ld h,0
         add hl,hl
         add hl,hl
         add hl,hl
-        ld de,DskTab
+        ld de,DskDefault
         add hl,de
         ret
 
@@ -71,7 +62,6 @@ DskPaintOne:
         ld de,DSKBITMAP
         add hl,de
         ld a,(hl)
-        ld (DskHy),a          ; reuse scratch: shape 5 overlays desktop dots
         call DskShapeAt
         ld a,(DskPx)
         ld c,a
@@ -178,24 +168,9 @@ DbsRow:
         inc hl
         ld (DskShp),hl
         ex de,hl
-        push af
-        ld a,(DskHy)
-        cp 5                  ; gear pixels only: keep lattice underneath
-        jr z,DbsOverlay
-        pop af
         ld (hl),a
         inc hl
         ld (hl),c
-        jr DbsDone
-DbsOverlay:
-        pop af
-        or (hl)
-        ld (hl),a
-        inc hl
-        ld a,c
-        or (hl)
-        ld (hl),a
-DbsDone:
         ld hl,DskRow
         inc (hl)
         pop bc
@@ -203,6 +178,7 @@ DbsDone:
         ret
 
         section data
+; active, x byte, y pixel, label, reserved, shape. Order = joystick order.
 DskDefault:
         db 1,1,16
         dw TxtDskNote,0
@@ -211,26 +187,18 @@ DskDefault:
         dw TxtDskClock,0
         db 1
         db 1,1,80
-        dw TxtDskCal,0
+        dw TxtDskFiles,0
         db 2
         db 1,1,112
-        dw TxtDskFiles,0
-        db 3
-        db 1,1,144
         dw TxtDskAbout,0
-        db 6
-        db 1,6,144
-        dw TxtDskSet,0
-        db 5
+        db 4
         db 1,9,16
         dw TxtDskTerm,0
-        db 4
+        db 3
 TxtDskNote: db 'NOTE',0
 TxtDskClock: db 'CLOCK',0
-TxtDskCal: db 'CAL',0
 TxtDskFiles: db 'FILES',0
 TxtDskAbout: db 'ABOUT',0
-TxtDskSet: db 'SETUP',0
 TxtDskTerm: db 'CONSOLE',0
 DskShapes:
         db $FF,$FF,$80,$01,$80,$01,$BF,$FD
@@ -241,10 +209,6 @@ DskShapes:
         db $81,$01,$81,$01,$81,$01,$81,$01
         db $81,$F9,$80,$01,$80,$01,$80,$01
         db $80,$01,$80,$01,$80,$01,$FF,$FF
-        db $FF,$FF,$FF,$FF,$FF,$FF,$80,$01
-        db $91,$11,$80,$01,$80,$01,$91,$11
-        db $80,$01,$80,$01,$91,$11,$80,$01
-        db $80,$01,$80,$01,$80,$01,$FF,$FF
         db $FF,$FF,$80,$01,$80,$01,$80,$01
         db $80,$01,$80,$01,$80,$01,$FF,$FF
         db $80,$01,$83,$C1,$80,$01,$80,$01
@@ -254,11 +218,7 @@ DskShapes:
         db $A8,$05,$A4,$05,$A8,$05,$A3,$C5
         db $A0,$05,$A0,$05,$BF,$FD,$80,$01
         db $7F,$FE,$01,$80,$07,$E0,$07,$E0
-; Gear icon and compact ZX-UX wordmark, each 16x16.
-        db $13,$00,$3F,$00,$3F,$E0,$FF,$E0
-        db $F9,$C0,$70,$C0,$70,$E0,$F9,$EC
-        db $7F,$FC,$1F,$FF,$19,$EE,$00,$C6
-        db $00,$EF,$01,$FF,$00,$3C,$00,$24
+; Compact ZX-UX wordmark, 16x16.
         db $7F,$FE,$80,$01,$9C,$29,$84,$29
         db $88,$11,$90,$29,$9C,$29,$80,$01
         db $9F,$F9,$94,$29,$94,$29,$94,$11
@@ -271,6 +231,3 @@ DskRow: db 0
 DskCol: db 0
 DskShp: dw 0
 DskHx: db 0
-DskHy: db 0
-        section bss
-DskTab: ds DSKMAX*DSKENTSZ

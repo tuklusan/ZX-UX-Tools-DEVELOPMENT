@@ -16,10 +16,7 @@
         extern WinY
         extern WinW
         extern WinH
-        extern WinOldX
-        extern WinOldY
-        extern WinMoved
-WNDRECSZ equ 11
+WNDRECSZ equ 8
 SCRCOLS equ 32
 STATRULE equ 183
 DESKTOP_TOP equ 9
@@ -72,9 +69,6 @@ ArcXok:
         pop hl
         push hl
         ld (hl),c
-        ld de,8
-        add hl,de
-        ld (hl),c
         pop hl
         push hl
         ld a,(ArrI)
@@ -100,9 +94,6 @@ ArcYok:
         pop hl
         inc hl
         ld (hl),c
-        ld de,8
-        add hl,de
-        ld (hl),c
         ld hl,ArrI
         inc (hl)
         jr ArcLoop
@@ -112,8 +103,6 @@ ArrDone:
         ld de,WinRec
         ld bc,WNDRECSZ
         ldir
-        xor a
-        ld (WinMoved),a
         jp WndRepaintAll
 WndTile:
         ld a,(WndCount)
@@ -147,11 +136,9 @@ ArtLoop:
         ld hl,(ArrTab)
         ld a,(hl)
         ld (WinX),a
-        ld (WinOldX),a
         inc hl
         ld a,(hl)
         ld (WinY),a
-        ld (WinOldY),a
         inc hl
         ld a,(hl)
         ld (WinW),a

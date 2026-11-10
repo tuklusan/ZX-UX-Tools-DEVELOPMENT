@@ -1,4 +1,4 @@
-phase=tile-window-bounds
+phase=memory-budget
 tape=present
-next=Recover enough ZX-UX shared arena RAM to restore console mkdir without kernel or boot changes, then finish remaining FILE and VIEW actions.
-blocker=Console mkdir is temporarily replaced by ps because shared arena RAM is exhausted despite free inodes.
+next=Cut about 450 to 550 more bytes of resident memory (Clock, About or joystick mode, or Console) to reach a 9.8 KB total, then restore console mkdir without kernel or boot changes.
+blocker=Resident total is 10315 bytes (image+bss+stack); ZX-UX creates a 256-byte file only while it is under about 9.9 KB, so Note SAVE and Commander COPY report failure and console mkdir is replaced by ps.

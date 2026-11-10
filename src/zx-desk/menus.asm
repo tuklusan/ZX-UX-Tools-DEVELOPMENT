@@ -13,6 +13,7 @@
         global MnH
         global MenuAction
         global MenuEnabled
+        global MenuIsSep
         global MnLastMenu
         extern DevFillRect
         extern FrX
@@ -33,7 +34,9 @@
         extern PrintStrPx
         extern WndOpen
         extern NoteMenuSave
-        extern DlgOpen
+        extern WndRepaintAll
+        extern quit_try
+        extern SetJoyEnabled
         extern WndCascade
         extern WndTile
         extern MenuSel
@@ -164,6 +167,9 @@ MpItem:
         xor a
         ld (PrintInv),a
         ld (PrintDim),a
+        ld a,(hl)
+        or a
+        jr z,MpSep             ; empty text = dotted separator line
         ld a,(MnPaintIndex)
         ld c,a
         ld a,(MenuOpen)
@@ -174,7 +180,7 @@ MpItem:
         or a
         jr nz,MpAvailable
         ld a,1
-        ld (PrintDim),a
+        ld (PrintDim),a        ; unavailable: printed in lower case
         jr MpNotSelected
 MpAvailable:
         ld a,(MnPaintIndex)
@@ -192,6 +198,7 @@ MpNotSelected:
         xor a
         ld (PrintInv),a
         ld (PrintDim),a
+MpNext:
         pop hl
         ld a,(PxRow)
         add a,MNITEMH
@@ -201,32 +208,66 @@ MpNotSelected:
         pop bc
         djnz MpItem
         ret
+MpSep:
+        ld a,(MnX)
+        inc a
+        ld (FrX),a
+        ld a,(MnW)
+        sub 2
+        ld (FrW),a
+        ld a,(PxRow)
+        add a,3
+        ld (FrY),a
+        ld a,1
+        ld (FrH),a
+        ld hl,$aaaa            ; every other pixel: a grey dotted line
+        ld (FrPat),hl
+        call DevFillRect
+        jr MpNext
 
-; Original ZXDesk table-driven menu action dispatcher from menus.inc.
-; The unsupported OS-dependent actions are not advertised as complete.
-; B=menu ID, C=item index. Returns A=1 if available, 0 if dimmed.
-; The action dispatcher calls this again, so dimmed items never execute.
+; C = item index in the open menu. Z if it is the separator (empty text).
+MenuIsSep:
+        ld hl,(MnItemPtr)
+        ld e,c
+        ld d,0
+        add hl,de
+        add hl,de
+        ld e,(hl)
+        inc hl
+        ld d,(hl)
+        ld a,(de)
+        or a
+        ret
+
+; B=menu ID, C=item index. Returns A=1 if available, 0 if not (the menu then
+; prints the item in lower case and the action dispatcher ignores it).
 MenuEnabled:
         ld a,b
         cp 2
         jr z,MeFile
         cp 3
-        jr z,MeView
-        ld a,1
-        ret
+        jr z,MeLayout           ; VIEW: both items arrange windows
+        cp 1
+        jr nz,MeYes             ; HELP
+        ld a,c                  ; ZX DESK: four applications, separator, joystick, quit
+        cp 4
+        jr z,MeNo
+        jr nc,MeYes
+        ld e,a
+        ld d,0
+        ld hl,MeApps
+        add hl,de
+        ld a,(hl)
+        jr MeHasSlot
 MeFile:
         ld a,c
-        cp 3
-        jp nc,MeNo          ; SAVE AS, PRINT, DELETE, LOAD unavailable
         cp 2
         jr z,MeSave
-        or a
-        jr z,MeNote
-        ld a,4             ; FILE/OPEN launches Commander
-        jp MeHasSlot
-MeNote:
-        xor a              ; FILE/NEW launches Notes
-        jp MeHasSlot
+        or a                    ; 0 = NEW (Notes), 1 = OPEN (Files)
+        ld a,0
+        jr z,MeHasSlot
+        ld a,3
+        jr MeHasSlot
 MeSave:
         ld a,(WndCount)
         or a
@@ -236,32 +277,14 @@ MeSave:
         or a
         sbc hl,de
         jr nz,MeNo
+MeYes:
         ld a,1
         ret
-MeView:
-        ld a,c
-        cp 5
-        jr z,MeNo         ; DESKTOP not implemented
-        cp 3
-        jr nc,MeLayout
-        or a
-        jr z,MeCalendar
-        cp 1
-        jr z,MeClock
-        ld a,6            ; CONSOLE
-        jp MeHasSlot
-MeCalendar:
-        ld a,3
-        jp MeHasSlot
-MeClock:
-        ld a,2
-        jp MeHasSlot
 MeLayout:
         ld a,(WndCount)
         cp 2
-        jr c,MeNo
-        ld a,1
-        ret
+        jr nc,MeYes
+        jr MeNo
 ; A=application kind. At four windows, only an existing app may open.
 MeHasSlot:
         push af
@@ -283,7 +306,7 @@ MeScan:
         push bc
         push hl
         call WndRecAt
-        ld de,6            ; WinApp field in the 11-byte record
+        ld de,6            ; WinApp field in the 8-byte record
         add hl,de
         ld e,(hl)
         inc hl
@@ -298,9 +321,6 @@ MeScan:
         djnz MeScan
 MeNo:
         xor a
-        ret
-MeYes:
-        ld a,1
         ret
 MenuAction:
         ld c,a
@@ -344,56 +364,72 @@ AboutOpen:
 ClockOpen:
         ld a,2
         jp WndOpen
-WndOpenCal:
+CmdOpenWin:
         ld a,3
         jp WndOpen
-CmdOpenWin:
+TermOpen:
         ld a,4
         jp WndOpen
-KeysOpen:
-        ld a,5
-        jp WndOpen
-TermOpen:
-        ld a,6
-        jp WndOpen
+QuitAction:
+        jp quit_try
+; Sinclair joystick navigation on/off. The label shows the new state.
+JoyToggle:
+        ld a,(SetJoyEnabled)
+        xor 1
+        ld (SetJoyEnabled),a
+        ld hl,TxtJoyOn
+        jr nz,JtLabel
+        ld hl,TxtJoyOff
+JtLabel:
+        ld de,MnJoy+13
+        ld bc,3
+        ldir
+        jp WndRepaintAll
 
         section data
 MenuDefs:
-        db 1,8,10,2
+        db 1,8,10,7
         dw MnPtrs1
-        db 10,6,8,7
+        db 10,6,6,3
         dw MnPtrs2
-        db 17,6,10,6
+        db 17,6,8,2
         dw MnPtrs3
-        db 24,6,8,2
+        db 24,6,6,1
         dw MnPtrs4
-MnPtrs1: dw MnAb, MnSettings
-MnPtrs2: dw MnNew, MnOpen, MnSave, MnSaveAs, MnPrint, MnDelete, MnLoad
-MnPtrs3: dw MnCalendar, MnClock, MnConsole, MnCascade, MnTile, MnDesktop
-MnPtrs4: dw MnKeys, MnAbout
-MnAb: db 'ABOUT',0
-MnSettings: db 'SETTINGS',0
+MnPtrs1: dw MnClock, MnConsole, MnFiles, MnNotes, MnSep, MnJoy, MnQuit
+MnPtrs2: dw MnNew, MnOpen, MnSave
+MnPtrs3: dw MnCascade, MnTile
+MnPtrs4: dw MnAbout
+MnClock: db 'CLOCK',0
+MnConsole: db 'CONSOLE',0
+MnFiles: db 'FILES',0
+MnNotes: db 'NOTES',0
+MnSep: db 0
+MnJoy: db 'SINCLAIR JOY OFF',0
+MnQuit: db 'QUIT',0
 MnNew: db 'NEW',0
 MnOpen: db 'OPEN',0
 MnSave: db 'SAVE',0
-MnSaveAs: db 'SAVE AS',0
-MnPrint: db 'PRINT',0
-MnDelete: db 'DELETE',0
-MnLoad: db 'LOAD',0
-MnCalendar: db 'CALENDAR',0
-MnClock: db 'CLOCK',0
-MnConsole: db 'CONSOLE',0
 MnCascade: db 'CASCADE',0
 MnTile: db 'TILE',0
-MnDesktop: db 'DESKTOP',0
-MnKeys: db 'KEYS',0
 MnAbout: db 'ABOUT',0
+TxtJoyOff: db 'OFF'
+TxtJoyOn: db 'ON',0
+MeApps: db 2,4,3,0                ; ZX DESK items 0..3: Clock Console Files Notes
 ; menu, item, routine. Original table format and supported actions.
 MnActions:
         db 1,0
-        dw AboutOpen
+        dw ClockOpen
         db 1,1
-        dw DlgOpen
+        dw TermOpen
+        db 1,2
+        dw CmdOpenWin
+        db 1,3
+        dw NoteMenuNew
+        db 1,5
+        dw JoyToggle
+        db 1,6
+        dw QuitAction
         db 2,0
         dw NoteMenuNew
         db 2,1
@@ -401,18 +437,10 @@ MnActions:
         db 2,2
         dw NoteMenuSave
         db 3,0
-        dw WndOpenCal
-        db 3,1
-        dw ClockOpen
-        db 3,2
-        dw TermOpen
-        db 3,3
         dw WndCascade
-        db 3,4
+        db 3,1
         dw WndTile
         db 4,0
-        dw KeysOpen
-        db 4,1
         dw AboutOpen
         db $ff
 MnPaintIndex: db 0

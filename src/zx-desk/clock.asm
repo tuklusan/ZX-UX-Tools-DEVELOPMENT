@@ -34,7 +34,6 @@ ClkInit:
 
 ; ZXDesk interrupt-delta accumulator, supplied by ZX-UX _ticks.
 ClkService:
-ClkTick:
         ld a,38
         call zx_syscall
         ld de,(ClkLast)
@@ -62,8 +61,6 @@ ClkNoSec:
         jr nz,ClkAccum
         ret
 ClkSecond:
-        ld hl,TickSecs
-        inc (hl)
         xor a
         ld (ClkFrames),a
         ld a,(ClkFrac)
@@ -88,8 +85,6 @@ ClkBump:
         cp 60
         ret c
         ld (hl),0
-        ld a,1
-        ld (ClkDirty),a
         ld hl,ClkM
         inc (hl)
         ld a,(hl)
@@ -255,6 +250,4 @@ ClkFrames: db 0
 ClkNeed: db 50
 ClkFrac: db 0
 ClkFracAdd: db CLKFRAC48
-ClkDirty: db 0
 ClkLast: dw 0
-TickSecs: db 0

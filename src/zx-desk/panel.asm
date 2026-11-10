@@ -12,7 +12,6 @@
         global PnlRows
         global PnlTab
         global PnlTitle
-        global PnlAfter
         global PnlFocus
         global PnlPush
         global PnlPop
@@ -27,16 +26,17 @@
         extern PrintInv
         extern PrintStrPx
 PT_ACTION equ 1
-PT_CYCLE equ 2
-PTSIZE equ 8
+PTSIZE equ 5
 PNLMARGIN equ $30
 PNLROWH equ 8
 PnlRowAddr:
         ld l,a
         ld h,0
+        ld d,h
+        ld e,l
         add hl,hl
         add hl,hl
-        add hl,hl
+        add hl,de              ; row * PTSIZE (5)
         ld de,(PnlTab)
         add hl,de
         ret
@@ -46,53 +46,6 @@ PnlRowY:
         add a,a
         ld hl,PnlRow0
         add a,(hl)
-        ret
-PnlStrLen:
-        push hl
-        ld b,0
-PslLoop:
-        ld a,(hl)
-        or a
-        jr z,PslDone
-        inc hl
-        inc b
-        jr PslLoop
-PslDone:
-        ld a,b
-        pop hl
-        ret
-PnlValue:
-        call PnlRowAddr
-        ld a,(hl)
-        cp PT_CYCLE
-        jr z,PnvCycle
-        ld hl,0
-        ret
-PnvCycle:
-        push hl
-        inc hl
-        inc hl
-        inc hl
-        ld e,(hl)
-        inc hl
-        ld d,(hl)
-        ld a,(de)
-        pop hl
-        push af
-        ld de,6
-        add hl,de
-        ld e,(hl)
-        inc hl
-        ld d,(hl)
-        pop af
-        add a,a
-        ld l,a
-        ld h,0
-        add hl,de
-        ld e,(hl)
-        inc hl
-        ld d,(hl)
-        ex de,hl
         ret
 PnlRowPaint:
         ld (PnlIdx),a
@@ -142,32 +95,11 @@ PrpLabel:
         ld d,(hl)
         ld a,d
         or e
-        jr z,PrpValue
+        ret z
         ex de,hl
         ld a,(PnlX)
         inc a
         ld c,a
-        call PrintStrPx
-PrpValue:
-        ld a,(PnlIdx)
-        call PnlValue
-        ld a,h
-        or l
-        ret z
-        push hl
-        call PnlStrLen
-        ld (PnlLen),a
-        ld a,(PnlX)
-        ld hl,PnlW
-        add a,(hl)
-        dec a
-        ld hl,PnlLen
-        sub (hl)
-        ld c,a
-        ld a,(PnlIdx)
-        call PnlRowY
-        ld (PxRow),a
-        pop hl
         jp PrintStrPx
 PnlPaint:
         ld a,(PnlX)
@@ -242,8 +174,6 @@ PnlActivate:
         ld (PnlIdx),a
         call PnlRowAddr
         ld a,(hl)
-        cp PT_CYCLE
-        jr z,PnaCycle
         cp PT_ACTION
         ret nz
         inc hl
@@ -252,40 +182,9 @@ PnlActivate:
         ld e,(hl)
         inc hl
         ld d,(hl)
-        ld hl,PnaDone
-        push hl
         ex de,hl
-        jp (hl)
-PnaCycle:
-        push hl
-        inc hl
-        inc hl
-        inc hl
-        ld e,(hl)
-        inc hl
-        ld d,(hl)
-        inc hl
-        ld c,(hl)
-        ld a,(de)
-        inc a
-        cp c
-        jr c,PnaStore
-        xor a
-PnaStore:
-        ld (de),a
-        pop hl
-PnaDone:
-        ld hl,(PnlAfter)
-        ld a,h
-        or l
-        ret z
-        ld a,(PnlIdx)
-        jp (hl)
+        jp (hl)                ; the action returns to PnlKey's caller
 PnlKey:
-        cp 8
-        jr z,PnkCycle
-        cp 9
-        jr z,PnkCycle
         cp 11
         jr z,PnkUp
         cp 10
@@ -293,14 +192,6 @@ PnlKey:
         cp 13
         jr z,PnkEnter
         ret
-PnkCycle:
-        ld a,(PnlFocus)
-        call PnlRowAddr
-        ld a,(hl)
-        cp PT_CYCLE
-        ret nz
-        ld a,(PnlFocus)
-	jr PnlActivate
 PnkUp:
         ld a,(PnlFocus)
         or a
@@ -320,7 +211,7 @@ PnkEnter:
         ld a,(PnlFocus)
 	jr PnlActivate
  ; Original ZXDesk D3 nested-panel record swap.
-PNLRECSZ equ 13
+PNLRECSZ equ 11
 PNLDEPTH equ 3
 PnlPush:
         ld a,(PnlRecDep)
@@ -371,10 +262,8 @@ PnlRow0: db 0
 PnlRows: db 0
 PnlTab: dw 0
 PnlTitle: dw 0
-PnlAfter: dw 0
 PnlFocus: db 0
 PnlIdx: db 0
-PnlLen: db 0
 PnlRecDep: db 0
         section bss
 PnlRecStk: ds PNLDEPTH*PNLRECSZ

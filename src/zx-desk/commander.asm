@@ -1,13 +1,16 @@
 ; ZXDesk Commander two-pane model ported from src/commander.inc.
 ; Damian Cooper, MIT. The directory device vectors now use ZX-UX.
         section text
-        global CmdState
         global CmdInit
         global CmdDraw
         global CmdKey
+        global CmdBuf
+        extern DlgConfirm
+        extern DlgAlert
+        extern WndRepaintAll
+        extern zx_syscall
         extern ApiStIdent
         extern ApiStSelect
-        extern ApiStCaps
         extern ApiStDir
         extern ApiWinRows
         extern WinW
@@ -23,7 +26,6 @@ CMDPANEW equ 28
 CMDHEADY equ 12
 CMDLISTY equ 22
 WINCAPH equ 10
-STCAP_DIR equ 1
 
 CmdInit:
         call ApiStIdent
@@ -64,9 +66,6 @@ CmrOne:
         ret
 CmdCount:
         call CmdUse
-        call ApiStCaps
-        and STCAP_DIR
-        jr z,CmcNone
         ld b,0
 CmcLoop:
         ld a,b
@@ -80,9 +79,6 @@ CmcLoop:
         jr c,CmcLoop
 CmcDone:
         ld a,b
-        ret
-CmcNone:
-        xor a
         ret
 
 ; Original CmdDraw and CmdPane1: two independently selected panes.
@@ -204,10 +200,15 @@ CmdDevName:
         ret
 
 ; Original keyboard navigation, with filesystem actions handed to ZX-UX.
+; Every key leaves the shared storage backend exactly as it found it.
 CmdKey:
         ld (CmdKeyCh),a
         call ApiStIdent
         ld (CmdWasK),a
+        call CmdKeyDo
+        ld a,(CmdWasK)
+        jp ApiStSelect
+CmdKeyDo:
         ld a,(CmdKeyCh)
         cp 11
         jr nz,CmkNotU
@@ -258,13 +259,13 @@ CmkNotR:
         cp 'd'
         ret nz
 CmkDelete:
-        call CmdDelete
-        jr CmdRepaint
+        jp CmdDelete
 CmkCopy:
         call CmdCopy
-CmdRepaint:
-        ld a,(CmdWasK)
-        jp ApiStSelect
+        ret nc
+        ld hl,TxtCmdCopyBad
+        ld de,0
+        jp DlgAlert
 
 ; Original ZXDesk Commander file selection and operations (commander.inc).
 ; Paths and handles are translated by the ZX-UX storage adapter.
@@ -275,7 +276,6 @@ CmdPicked:
         ld a,(hl)
         call ApiStDir
         ret c
-CmdNameCopy:
         ld de,CmdWork
         ld b,12
 CmpkCopy:
@@ -291,21 +291,21 @@ CmpkCopy:
 CmpkDone:
         or a
         ret
+; CmdPicked has already copied the selected name into CmdWork.
 CmdOpen:
         call CmdPicked
         ret c
-        call CmdNameCopy
         ld hl,CmdWork
-        call ApiOpenFile
-        push af
-        ld a,(CmdWasK)
-        call ApiStSelect
-        pop af
-        ret
+        jp ApiOpenFile
 CmdCopy:
         call CmdPicked
-        ret c
-        call CmdNameCopy
+        jr nc,CmcStart
+        or a                   ; nothing selected: nothing to report
+        ret
+CmcStart:
+        ld a,(CmdWork)
+        cp '.'
+        ret z                  ; "." and ".." are not files
         ld a,(CmdActive)
         call CmdUse
         ld hl,CmdWork
@@ -313,9 +313,30 @@ CmdCopy:
         call ApiStOpen
         ret c
         ld (CmdHandle),a
-        ld a,(CmdActive)
+        ld l,a                 ; a directory cannot be copied as a file
+        ld h,0
+        ld de,CmdBuf
+        ld a,28
+        call zx_syscall
+        jp c,CmcNoRoom
+        ld a,(CmdBuf+3)
+        and $40
+        jp nz,CmcNoRoom
+        ld a,(CmdActive)       ; never overwrite an existing file
         xor 1
         call CmdUse
+        ld hl,CmdWork
+        ld b,0
+        call ApiStOpen
+        jr c,CmcFree
+        call ApiStClose
+        call CmcSrcClose
+        ld hl,TxtCmdExists
+        ld de,0
+        call DlgAlert
+        or a
+        ret
+CmcFree:
         ld hl,CmdWork
         ld b,1
         call ApiStOpen
@@ -378,15 +399,39 @@ CmcSrcClose:
         call CmdUse
         ld a,(CmdHandle)
         jp ApiStClose
+; DELETE asks first (default answer NO). The answer arrives in CmdDelAnswer
+; after the dialog has closed, with CmdWork still holding the file name.
 CmdDelete:
         call CmdPicked
         ret c
-        call CmdNameCopy
+        ld a,(CmdWork)
+        cp '.'
+        ret z                  ; "." and ".." are not files
+        ld hl,TxtCmdAsk
+        ld de,CmdWork
+        ld bc,CmdDelAnswer
+        jp DlgConfirm
+CmdDelAnswer:
+        or a
+        ret z
+        call ApiStIdent
+        ld (CmdWasK),a
         ld a,(CmdActive)
         call CmdUse
         ld hl,CmdWork
         call ApiStDelete
-        ret c
+        jr c,CmdDelBad
+        call CmdFixSel
+        ld a,(CmdWasK)
+        call ApiStSelect
+        jp WndRepaintAll
+CmdDelBad:
+        ld a,(CmdWasK)
+        call ApiStSelect
+        ld hl,TxtCmdDelBad
+        ld de,0
+        jp DlgAlert
+CmdFixSel:
         ld a,(CmdActive)
         call CmdCount
         ld b,a
@@ -404,7 +449,6 @@ CmdDelete:
         ret
 
         section data
-CmdState:
 CmdBk0: db 0
 CmdBk1: db 1
 CmdSel0: db 0
@@ -428,3 +472,7 @@ CmdBuf: ds 64
 TxtCmdRoot: db 'ROOT',0
 TxtCmdBin: db 'BIN',0
 TxtCmdBlank: db ' ',0
+TxtCmdAsk: db 'DELETE THIS FILE?',0
+TxtCmdExists: db 'FILE ALREADY EXISTS',0
+TxtCmdCopyBad: db 'COPY FAILED',0
+TxtCmdDelBad: db 'DELETE FAILED',0

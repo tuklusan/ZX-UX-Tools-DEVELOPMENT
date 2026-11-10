@@ -2,12 +2,12 @@
 ; The original 16x16 document, editing routines and pixel-row cursor model.
 ; ZX-UX supplies memory and screen services through window app adapters.
         section text
-        global NoteState
         global NoteInit
         global NoteDrawInterior
         global NoteKey
         global NoteNew
         global NoteModified
+        global NoteName
         global NoteSave
         global NoteLoadAs
         global NoteMenuSave
@@ -23,7 +23,10 @@
         extern AppNote
         extern DlgSave3
         extern DlgAlert
+        extern TxtNoSave
         extern WndCloseNow
+        extern ApiStIdent
+        extern ApiStSelect
 
 NOTECOLS equ 14
 NOTELAST equ 13
@@ -31,7 +34,6 @@ NOTEROWS equ 16
 NOTELASTROW equ 15
 NOTESTRIDE equ 16
 NOTETOP equ 12
-NOTEREFLOW equ 2
 
 ; Original NoteRowAddr / NoteCurAddr / view helpers.
 NoteRowAddr:
@@ -110,9 +112,6 @@ NsBelowTop:
 NsSame:
         xor a
         ret
-NoteColByte:
-        ld c,a
-        ret
 
 ; Original ZXDesk's visible-row painter and cursor inversion.
 NoteDrawLine:
@@ -120,8 +119,7 @@ NoteDrawLine:
         call NoteRowPx
         jr c,NdlOff
         ld b,a
-        xor a
-        call NoteColByte
+        ld c,0
         pop af
         push bc
         call NoteRowAddr
@@ -155,7 +153,7 @@ NoteCurDraw:
         ret c
         ld b,a
         ld a,(NoteCX)
-        call NoteColByte
+        ld c,a
         push bc
         call NoteCurAddr
         ld a,(NoteCX)
@@ -176,6 +174,8 @@ NoteInit:
         ld de,NoteName
         ld bc,5
         ldir
+        xor a
+        ld (NoteBk),a
         ret
 NoteNew:
         xor a
@@ -194,8 +194,6 @@ NnRow:
         ld (NoteCX),a
         ld (NoteCY),a
         ld (NoteTop),a
-        ld (NoteEdited),a
-        ld (NoteDirty),a
         ld (NoteModified),a
         ret
 NoteInsert:
@@ -229,7 +227,6 @@ NiPut:
         ld a,(NoteChar)
         ld (hl),a
         ld a,1
-        ld (NoteEdited),a
         ld (NoteModified),a
         ld a,(NoteCX)
         inc a
@@ -345,7 +342,6 @@ NbTail:
         add hl,de
         ld (hl),' '
         ld a,1
-        ld (NoteEdited),a
         ld (NoteModified),a
         ret
 NbEdge:
@@ -386,8 +382,6 @@ NbJoinEmpty:
         dec (hl)
         ld a,(NoteJoinAt)
         ld (NoteCX),a
-        ld a,NOTEREFLOW
-        ld (NoteEdited),a
         ld a,1
         ld (NoteModified),a
         ret
@@ -398,6 +392,10 @@ NbMoveOnly:
         ld (NoteCX),a
         ret
 NoteEnter:
+        ld a,NOTELASTROW       ; Enter would push the last row off the page:
+        call NoteLineLen       ; refuse rather than lose text silently.
+        or a
+        ret nz
         ld a,(NoteCY)
         cp NOTELASTROW
         ret nc
@@ -447,8 +445,6 @@ NeNoTail:
         inc (hl)
         xor a
         ld (NoteCX),a
-        ld a,NOTEREFLOW
-        ld (NoteEdited),a
         ld a,1
         ld (NoteModified),a
         ret
@@ -484,8 +480,6 @@ NoteDown:
 ; Original key-event dispatch; key constants map to ZX-UX raw terminal.
 NoteKey:
         ld (NoteChar),a
-        xor a
-        ld (NoteEdited),a
         ld a,(NoteChar)
         cp 8
         jr nz,NkNotL
@@ -523,18 +517,23 @@ NkNotEnt:
         ret nc
         call NoteInsert
 NkView:
-        call NoteScroll
-        ret z
-        ld a,NOTEREFLOW
-        ld (NoteEdited),a
-        ret
+        jp NoteScroll
 
 ; Original ZXDesk Note file interface (src/note.inc), calling the
 ; process-local ZX-UX storage adapter. Each note remains 256 bytes.
+; A note is saved back to the directory it came from (new notes: root).
 NoteSave:
-        ld hl,NoteName
-NoteSaveAs:
-        call NoteSetName
+        call ApiStIdent
+        ld (NoteWasBk),a
+        ld a,(NoteBk)
+        call ApiStSelect
+        call NoteSaveFile
+        push af
+        ld a,(NoteWasBk)
+        call ApiStSelect
+        pop af
+        ret
+NoteSaveFile:
         ld hl,NoteName
         ld b,1
         call ApiStOpen
@@ -559,11 +558,12 @@ NoteSaveAs:
 NsShort:
         scf
         ret
-NoteLoad:
-        ld hl,NoteName
+; HL = basename. ApiOpenFile has already checked that it is a regular
+; 256-byte file, so a failure here is a read error. The name is adopted only
+; on success; a failed read resets to a blank default note, never to a blank
+; note that would overwrite some other file on SAVE.
 NoteLoadAs:
-        call NoteSetName
-        ld hl,NoteName
+        ld (NoteLine),hl
         ld b,0
         call ApiStOpen
         jr c,NlFail
@@ -572,25 +572,35 @@ NoteLoadAs:
         ld bc,256
         call ApiStRead
         ld (NoteGot),bc
+        push af
         ld a,(NoteHandle)
         call ApiStClose
+        pop af
+        jr c,NlReset
         ld hl,(NoteGot)
         ld de,256
         or a
         sbc hl,de
-        jr nz,NlFail
+        jr nz,NlReset
+        ld hl,(NoteLine)
+        call NoteSetName
+        call ApiStIdent
+        ld (NoteBk),a
         call NoteSanitise
         xor a
         ld (NoteCX),a
         ld (NoteCY),a
         ld (NoteTop),a
         ld (NoteModified),a
-        ld a,1
-        ld (NoteDirty),a
         or a
         ret
-NlFail:
+NlReset:
+        ld hl,TxtNoteName
+        call NoteSetName
+        xor a
+        ld (NoteBk),a
         call NoteNew
+NlFail:
         scf
         ret
 NoteSetName:
@@ -642,7 +652,11 @@ NoteMenuSave:
         or a
         sbc hl,de
         ret nz
-        jp NoteSave
+        call NoteSave
+        ret nc
+        ld hl,TxtNoSave
+        ld de,0
+        jp DlgAlert
 
  ; Original ZXDesk NoteClose callback: do not lose modified work.
 NoteClose:
@@ -661,18 +675,21 @@ NoteCloseAnswer:
         cp 2
         jr z,NcaSave
 NcaGo:
+        xor a                  ; a closed note holds no unsaved work
+        ld (NoteModified),a
         jp WndCloseNow
 NcaSave:
         call NoteSave
         jr nc,NcaGo
-        ld hl,TxtNoteNoSave
+        ld hl,TxtNoSave
         ld de,0
         jp DlgAlert
 
         section data
 TxtNoteName: db 'NOTE',0
 TxtNoteLose: db 'UNSAVED WORK',0
-TxtNoteNoSave: db 'COULD NOT SAVE',0
+NoteBk: db 0
+NoteWasBk: db 0
 NoteRowIx: db 0
 NoteRowDst: db 0
 NoteJoinAt: db 0
@@ -682,12 +699,9 @@ NoteHandle: db 0
 NoteGot: dw 0
 NoteCell: db ' ',0
         section bss
-NoteState:
 NoteBuf: ds 256
 NoteName: ds 11
 NoteCX: ds 1
 NoteCY: ds 1
 NoteTop: ds 1
-NoteEdited: ds 1
-NoteDirty: ds 1
 NoteModified: ds 1

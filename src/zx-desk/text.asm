@@ -3,7 +3,6 @@
 ; each (two four-pixel rows per byte). Never duplicate the font in SSX1.
 ; Damian Cooper, MIT; see zxdesk/NOTICE.txt.
         section text
-        global PrintChar
         global PrintCharPx
         global PrintStrPx
         global PrintStrPxHalf
@@ -14,22 +13,20 @@
         extern AddrAt
         extern ScrDown
 
-; A=character, B=8-pixel character row, C=screen byte column.
-PrintChar:
-        push af
-        xor a
-        ld (PrintHalf),a
-        ld a,b
-        add a,a
-        add a,a
-        add a,a
-        ld (PxRow),a
-        pop af
-        jp PrintCharPx
-
 ; A=character, C=screen byte column, PxRow=pixel row.
 ; PrintHalf=0 selects the high nibble, 1 selects the low nibble.
 PrintCharPx:
+        ld e,a                  ; unavailable menu items print in lower case
+        ld a,(PrintDim)
+        or a
+        ld a,e
+        jr z,PcpCase
+        cp 'A'
+        jr c,PcpCase
+        cp 'Z'+1
+        jr nc,PcpCase
+        add a,32
+PcpCase:
         cp 127                  ; copyright marker used by About credits
         jr nz,PcpRegular
         ld de,CopyGlyph
@@ -70,21 +67,6 @@ PcpPair:
         ret
 PcpNibble:
         ld c,a
-        ld a,(PrintDim)
-        or a
-        jr z,PcnBright
-        ld a,(DimPhase)
-        xor 1
-        ld (DimPhase),a
-        ld a,c
-        jr z,PcnDimOdd
-        and $d0
-        jr PcnDimDone
-PcnDimOdd:
-        and $b0
-PcnDimDone:
-        ld c,a
-PcnBright:
         ld a,(PrintInv)
         or a
         jr z,PcnNormal
@@ -146,6 +128,5 @@ CopyGlyph: db $69,$A8,$A9,$60
 FontBase: dw 0
 PrintInv: db 0
 PrintDim: db 0
-DimPhase: db 0
 PrintHalf: db 0
 PxRow: db 0

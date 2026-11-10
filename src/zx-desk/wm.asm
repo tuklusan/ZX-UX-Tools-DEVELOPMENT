@@ -9,12 +9,10 @@
         global WndSelect
         global WndRepaintAll
         global WndFocusTo
-        global WinGrab
         global WndPaintOne
         extern WndRecAt
         extern WndFlush
         extern WndRaise
-        extern WndIsFront
         extern WinDraw
         extern WinRec
         extern WinX
@@ -23,20 +21,15 @@
         extern WinH
         extern WinTitle
         extern WinApp
-        extern WinOldX
-        extern WinOldY
-        extern WinMoved
-        extern WndTab
         extern WndZ
         extern WndCount
         extern WndCur
         extern AppAt
         extern AppCall
         extern DrawDesktop
-        extern AddrAt
-        extern ScrDown
+        extern DlgAlert
 
-WNDRECSZ equ 11
+WNDRECSZ equ 8
 WNDMAX equ 4
 WINAPP_OFF equ 6
 APP_TITLE equ 6
@@ -73,8 +66,7 @@ WndSelect:
 ; its window without reinitializing data, even when four windows are open.
 ; A = original application kind 0..6.
 WndOpen:
-        ld (WndWantKind),a
-        cp 7
+        cp 5
         jp nc,WndNoRoom
         call AppAt
         ld (WndWantApp),hl
@@ -178,7 +170,6 @@ WoBitReady:
 WoXok:
         ld a,c
         ld (WinX),a
-        ld (WinOldX),a
         inc hl
         ld a,(WndCount)
         add a,a
@@ -195,9 +186,6 @@ WoXok:
 WoYok:
         ld a,c
         ld (WinY),a
-        ld (WinOldY),a
-        xor a
-        ld (WinMoved),a
         ; Each app initializes its only live state on its first launch.
         ld c,APP_INIT
         call AppCall
@@ -227,6 +215,10 @@ WoFirst:
         or a
         ret
 WndNoRoom:
+        call WndRepaintAll     ; clear any menu still drawn before the notice
+        ld hl,TxtNoRoom
+        ld de,0
+        call DlgAlert
         scf
         ret
 
@@ -321,17 +313,11 @@ WraPaint:
 WndPaintOne:
         call WinDraw
         ld c,APP_DRAW
-        call AppCall
-
-
- ; A window surface is composed back-to-front on each change.
-; Application data remains in its single live state record.
-WinGrab:
-        ret
+        jp AppCall             ; windows are composed back-to-front on each change
 
         section data
+TxtNoRoom: db 'CLOSE A WINDOW FIRST',0
 WndUsed: db 0
 WndForce: db 0
-WndWantKind: db 0
 WndClosing: db 0
 WndWantApp: dw 0

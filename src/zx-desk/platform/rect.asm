@@ -9,7 +9,6 @@
         global FrH
         global FrPat
         extern AddrAt
-        extern ScrDown
 DevFillRect:
         ld a,(FrH)
         or a
@@ -27,22 +26,10 @@ DfrRow:
         call AddrAt
         ld a,(FrW)
         ld b,a
-        xor a
-        ld (FrPhase),a
+        ld a,(FrPat)           ; every caller fills with a uniform byte ($00 or $FF)
 DfrCol:
-        ld a,(FrPhase)
-        or a
-        jr nz,DfrHigh
-        ld a,(FrPat)
-        jr DfrStore
-DfrHigh:
-        ld a,(FrPat+1)
-DfrStore:
         ld (hl),a
         inc hl
-        ld a,(FrPhase)
-        xor 1
-        ld (FrPhase),a
         djnz DfrCol
         ld hl,FrRow
         inc (hl)
@@ -58,4 +45,3 @@ FrH:    db 0
 FrPat:  dw 0
 FrRow:  db 0
 FrLeft: db 0
-FrPhase: db 0
