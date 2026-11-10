@@ -11,8 +11,7 @@
         extern DskSelected
         extern AppTerm
         extern WinApp
-        extern ClkInit
-        extern ClkService
+        extern ClkTick
         extern WndInit
         extern WndOpen
         extern WndClose
@@ -47,6 +46,7 @@ SCREEN equ $4000
 ATTRS equ $5800
 APP_KEY equ 4
 APP_CONSOLE equ 4
+APP_CLOCK equ 2
 
 start:
         ld hl,0
@@ -71,11 +71,23 @@ start:
         jp nz,release
         xor a
         ld (NoteBuf),a         ; Notes starts with an empty page
-        call ClkInit
+        ld hl,TxtMem           ; /dev/mem: peek at the kernel's key queue
+        ld de,0
+        ld a,5
+        call zx_syscall
+        jr c,StNoMem
+        ld a,l
+        ld (MemFd),a
+StNoMem:
         call WndInit
-        ld a,APP_CONSOLE       ; the console is the default application
+        ld a,APP_CONSOLE       ; the console and the clock open at start,
+        call WndOpen
+        ld a,APP_CLOCK         ; with the console left in focus
+        call WndOpen
+        ld a,APP_CONSOLE
         call WndOpen
 mainloop:
+        call WaitKey
         ld hl,0
         ld de,key
         ld bc,1
@@ -85,7 +97,6 @@ mainloop:
         ld a,h
         or l
         jp z,clean_exit
-        call ClkService
         ld a,(key)
         ld b,a
         call JoyTranslate
@@ -137,6 +148,47 @@ desktop_key:
 open_key:
         call WndOpen
         jp repaint
+; Wait for a key without blocking forever: sleep 4 ticks (1/50 s), and while the
+; kernel's raw-key queue is empty redraw the clock when its second changes.
+; ZXDesk has no interrupt of its own and must not hook the kernel's.
+WaitKey:
+        call KeyReady
+        ret nz
+        ld hl,4
+        ld a,34                ; _sleep
+        call zx_syscall
+        ld a,(DlgUp)
+        ld hl,MenuOpen
+        or (hl)
+        call z,ClkTick         ; not while a menu or a notice is on screen
+        jr WaitKey
+; NZ when a key is waiting (or when it cannot be told: then the read blocks).
+KeyReady:
+        ld a,(MemFd)
+        or a
+        jr z,KrYes
+        ld l,a
+        ld h,0
+        ld de,$5b68            ; ttyhd, then ttytl: the raw-key queue head and tail
+        ld bc,0
+        ld a,19                ; absolute seek in /dev/mem
+        call zx_syscall
+        jr c,KrYes
+        ld a,(MemFd)
+        ld l,a
+        ld h,0
+        ld de,KeyPair
+        ld bc,2
+        ld a,3
+        call zx_syscall
+        jr c,KrYes
+        ld a,(KeyPair)
+        ld hl,KeyPair+1
+        cp (hl)                ; Z: head = tail, the queue is empty
+        ret
+KrYes:
+        or 1
+        ret
 ; Interface 2 joystick 1 electrically acts as the digit keys 6/7/8/9/0.
 ; No direct port reads. Never translate digits when typing Note/Console.
 ; Elsewhere: 6=left, 7=right, 8=down, 9=up, 0=enter.
@@ -545,6 +597,9 @@ TxtMenu: db 'ZX DESK           FILE          VIEW          HELP',0
 TxtStatus: db 'EDIT (CAPS+1): MENU THEN M=MOVE N=NEXT X=CLOSE Q=QUIT ZX DESK',0
 TxtMove: db 'ARROWS MOVE THE WINDOW  ENTER=DONE',0
 MoveMode: db 0
+TxtMem: db '/dev/mem',0
+MemFd: db 0
+KeyPair: ds 2
 JoyApps: db 0,2,3,1,4          ; desktop icon order: Notes Clock Files About Console
 SetJoyEnabled: db 0            ; Sinclair joystick navigation, toggled from the ZX DESK menu
         section bss

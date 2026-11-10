@@ -43,15 +43,27 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   Console. Each application has exactly one live state record: Notes about
   275 bytes (a 256-byte text page, a truncation line and the scroll row),
   Console 269 bytes, Commander 5 bytes; About and Clock need no per-window
-  state. App-local scratch and
-  the global clock service remain separate. There are no 273-byte
+  state. App-local scratch remains separate. There are no 273-byte
   window-state slots or app-state copies. `desktop.asm` draws the original
   bitmap desktop icons (NOTE, CLOCK, FILES, ABOUT, CONSOLE) with a compact
   ZX-UX wordmark icon for ABOUT, over the dotted desktop lattice, which is
   always on; the icon table is read in place; all desktop captions are
   centred to half-byte precision beneath their 16px icons. `menus.asm`
-  provides native drop-down drawing and table-driven actions. Console is
-  the only application opened at start.
+  provides native drop-down drawing and table-driven actions. The Console
+  and the Clock open at start, with the Console left in focus.
+- Clock (`clock.asm`) shows the ZX-UX clock only (call 13, seconds since
+  1970; set it with `/bin/date`) as `HH:MM:SS` over `DD-MM-YYYY`, in a
+  7-byte by 30-pixel window sized for those two lines and opened in the
+  bottom right corner (x + width = 32 bytes, y + height = 183). It has no
+  keys and no private counter. ZXDesk has no interrupt of its own and must
+  not hook the kernel's, so `entry.asm` replaces the blocking key read by a
+  loop: it peeks at the kernel raw-key queue head and tail through
+  `/dev/mem` (`ttyhd`/`ttytl` at `$5B68`), and while the queue is empty it
+  sleeps 4 ticks (`_sleep`, 1/50 s) and calls `ClkTick`; a waiting key is
+  then read at once (at most about 80 ms of latency). When the second has
+  changed, `ClkTick` redraws the Clock window alone, without touching focus
+  or the other windows, and only if no window above it overlaps it; it does
+  nothing while a menu or a notice is on screen or the Clock is closed.
 - Keyboard: EDIT (CAPS SHIFT+1) opens the menu bar and cycles the menu
   headings. After EDIT, M moves the front window (arrow keys, 8 pixels at
   a time, kept inside the desktop; Enter or EDIT drops it and the status
@@ -121,7 +133,7 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   or ZX-UX boot cassette changes. ZX-UX owns font storage.
 
 **Memory budget:** the resident program (SSX1 image + bss + stack; `image`
-and `bss` are in the SSX1 header, the stack is 384) totals 8671 bytes. ZX-UX
+and `bss` are in the SSX1 header, the stack is 384) totals 8831 bytes. ZX-UX
 lets files use only the arena below the lent window, so a program above
 about 9.9 KB would leave no room to create a file and reading a packed file
 could fail; ZXDesk creates no files, and keeping it under about 9.8 KB

@@ -4,6 +4,7 @@
         section text
         global AppAt
         global AppCall
+        global AppClock
         global AppTerm
         extern WinApp
         extern NoteInit
@@ -11,7 +12,6 @@
         extern NoteKey
         extern WdAbout
         extern ClkDraw
-        extern ClkKey
         extern CmdInit
         extern CmdDraw
         extern CmdKey
@@ -73,8 +73,9 @@ AppTable:
         db 8,48,18,72
         dw 0,WdAbout,0,TxtAboutTitle
         db 10,44,21,92
-        dw 0,ClkDraw,ClkKey,TxtClockTitle
-        db 18,40,8,30
+AppClock:
+        dw 0,ClkDraw,0,TxtClockTitle
+        db 25,153,7,30         ; x + width = 32 and y + height = 183: the bottom right corner
         dw CmdInit,CmdDraw,CmdKey,TxtCmdTitle
         db 1,24,30,112
 AppTerm:

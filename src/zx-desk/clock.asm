@@ -1,106 +1,126 @@
-; Port of Damian Cooper's original ZXDesk clock logic (clock.inc).
-; Only the private IM2 counter and graphics API are redirected to ZX-UX.
+; ZXDesk Clock. It shows the ZX-UX clock (call 13: seconds since 1970, set with
+; /bin/date) as HH:MM:SS over DD-MM-YYYY in a window of exactly two text lines.
+; The tick-keeping, drifting counter and the keys that set it are gone.
         section text
-        global ClkInit
-        global ClkService
         global ClkDraw
-        global ClkKey
+        global ClkTick
         extern zx_syscall
-        extern PrintStrPx
-        extern PrintStrPxHalf
-        extern PrintInv
-        extern PxRow
-        extern WinX
-        extern WinY
-CLKFRAC48 equ 8
-CLKROW equ 4
-ClkInit:
-        ld a,12
-        ld (ClkH),a
+        extern ApiWinPrint
+        extern WndFlush
+        extern WndSelect
+        extern WndPaintOne
+        extern WndZ
+        extern WndCount
+        extern WndTab
+        extern AppClock
+
+; DE:HL / C -> DE:HL, A = remainder (C up to 127).
+Div32:
+        ld b,32
         xor a
-        ld (ClkM),a
-        ld (ClkS),a
-        ld (ClkFrames),a
-        ld (ClkFrac),a
-        ld (ClkField),a
-        ld a,50
-        ld (ClkNeed),a
-        ld a,CLKFRAC48
-        ld (ClkFracAdd),a
-        ld a,38
-        call zx_syscall
-        ld (ClkLast),hl
+D32Bit:
+        add hl,hl
+        rl e
+        rl d
+        rla
+        cp c
+        jr c,D32Next
+        sub c
+        inc l
+D32Next:
+        djnz D32Bit
         ret
 
-; ZXDesk interrupt-delta accumulator, supplied by ZX-UX _ticks.
-ClkService:
-        ld a,38
-        call zx_syscall
-        ld de,(ClkLast)
+; Draw both lines from a fresh reading of the clock.
+ClkDraw:
+        ld a,13
+        call zx_syscall        ; DE:HL = seconds since 1970-01-01
+        ld c,60
+        call Div32
+        ld (ClkS),a
+        ld c,60
+        call Div32
+        ld (ClkM),a
+        ld c,24
+        call Div32
+        ld (ClkH),a            ; HL = whole days since 1970-01-01
+        ld b,0                 ; B = years since 1970
+CdYear:
+        ld a,b
+        add a,2
+        and 3                  ; zero for a leap year (1970 + B)
+        ld de,365
+        jr nz,CdLen
+        inc de
+CdLen:
         push hl
         or a
         sbc hl,de
-        pop de
-        ret z
-        ld (ClkLast),de
-ClkAccum:
-        ld a,(ClkFrames)
-        inc a
-        ld (ClkFrames),a
-        ld b,a
-        ld a,(ClkNeed)
-        cp b
-        jr nz,ClkNoSec
-        push hl
-        call ClkSecond
-        pop hl
-ClkNoSec:
-        dec hl
+        jr c,CdYearEnd
+        pop af                 ; the year is complete: keep the reduced day count
+        inc b
+        jr CdYear
+CdYearEnd:
+        pop hl                 ; days left in this year
+        ld a,b
+        ld (ClkYrs),a
+        add a,2
+        and 3
+        ld (ClkLeap),a
+        ld c,1                 ; C = month
+        ld de,ClkMonths
+CdMon:
+        ld a,(de)
+        inc de
+        ld b,a                 ; B = days in this month
+        ld a,c
+        cp 2
+        jr nz,CdCmp
+        ld a,(ClkLeap)
+        or a
+        jr nz,CdCmp
+        inc b                  ; February of a leap year
+CdCmp:
         ld a,h
-        or l
-        jr nz,ClkAccum
-        ret
-ClkSecond:
-        xor a
-        ld (ClkFrames),a
-        ld a,(ClkFrac)
-        ld b,a
-        ld a,(ClkFracAdd)
-        add a,b
+        or a
+        jr nz,CdSub
+        ld a,l
+        cp b
+        jr c,CdDay             ; fewer days left than the month holds
+CdSub:
+        ld a,l
+        sub b
+        ld l,a
+        jr nc,CdNext
+        dec h
+CdNext:
+        inc c
+        jr CdMon
+CdDay:
+        inc l                  ; day of the month
+        ld a,l
+        ld hl,ClkDate
+        call ClkPut2
+        ld (hl),'-'
+        inc hl
+        ld a,c
+        call ClkPut2
+        ld (hl),'-'
+        inc hl
+        ld a,(ClkYrs)
+        add a,70
+        ld b,19
         cp 100
-        jr c,ClkNoExtra
+        jr c,CdCent
         sub 100
-        ld (ClkFrac),a
-        ld a,51
-        ld (ClkNeed),a
-        jr ClkBump
-ClkNoExtra:
-        ld (ClkFrac),a
-        ld a,50
-        ld (ClkNeed),a
-ClkBump:
-        ld hl,ClkS
-        inc (hl)
-        ld a,(hl)
-        cp 60
-        ret c
+        inc b
+CdCent:
+        push af
+        ld a,b
+        call ClkPut2           ; century
+        pop af
+        call ClkPut2           ; year within the century
         ld (hl),0
-        ld hl,ClkM
-        inc (hl)
-        ld a,(hl)
-        cp 60
-        ret c
-        ld (hl),0
-        ld hl,ClkH
-        inc (hl)
-        ld a,(hl)
-        cp 24
-        ret c
-        ld (hl),0
-        ret
-
-; Original ZXDesk clock-face formatting and field inversion.
-ClkDraw:
         ld hl,ClkText
         ld a,(ClkH)
         call ClkPut2
@@ -108,55 +128,21 @@ ClkDraw:
         inc hl
         ld a,(ClkM)
         call ClkPut2
-        ld (hl),0
-        xor a
-        ld (PrintInv),a
-        ld a,(WinY)
-        add a,WinCapH+CLKROW
-        ld (PxRow),a
-        ld a,(WinX)
-        add a,2
-        ld c,a
-        ld hl,ClkText
-        call PrintStrPx
-        ld a,(ClkField)
-        ld b,a
-        add a,a
-        add a,b
-        ld e,a
-        ld d,0
-        ld hl,ClkText
-        add hl,de
-        ld a,(hl)
-        ld (ClkPair),a
+        ld (hl),':'
         inc hl
-        ld a,(hl)
-        ld (ClkPair+1),a
-        ld a,e
-        srl a
-        ld c,a
-        ld a,(WinX)
-        add a,2
-        add a,c
-        ld c,a
-        ld a,(WinY)
-        add a,WinCapH+CLKROW
-        ld (PxRow),a
-        ld a,1
-        ld (PrintInv),a
-        ld hl,ClkPair
-        ld a,(ClkField)
-        or a
-        jr z,ClkPrintPair
-        call PrintStrPxHalf
-        jr ClkPairDone
-ClkPrintPair:
-        call PrintStrPx
-ClkPairDone:
-        xor a
-        ld (PrintInv),a
-        ret
+        ld a,(ClkS)
+        call ClkPut2
+        ld (hl),0
+        ld hl,ClkText
+        ld b,1                 ; first text line, centred over the date
+        ld c,1
+        call ApiWinPrint
+        ld hl,ClkDate
+        ld b,10
+        ld c,0
+        jp ApiWinPrint
 
+; A = 0..99 -> two digits at (HL), HL advanced past them.
 ClkPut2:
         ld b,'0'-1
 ClkP2T:
@@ -171,83 +157,121 @@ ClkP2T:
         inc hl
         ret
 
-; Same ZXDesk field-switch and set controls; ZX-UX arrows are 8..11.
-ClkKey:
-        cp 8
-        jr nz,CkNotL
-        ld a,(ClkField)
-        or a
+; Called about twelve times a second while no key is waiting. When the second
+; has changed, redraw the Clock window alone, unless a window above it overlaps
+; it: then it is not (fully) visible and nothing is drawn.
+ClkTick:
+        ld a,13
+        call zx_syscall
+        ld de,(ClkLast)
+        ld a,l
+        cp e
+        jr nz,CtNew
+        ld a,h
+        cp d
         ret z
-        dec a
-        ld (ClkField),a
-        ret
-CkNotL:
-        cp 9
-        jr nz,CkNotR
-        ld a,(ClkField)
-        cp 1
-        ret nc
-        inc a
-        ld (ClkField),a
-        ret
-CkNotR:
-        cp 11
-        jr nz,CkNotU
-        ld c,1
-	jr ClkAdjust
-CkNotU:
-        cp 10
-        ret nz
-        ld c,0
-ClkAdjust:
-        ld a,(ClkField)
-        ld hl,ClkH
-        or a
-        jr z,CkaGot
-        inc hl
-        dec a
-        jr z,CkaGot
-        inc hl
-CkaGot:
-        ld b,60
-        ld a,(ClkField)
-        or a
-        jr nz,CkaMod
-        ld b,24
-CkaMod:
+CtNew:
+        ld (ClkLast),hl
+        call WndFlush          ; the window table must be current
+        ld c,0                 ; C = z index of the window being examined
+CtFind:
+        ld a,(WndCount)
+        cp c
+        ret z                  ; the Clock window is not open
         ld a,c
+        call CtRec
+        ld de,6
+        add hl,de              ; the record's application pointer
+        ld e,(hl)
+        inc hl
+        ld d,(hl)
+        ld hl,AppClock
         or a
-        jr z,CkaDown
-        ld a,(hl)
-        inc a
-        cp b
-        jr c,CkaSet
-        xor a
-        jr CkaSet
-CkaDown:
-        ld a,(hl)
-        or a
-        jr nz,CkaDec
+        sbc hl,de
+        jr z,CtFound
+        inc c
+        jr CtFind
+CtFound:
+        ld a,c
+        call CtRec
+        push hl
+        pop ix                 ; IX = the Clock's record: x, y, width, height
+        ld b,0                 ; B = z index of a window above it
+CtAbove:
         ld a,b
-CkaDec:
-        dec a
-CkaSet:
-        ld (hl),a
-        xor a
-        ld (ClkFrames),a
-        ld (ClkS),a
+        cp c
+        jr z,CtDraw            ; none of them overlaps
+        call CtRec
+        push bc
+        ld de,CtO
+        ld bc,4
+        ldir
+        pop bc
+        ld a,(ix+0)
+        add a,(ix+2)
+        ld hl,CtO
+        cp (hl)
+        jr c,CtNext
+        jr z,CtNext
+        ld a,(hl)
+        inc hl
+        inc hl
+        add a,(hl)
+        cp (ix+0)
+        jr c,CtNext
+        jr z,CtNext
+        ld a,(ix+1)
+        add a,(ix+3)
+        ld hl,CtO+1
+        cp (hl)
+        jr c,CtNext
+        jr z,CtNext
+        ld a,(hl)
+        inc hl
+        inc hl
+        add a,(hl)
+        cp (ix+1)
+        jr c,CtNext
+        jr z,CtNext
+        ret                    ; overlapped
+CtNext:
+        inc b
+        jr CtAbove
+CtDraw:
+        ld a,c
+        ld e,a
+        ld d,0
+        ld hl,WndZ
+        add hl,de
+        ld a,(hl)              ; the Clock's slot
+        call WndSelect
+        call WndPaintOne
+        ld a,(WndZ)
+        jp WndSelect           ; put the front window's record back
+; A = z index -> HL = that window's 8-byte record.
+CtRec:
+        ld e,a
+        ld d,0
+        ld hl,WndZ
+        add hl,de
+        ld l,(hl)
+        ld h,0
+        add hl,hl
+        add hl,hl
+        add hl,hl
+        ld de,WndTab
+        add hl,de
         ret
 
-WinCapH equ 10
         section data
-ClkText: db 0,0,0,0,0,0
-ClkPair: db 0,0,0
-ClkH: db 12
-ClkM: db 0
-ClkS: db 0
-ClkField: db 0
-ClkFrames: db 0
-ClkNeed: db 50
-ClkFrac: db 0
-ClkFracAdd: db CLKFRAC48
+ClkMonths: db 31,28,31,30,31,30,31,31,30,31,30,31
 ClkLast: dw 0
+        section bss
+ClkText: ds 9
+ClkDate: ds 11
+ClkH: ds 1
+ClkM: ds 1
+ClkS: ds 1
+ClkYrs: ds 1
+ClkLeap: ds 1
+CtO: ds 4
