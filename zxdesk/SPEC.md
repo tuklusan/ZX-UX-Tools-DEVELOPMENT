@@ -121,7 +121,7 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   or ZX-UX boot cassette changes. ZX-UX owns font storage.
 
 **Memory budget:** the resident program (SSX1 image + bss + stack; `image`
-and `bss` are in the SSX1 header, the stack is 384) totals 8553 bytes. ZX-UX
+and `bss` are in the SSX1 header, the stack is 384) totals 8671 bytes. ZX-UX
 lets files use only the arena below the lent window, so a program above
 about 9.9 KB would leave no room to create a file and reading a packed file
 could fail; ZXDesk creates no files, and keeping it under about 9.8 KB
