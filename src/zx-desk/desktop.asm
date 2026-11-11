@@ -6,13 +6,10 @@
         global DskPaintOne
         global DskShapeAt
         global DskBlitShape
-        global DskSelected
         extern AddrAt
         extern PrintStrPx
         extern PrintStrPxHalf
-        extern PrintInv
         extern PxRow
-        extern SetJoyEnabled
 DSKMAX equ 5
 DSKENTSZ equ 8
 DSKBITMAP equ 7
@@ -99,19 +96,6 @@ DskLabX:
         add a,DSKLABELY
         ld (PxRow),a
         pop hl
-        xor a
-        ld (PrintInv),a
-        ld a,(SetJoyEnabled)
-        or a
-        jr z,DskPrintLabel
-        ld a,(DskIx)
-        ld b,a
-        ld a,(DskSelected)
-        cp b
-        jr nz,DskPrintLabel
-        ld a,1
-        ld (PrintInv),a
-DskPrintLabel:
         ld a,(DskHx)
         or a
         jr z,DskFullByte
@@ -120,8 +104,6 @@ DskPrintLabel:
 DskFullByte:
         call PrintStrPx
 DskLabelDone:
-        xor a
-        ld (PrintInv),a
         pop hl
         ret
 DskStrLen:
@@ -178,7 +160,7 @@ DbsRow:
         ret
 
         section data
-; active, x byte, y pixel, label, reserved, shape. Order = joystick order.
+; active, x byte, y pixel, label, reserved, shape.
 DskDefault:
         db 1,1,16
         dw TxtDskNote,0
@@ -223,7 +205,6 @@ DskShapes:
         db $88,$11,$90,$29,$9C,$29,$80,$01
         db $9F,$F9,$94,$29,$94,$29,$94,$11
         db $94,$29,$9C,$29,$80,$01,$7F,$FE
-DskSelected: db 0
 DskIx: db 0
 DskPx: db 0
 DskPy: db 0

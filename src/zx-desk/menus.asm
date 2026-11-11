@@ -33,7 +33,6 @@
         extern WndOpen
         extern WndRepaintAll
         extern clean_exit
-        extern SetJoyEnabled
         extern WndCascade
         extern WndTile
         extern MenuSel
@@ -226,7 +225,7 @@ MenuEnabled:
         jr z,MeLayout           ; VIEW: both items arrange windows
         cp 1
         jr nz,MeYes             ; HELP
-        ld a,c                  ; ZX DESK: four applications, separator, joystick, quit
+        ld a,c                  ; ZX DESK: four applications, separator, quit
         cp 4
         jr z,MeNo
         jr nc,MeYes
@@ -334,23 +333,10 @@ TermOpen:
         jp WndOpen
 QuitAction:
         jp clean_exit
-; Sinclair joystick navigation on/off. The label shows the new state.
-JoyToggle:
-        ld a,(SetJoyEnabled)
-        xor 1
-        ld (SetJoyEnabled),a
-        ld hl,TxtJoyOn
-        jr nz,JtLabel
-        ld hl,TxtJoyOff
-JtLabel:
-        ld de,MnJoy+13
-        ld bc,3
-        ldir
-        jp WndRepaintAll
 
         section data
 MenuDefs:
-        db 1,8,10,7
+        db 1,8,8,6
         dw MnPtrs1
         db 10,6,6,1
         dw MnPtrs2
@@ -358,7 +344,7 @@ MenuDefs:
         dw MnPtrs3
         db 24,6,6,1
         dw MnPtrs4
-MnPtrs1: dw MnClock, MnConsole, MnFiles, MnNotes, MnSep, MnJoy, MnQuit
+MnPtrs1: dw MnClock, MnConsole, MnFiles, MnNotes, MnSep, MnQuit
 MnPtrs2: dw MnOpen
 MnPtrs3: dw MnCascade, MnTile
 MnPtrs4: dw MnAbout
@@ -367,14 +353,11 @@ MnConsole: db 'CONSOLE',0
 MnFiles: db 'FILES',0
 MnNotes: db 'NOTES',0
 MnSep: db 0
-MnJoy: db 'SINCLAIR JOY OFF',0
 MnQuit: db 'QUIT',0
 MnOpen: db 'OPEN',0
 MnCascade: db 'CASCADE',0
 MnTile: db 'TILE',0
 MnAbout: db 'ABOUT',0
-TxtJoyOff: db 'OFF'
-TxtJoyOn: db 'ON',0
 MeApps: db 2,4,3,0                ; ZX DESK items 0..3: Clock Console Files Notes
 ; menu, item, routine. Original table format and supported actions.
 MnActions:
@@ -387,8 +370,6 @@ MnActions:
         db 1,3
         dw NotesOpen
         db 1,5
-        dw JoyToggle
-        db 1,6
         dw QuitAction
         db 2,0
         dw CmdOpenWin

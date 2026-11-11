@@ -87,18 +87,21 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   possible within the memory budget. Measured per key (20 ms frames): typing
   in the Console 13.6 -> 0.6, menu Up/Down 16.3 -> 2.8, Files arrows
   44 -> 7.7, window move 13.1 -> 11.0, menu switch 15.7 -> 11.8.
-- Keyboard: EDIT (CAPS SHIFT+1) opens the menu bar and cycles the menu
-  headings. After EDIT, M moves the front window (arrow keys, 8 pixels at
+- Keyboard: EDIT (CAPS SHIFT+1) opens the menu bar; Left and Right switch
+  between the menus, Up and Down move within one, Enter chooses, and EDIT
+  again closes the menu without doing anything. After EDIT, M moves the front window (arrow keys, 8 pixels at
   a time, kept inside the desktop; Enter or EDIT drops it and the status
   bar shows `Arrows move the window, Enter=Done` meanwhile), N cycles
   windows, X closes the front window and Q quits at once. There are no
   digit or other letter shortcuts. BREAK is reserved by ZX-UX as a process
   interrupt, so it is never a GUI shortcut. The status bar reads `EDIT
   (CAPS+1): Menu, then M=Move N=Next X=Close Q=Quit`, and its last five
-  attribute cells show ZX-UX, one letter per cell, on bright red, yellow,
-  green, cyan and black (the last with white ink).
+  attribute cells show ZX-UX: each of the five letters is a 4x8 glyph on a
+  background of its own (red, yellow, green, cyan, black), made from three
+  cells by drawing the left glyph of a cell normally and the right one
+  inverted, so a cell's paper and ink are the two neighbours' backgrounds.
 - Menus: ZX DESK lists Clock, Console, Files and Notes alphabetically, a
-  grey dotted separator, `SINCLAIR JOY OFF/ON` (toggle) and Quit. FILE
+  grey dotted separator and Quit. FILE
   holds Open (launches Files); VIEW holds Cascade and Tile; HELP holds
   About. Up/Down skip the separator. Unavailable items are printed in
   lower case and are never dispatched. Arranging needs two windows; with
@@ -126,10 +129,8 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   two copyright marks and the requested attribution.
 - Original `panel.asm` and `dialog.asm` provide the one modal control left,
   a notice with an OK button (closed by Enter or EDIT).
-  There is no settings panel and no settings file: the only preference,
-  Sinclair joystick navigation, is OFF at start, is toggled from the ZX
-  DESK menu and is not saved. There is no sound setting. No mouse support
-  is planned.
+  There is no settings panel, no settings file, no preference of any kind
+  and no sound setting. No mouse or joystick support is planned.
 - `terminal.asm` adds a small command-console application using the
   ZXDesk application descriptor model. Its single 213-byte live state
   contains a path, input and a six-line text history. Its default window
@@ -142,14 +143,6 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   free i-nodes from ZX-UX call 37. The prompt is `$ ` and `help` lists the
   lowercase commands alphabetically. It does not steal `/dev/tty` or
   impersonate `/bin/sh`.
-- Sinclair Interface 2 joystick 1 uses ordinary ZX-UX keyboard input only:
-  `6` left, `7` right, `8` down, `9` up, `0` fire/Enter when enabled.
-  Desktop icons (Notes, Clock, Files, About, Console), menus, dialogs and
-  non-text application controls navigate by selection; the Console keeps
-  all digits as editable text. The five digit keys cannot be
-  distinguished from the physical joystick, so text windows use EDIT for
-  GUI commands without sacrificing ordinary letters. No other GUI function
-  uses digits, so the mode has no shortcut conflicts.
 - `src/zx-desk/platform/entry.asm`, `api.asm`, `rect.asm`, `storage.asm`, `zxux.asm`
   own the SSX1 lifecycle, screen claim/release, TTY, keyboard mapping,
   syscall-backed (read-only) files and user-mode drawing. Console
@@ -159,8 +152,10 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   or ZX-UX boot cassette changes. ZX-UX owns font storage.
 
 **Memory budget:** the resident program (SSX1 image + bss + stack; `image`
-and `bss` are in the SSX1 header, the stack is 192: the deepest use measured
-over every regression scenario is 79 bytes) totals 8609 bytes. ZX-UX
+and `bss` are in the SSX1 header, the stack is 128: the deepest use measured
+over every regression scenario and random-key fuzzing is 80 bytes, and
+the kernel runs syscalls and the 50 Hz interrupt on that same stack, so do
+not trim it further) totals 8339 bytes. ZX-UX
 lets files use only the arena below the lent window, so a program above
 about 9.9 KB would leave no room to create a file and reading a packed file
 could fail; ZXDesk creates no files, and keeping it under about 9.8 KB
@@ -169,8 +164,9 @@ keeps reads reliable. Do not grow past that without cutting something.
 **Not planned:** the Calendar and KEYS applications, the settings panel,
 the Setup icon, sound, plain desktop, any save, copy, delete, rm or
 mkdir, and the unavailable FILE/VIEW items (Save As, Print, Delete, Load,
-Desktop). Mouse/pointer support is **intentionally excluded**; use
-Sinclair joystick keyboard emulation, never direct device-port I/O. Do not
+Desktop). Mouse/pointer support is **intentionally excluded**, and so is
+Sinclair joystick emulation (removed on purpose: its digit keys could not
+open the menu, which needs EDIT); never use direct device-port I/O. Do not
 reinstate the lookalike or claim unsupported menu functions work.
 
 ## SDK build (repository root)
@@ -183,7 +179,7 @@ done
 for m in app wm note commander screen text windows desktop menus clock panel dialog arrange terminal; do
   python3 sdk/bin/py/ras.py -o zxdesk/build/$m.sso src/zx-desk/$m.asm
 done
-python3 sdk/bin/py/rld.py --entry start --stack 192 --heap 0 \
+python3 sdk/bin/py/rld.py --entry start --stack 128 --heap 0 \
   -o zxdesk/build/zxdesk.ssx \
   $(for m in entry api storage rect zxux app wm note commander screen text windows desktop menus clock panel dialog arrange terminal; do printf 'zxdesk/build/%s.sso ' "$m"; done)
 python3 sdk/bin/py/rtap.py -o zxdesk/tzx/ZXDESK.tzx \

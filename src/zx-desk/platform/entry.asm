@@ -4,13 +4,10 @@
         global start
         global clean_exit
         global KeyPaint
-        global SetJoyEnabled
         global DrawDesktop
         global MenuSel
         extern zx_syscall
         extern DskPaintAll
-        extern DskSelected
-        extern AppTerm
         extern WinApp
         extern ClkTick
         extern WndInit
@@ -44,6 +41,7 @@
         extern DlgClose
         extern MenuIsSep
         extern RowAddr
+        extern ScrDown
 
 SCREEN equ $4000
 ATTRS equ $5800
@@ -102,7 +100,6 @@ mainloop:
         jp z,clean_exit
         ld a,(key)
         ld b,a
-        call JoyTranslate
         ld a,(DlgUp)
         or a
         jp nz,modal_dispatch
@@ -125,31 +122,12 @@ mainloop:
         ; All ordinary letters, including M, reach the focused application.
         ld a,(WndCount)
         or a
-        jr z,desktop_key
+        jr z,mainloop          ; the desktop alone: apps launch from the ZX DESK menu
         ; Each window's key goes to its original application vector.
         ld a,b
         call KeyToApp
         jp repaint_front
 
-desktop_key:
-        ld a,(SetJoyEnabled)
-        or a
-        jr z,mainloop          ; apps launch from the ZX DESK menu
-        ld a,b
-        cp '0'
-        jp z,JoyActivate
-        cp '6'
-        jp z,JoyPrevious
-        cp '9'
-        jp z,JoyPrevious
-        cp '7'
-        jp z,JoyNext
-        cp '8'
-        jp z,JoyNext
-        jr mainloop
-open_key:
-        call WndOpen           ; paints the desktop itself, or shows the notice
-        jp mainloop
 ; Wait for a key without blocking forever: sleep 4 ticks (1/50 s), and while the
 ; kernel's raw-key queue is empty redraw the clock when its second changes.
 ; ZXDesk has no interrupt of its own and must not hook the kernel's.
@@ -209,81 +187,6 @@ ClrMode:
         ld bc,1
         ld a,4
         jp zx_syscall
-; Interface 2 joystick 1 electrically acts as the digit keys 6/7/8/9/0.
-; No direct port reads. Never translate digits when typing Note/Console.
-; Elsewhere: 6=left, 7=right, 8=down, 9=up, 0=enter.
-JoyTranslate:
-        ld a,(SetJoyEnabled)
-        or a
-        ret z
-        ld a,(WndCount)
-        or a
-        ret z                      ; desktop selection uses the raw digits
-        ld a,(DlgUp)
-        or a
-        jr nz,JtMap
-        ld a,(MenuOpen)
-        or a
-        jr nz,JtMap
-        ld hl,(WinApp)
-        ld de,AppTerm
-        or a
-        sbc hl,de
-        ret z
-JtMap:
-        ld a,b
-        cp '6'
-        jr z,JtLeft
-        cp '7'
-        jr z,JtRight
-        cp '8'
-        jr z,JtDown
-        cp '9'
-        jr z,JtUp
-        cp '0'
-        ret nz
-        ld b,13
-        ret
-JtLeft:
-        ld b,8
-        ret
-JtRight:
-        ld b,9
-        ret
-JtDown:
-        ld b,10
-        ret
-JtUp:
-        ld b,11
-        ret
-
-; Selected desktop icon has the original inverted-label focus marker.
-; Linear navigation is reliable even with the unequal icon positions.
-JoyPrevious:
-        ld a,(DskSelected)
-        dec a
-        jr nc,JpSave
-        ld a,4
-JpSave:
-        ld (DskSelected),a
-        jp repaint
-JoyNext:
-        ld a,(DskSelected)
-        inc a
-        cp 5
-        jr c,JnSave
-        xor a
-JnSave:
-        ld (DskSelected),a
-        jp repaint
-JoyActivate:
-        ld a,(DskSelected)
-        ld e,a
-        ld d,0
-        ld hl,JoyApps
-        add hl,de
-        ld a,(hl)
-        jp open_key
 next_window:
         ld a,(WndCount)
         cp 2
@@ -306,7 +209,7 @@ quit_key:
         ld a,'q'
         call KeyToApp
         jp repaint_front
-; EDIT (CAPS SHIFT+1) opens/cycles the menu and begins a shortcut.
+; EDIT (CAPS SHIFT+1) opens the menu bar, and closes it again.
 ; BREAK (CAPS SHIFT+SPACE) is reserved by the ZX-UX kernel.
 menu_dispatch:
         ld a,b
@@ -416,21 +319,16 @@ modal_close:
         call DlgClose
         jp mainloop
 menu_key:
-        xor a
-        ld (MenuSel),a
         ld a,(MenuOpen)
         or a
         jr z,MkOpen
-        push af
-        call WndRepaintAll     ; cycling: erase the menu that was showing
-        pop af
+        call MenuClose         ; EDIT again leaves the menu without choosing anything
+        jp repaint             ; (Left and Right switch between the menus)
 MkOpen:
+        xor a
+        ld (MenuSel),a
         inc a
-        cp 5
-        jr c,MkSet
-        ld a,1
-MkSet:
-        call MenuOpenDrop      ; draws the menu over the screen as it is
+        call MenuOpenDrop      ; draws the first menu over the screen as it is
         jp mainloop
 ; The same menu box with another item selected: nothing under it changed.
 menu_redraw:
@@ -620,19 +518,37 @@ BgFill:
         jr z,DdStat
         ld hl,TxtMove
 DdStat:
-        ld c,0
+        ld c,1
         call PrintStrPx
-        ld c,27                ; ZX-UX in the last five cells: a letter and a colour in each
+        ld c,29                ; ZX-UX in the last three cells, six 4-pixel slots
         ld hl,TxtLogo
         call PrintStrPx
+        ld a,184               ; invert every right-hand slot: its letter takes the cell's
+        call RowAddr           ; paper colour on the ink colour, so each of the five
+        ld de,29               ; letters has a background colour of its own
+        add hl,de
+        ld b,8
+LgRow:
+        push hl
+        ld c,3
+LgByte:
+        ld a,(hl)
+        xor $0f
+        ld (hl),a
+        inc l
+        dec c
+        jr nz,LgByte
+        pop hl
+        call ScrDown
+        djnz LgRow
         ld hl,ATTRS
         ld de,ATTRS+1
         ld bc,767
         ld (hl),$78
         ldir
         ld hl,AttrLogo
-        ld de,ATTRS+23*32+27
-        ld bc,5
+        ld de,ATTRS+23*32+29
+        ld bc,3
         ldir
         ret
 
@@ -645,15 +561,13 @@ key: db 0
 TxtMenu: db 'ZX DESK           FILE          VIEW          HELP',0
 TxtStatus: db 'EDIT (CAPS+1): Menu, then M=Move N=Next X=Close Q=Quit',0
 TxtMove: db 'Arrows move the window, Enter=Done',0
-TxtLogo: db ' Z X - U X',0
-AttrLogo: db $50,$70,$60,$68,$47   ; bright red, yellow, green, cyan, and black with white ink
+TxtLogo: db ' ZX-UX',0
+AttrLogo: db $7A,$74,$68   ; paper/ink: white/red, yellow/green, cyan/black
 MoveMode: db 0
 KeyPaint: db 0
 TxtMem: db '/dev/mem',0
 MemFd: db 0
 ModeZero: db 0
 KeyPair: ds 2
-JoyApps: db 0,2,3,1,4          ; desktop icon order: Notes Clock Files About Console
-SetJoyEnabled: db 0            ; Sinclair joystick navigation, toggled from the ZX DESK menu
         section bss
 oldtty: ds 6

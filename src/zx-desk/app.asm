@@ -5,7 +5,6 @@
         global AppAt
         global AppCall
         global AppClock
-        global AppTerm
         extern WinApp
         extern KeyPaint
         extern NoteInit
@@ -81,7 +80,6 @@ AppClock:
         db 25,153,7,30         ; x + width = 32 and y + height = 183: the bottom right corner
         dw CmdInit,CmdDraw,CmdKey,TxtCmdTitle
         db 1,24,30,112
-AppTerm:
         dw TermInit,TermDraw,TermKey,TxtTermTitle
         db 11,48,20,72
 TxtWinTitle: db 'NOTES',0
