@@ -13,7 +13,7 @@ import subprocess
 import struct
 import sys
 
-from turbo_segments import layout, pack_tzx, read_segments, make_segments, COUNT, LOAD_BASE, ENTRY, MAX_TZX_BYTES, PAUSE_MS, TurboFormatError
+from turbo_segments import layout, pack_tzx, read_segments, make_segments, COUNT, LOAD_BASE, ENTRY, MAX_TZX_BYTES, PAUSE_MS, SCREEN_BASE, SCREEN_SIZE, TurboFormatError
 import osbuild
 
 HERE = Path(__file__).resolve().parent
@@ -39,13 +39,11 @@ def progress_lines(size: int, syms: dict, kernel: int, free: int):
 def encode_basic():
     def val(n):
         return b'\xb0"' + str(n).encode() + b'"'
-    # The BASIC loader prints the banner on the right half of the screen and keeps the four bottom-right
-    # attribute cells (the ribbon) set. The bootstrap's progress rows only ever touch the left half.
+    # BORDER 0: PAPER 0: INK 7: CLS: CLEAR 52991: LOAD ""CODE: RANDOMIZE USR 53248. The loading screen
+    # itself is the first turbo block, loaded by the bootstrap; the BASIC only loads the machine code.
     line = (b'\xe7' + val(0) + b':' + b'\xda' + val(0) + b':' +
-            b'\xd9' + val(7) + b':' + b'\xfd' + val(0xCEFF) + b':' +
-            b'\xef""\xaf:' + b'\xfb:' +
-            b'\xf5"' + banner_text() + b'";:' +    # PRINT "banner"; the right half, then the ribbon
-            osbuild.ribbon_print(val) + b':' +
+            b'\xd9' + val(7) + b':' + b'\xfb:' + b'\xfd' + val(0xCEFF) + b':' +
+            b'\xef""\xaf:' +
             b'\xf9\xc0' + val(0xD000) + b'\r')
     return struct.pack('>H', 10) + struct.pack('<H', len(line)) + line
 
@@ -57,68 +55,23 @@ def packed_line(line: str):
     return line.ljust(32)
 
 
-# The banner of the right half of the screen, printed by the BASIC loader in one PRINT of one string
-# (so it needs no numbers in the BASIC, and takes a fraction of a second): ROM control codes inside the
-# string set the position and the colours. Rows are text rows 0..20 of the upper screen, 16 characters
-# wide from column 16; row 21 is left alone (its last column would scroll the screen) and so are rows 13 and
-# 14 (the byte 0Dh ends a BASIC line, and 0Eh marks a number there).
-# Each entry: (row, paper, ink, bright, text).
-BANNER = (
-    (0, 1, 7, 1, ' ZX-UX  UNIX v1 '),
-    (1, 1, 5, 1, ' for the 48K ZX  '[:16]),
-    (2, 1, 5, 1, ' Spectrum       '),
-    (4, 0, 7, 0, 'login: any name'),
-    (5, 0, 7, 0, '(1-8 chars)'),
-    (6, 0, 7, 0, 'no password'),
-    (8, 0, 6, 1, 'Keys'),
-    (9, 0, 7, 0, 'ENTER  end line'),
-    (10, 0, 7, 0, 'DELETE erase'),
-    (11, 0, 7, 0, 'EDIT   Ctrl-D'),
-    (12, 0, 7, 0, 'BREAK  interrupt'),
-    (15, 0, 6, 1, 'Commands'),
-    (16, 0, 7, 0, 'ls cat cp mv rm'),
-    (17, 0, 7, 0, 'mkdir df ps top'),
-    (18, 0, 7, 0, 'date wc od vi'),
-    (19, 0, 7, 0, 'more tar zxpack'),
-    (20, 0, 7, 0, 'man: /usr/doc'),
-)
-BANNER_COLUMN = 16
-RAINBOW_ROW = 3                      # four blocks of four cells: red, yellow, green, cyan paper
-
-
-def banner_text() -> bytes:
-    """The string printed by the BASIC loader (control codes: 10h INK, 11h PAPER, 13h BRIGHT, 16h AT)."""
-    out = bytearray()
-    def at(row):
-        out.extend((0x16, row, BANNER_COLUMN))
-    def colours(paper, ink, bright):
-        out.extend((0x13, bright, 0x11, paper, 0x10, ink))
-    at(RAINBOW_ROW)
-    out.extend((0x13, 1))
-    for paper in (2, 6, 4, 5):
-        out.extend((0x11, paper))
-        out.extend(b'    ')
-    for row, paper, ink, bright, text in BANNER:
-        if len(text) > 32 - BANNER_COLUMN or not text.isascii() or '"' in text:
-            raise TurboFormatError('banner line outside 16 ASCII characters')
-        at(row)
-        colours(paper, ink, bright)
-        out.extend(text.encode())
-    if any(c in out for c in (0x0D, 0x0E, 0x22)):
-        raise TurboFormatError('banner contains a byte BASIC cannot hold in a string')
-    return bytes(out)
-
-
 def create_tzx(sjasm: str, syms: dict, kernel: int, free: int, *, pause_ms=PAUSE_MS, output_name="ZX-UX-turbo-experimental.tzx"):
     raw = (OUT/'merged-image.bin').read_bytes()
     if syms['LOWK'] != LOAD_BASE or len(raw) + LOAD_BASE > 0xCE00:
         raise TurboFormatError('merged image or protected loader stack address changed')
     plan = layout(len(raw), load_base=syms['LOWK'])
     lines = progress_lines(len(raw), syms, kernel, free)
-    # The loader walks its table from the last entry back to the first: block 1 is the last entry.
-    # Each entry: data length, address it is read to, two unused bytes.
+    screen = (SRC/'loading.scr').read_bytes()
+    if len(screen) != SCREEN_SIZE:
+        raise TurboFormatError('loading.scr must be 6912 bytes')
+    # The loader walks its table from the last entry back to the first: block 1, the loading screen, is the
+    # last entry, then image blocks 1..24 before it. Each entry: data length, address it is read to, two
+    # unused bytes.
+    rows = [(length, syms['LOWK'] + off) for off, length in plan]
+    rows.reverse()
+    rows.append((SCREEN_SIZE, SCREEN_BASE))
     (SRC/'turbo_table.inc').write_text(
-        ''.join(f'        dw {length},{syms["LOWK"] + off},0\n' for off, length in reversed(plan)))
+        chr(10).join(f'        dw {n},{a},0' for n, a in rows) + chr(10))
     (SRC/'turbo_lines.inc').write_text(
         ''.join(f'        db "{packed_line(line)}"\n' for line in lines))
     shutil.copyfile(ORIGINAL, SRC/'turbo_boot.asm')
@@ -137,15 +90,15 @@ def create_tzx(sjasm: str, syms: dict, kernel: int, free: int, *, pause_ms=PAUSE
                 osbuild.tap_block(0xFF,encode_basic()))
     bootstrap = (osbuild.header(3,'ZX-UX BOOT',len(code),0xD000,0x8000),
                  osbuild.tap_block(0xFF,code))
-    tzx = pack_tzx(standard, bootstrap, raw, pause_ms=pause_ms)
+    tzx = pack_tzx(standard, bootstrap, screen, raw, pause_ms=pause_ms)
     if output_name not in ('ZX-UX-turbo-experimental.tzx', 'ZX-UX.tzx'):
         raise TurboFormatError('invalid boot output name')
     target = OUT/output_name
     if len(tzx) >= MAX_TZX_BYTES:
-        raise TurboFormatError('boot TZX is at least 30,000 bytes')
+        raise TurboFormatError('boot TZX is at least 38,000 bytes')
     target.write_bytes(tzx)
     from turbo_verify import check_tzx
-    check_tzx(target, raw, code, load_base=syms['LOWK'])
+    check_tzx(target, raw, code, load_base=syms['LOWK'], screen=screen)
     if read_segments(make_segments(raw), image_length=len(raw)) != raw:
         raise TurboFormatError('generated tape image failed independent reconstruction')
     return target, len(code), lines

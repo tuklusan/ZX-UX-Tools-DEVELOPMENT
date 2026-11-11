@@ -51,62 +51,88 @@ bytes larger). With the upstream's own receiver restored, this build (SJASMPlus
    - writes `merged-image.bin` (low kernel, kernel and file system as one
      continuous block) and `kernel.json`.
 3. `src/zx-ux-sdk/tools/turbo_boot_build.py` wraps the image as the cassette:
-   it writes `turbo_table.inc` (the 24 blocks: length and address) and
+   it writes `turbo_table.inc` (the 25 blocks: length and address) and
    `turbo_lines.inc` (the 24 progress lines from `turbo_lines.txt`), assembles
    `turbo_boot.asm` (the bootstrap; it includes `turbo_loader.bin` and
-   `font4x8.bin`), and `turbo_segments.py` lays the image out as 24 turbo-speed
-   TZX blocks behind a standard BASIC header block and the `ZX-UX BOOT` code
-   block. `turbo_verify.py` and an independent reconstruction then check the
-   result, which must be under 30,000 bytes.
+   `font4x8.bin`), and `turbo_segments.py` lays out the cassette: a standard BASIC
+   program and the `ZX-UX BOOT` code block, then the loading screen
+   (`loading.scr`) and the image as 25 turbo-speed TZX blocks.
+   `turbo_verify.py` and an independent reconstruction then check the result,
+   which must be under 38,000 bytes.
 
 ## The loader
 
 The ROM loads the BASIC program and the `ZX-UX BOOT` code block (`turbo_boot.asm`,
-at D000h) as usual. The bootstrap draws the first of the 24 progress rows, copies
-the loader to FF00h and runs it. The loader is a 256-byte routine kept
+at D000h) as usual: the BASIC only sets the colours, clears the screen, clears
+RAMTOP to CEFFh, loads the code and runs it. The bootstrap copies the loader to
+FF00h and runs it. The loader is a 256-byte routine kept
 unmodified in `src/zx-ux/turbo_loader.bin` (the code, FF00-FFB3, and its `LD ERR`
 message, FFB4-FFBA). It is the ROM's own loading method (the ROM's edge-timing
-routines at 05E3h and 05E7h with its own thresholds). Three things in it are
-patched after the copy: the end of its block table, its block count (24), and
-the code after each block, which jumps to `part_done` in the bootstrap to draw
-the next progress row (and, after the last block, to hand over to the kernel at
-6000h).
+routines at 05E3h and 05E7h with its own thresholds). Five things in it are
+patched after the copy: the end of its block table, its block count (25), the
+code after each block, which jumps to `part_done` in the bootstrap to draw the
+next progress row (and, after the last block, to hand over to the kernel at
+6000h), and two for speed, described below.
 
-A block is the part of the image followed by one parity byte (the XOR of the
-part), and the loader reads it straight to its final address and checks the
-parity. There is no header, ordinal or CRC, and no retry: on an error it prints
-`LD ERR` and stops. The pulses are pilot 2042, sync 875 and 613, zero 513, one
-1025 T-states, with a pilot of 494 pulses before each part (the loader needs
-about 62 pulse pairs) and no gap between the 24 blocks. With no gap, the pilot is also the time the bootstrap has to draw
-a progress row (about 15 ms, against a pilot of 284 ms of which the loader needs
-70 ms to lock).
+**Twice the ROM's speed.** The ROM's own edge routine (LD-EDGE-1, 05E7h) waits
+about 350 T-states before it starts to look for an edge, which is why a loader
+built on it needs pulses about as long as the ROM's. The bit reader's call to
+LD-EDGE-2 (05E3h) is patched to call `edge2` in the bootstrap, which uses the ROM's
+sampling loop (05EDh) without that delay, and the threshold that tells a one
+from a zero is patched to match. The data pulses are then 428 T-states for a zero
+and 855 for a one (two pulses per bit): 1283 T-states per bit on average against
+the ROM's 2565, exactly twice the ROM's rate (2728 bits a second). In an emulation
+of the loader against synthetic tape it decodes every bit with the tape running
+8% fast or slow and 25 T-states of random jitter on each edge. The sync and the
+pilot detection still use the ROM's routines and the longer pulses.
 
-## The banner
+A block is its bytes followed by one parity byte (the XOR of the bytes), and the
+loader reads it straight to its final address and checks the parity. There is no
+header, ordinal or CRC, and no retry: on an error it prints `LD ERR` and stops.
+The pulses are pilot 2042, sync 875 and 613, zero 428 and one 855 T-states, with
+a pilot of 494 pulses before each block and no gap between the blocks (nor after
+the bootstrap's own block). The loader needs about 165 pilot pulses (it waits 23
+ms after the first edge, then counts 60 good pairs), so with no gap the pilot is
+also the time the bootstrap has to draw a progress row (about 15 ms, against a
+pilot of 288 ms of which the loader needs about 95 ms to lock).
 
-While the tape loads, the left half of the screen shows the 24 progress lines
-(32 characters each, from `turbo_lines.txt`) and the right half shows a banner of
-the Unix v1 basics: the system name, how to log in (any name of 1 to 8
-characters, no password), the keys (ENTER ends a line, DELETE erases, EDIT is
-Ctrl-D, BREAK interrupts) and the commands and manuals (`/bin` names from
-`programs.txt`, `/usr/doc`). The BASIC loader prints it, in one `PRINT` of one
-string whose embedded control codes (AT, INK, PAPER, BRIGHT) place and colour
-it, so it needs no numbers in the BASIC and appears at once, before the first
-part loads. It is defined by `BANNER` in `turbo_boot_build.py`: text rows 0 to
-20, 16 characters wide from column 16 (not rows 13 and 14 or the last row: the
-bytes 0Dh and 0Eh cannot be in a BASIC string, and a character in the last
-column of the last row scrolls). The bootstrap only ever draws the 16 left
-screen bytes and 16 left attribute cells of a row, so the banner is never
-touched; just before the handover it resets all attributes to white on black,
-because the kernel clears the bitmap but not the attributes.
+## The loading screen and the progress lines
 
-Tested in Fuse 1.10 with every loading helper off (no auto-load, phantom typist,
-loader detection, fast loading, tape traps or accelerate loaders) at 100% speed:
-attach the tape, type `LOAD ""`, press F8. It loads to the `login:` prompt.
+The first turbo block is the loading screen, a 6912-byte SCREEN$ read straight into
+display memory (`src/zx-ux/loading.scr`); its left half is black. It was made from
+the supplied picture (a 256x192 screen): every pixel of the picture is kept, and
+each 8x8 cell has at most two colours (an ink on black paper, all bright). In 39
+cells the picture has two colours besides the black (yellow lightning touching
+the white mountains, and the keyboard outline running through the four rainbow
+stripes), which a Spectrum cell cannot show; there the pixels of the less common
+colour take the cell's main colour: 228 of the 49,152 pixels (0.46%) differ in
+colour from the picture, none in shape.
+
+After each block (the first one after the screen has arrived) the bootstrap draws
+one of the 24 lines of `turbo_lines.txt` (32 characters of the 4x8 font) in the left
+half of the screen, one row at a time; it only ever draws the 16 left screen bytes
+and 16 left attribute cells of a row, so the picture on the right is never touched.
+The last line is already visible while the last block loads. Just before the
+handover the bootstrap resets all attributes to white on black, because the kernel
+clears the bitmap but not the attributes.
+
+## Tested
+
+The cassette is 35,136 bytes (the limit is 38,000). In Fuse 1.10 with every
+loading helper off (no auto-load, phantom typist, loader detection, fast loading,
+tape traps or accelerate loaders) at 100% speed (attach the tape, type `LOAD ""`,
+press F8) the picture loads, the progress lines fill the left half, and it ends at
+the `login:` prompt. The bootstrap and the tape's own pulses were also run through
+an emulator, with the tape at nominal speed and 5% fast and 5% slow with 15
+T-states of random jitter on every edge: in all three every byte of the image and
+the right half of the screen came out identical.
 
 ## Contents
 
     build/build.py                       the driver (tape part of upstream build.py)
     build/dependencies/sjasmplus/        SJASMPlus 1.24.0: Linux binary and source
-    src/zx-ux/                           the kernel, programs, manuals, ROM, font
+    src/zx-ux/                           the kernel, programs, manuals, ROM, font,
+                                         the loading screen (loading.scr) and the
+                                         bootstrap (turbo_boot.asm, turbo_loader.bin)
     src/zx-ux-sdk/tools/                 osbuild, turbo_boot_build, turbo_segments,
                                          turbo_verify, zxpack

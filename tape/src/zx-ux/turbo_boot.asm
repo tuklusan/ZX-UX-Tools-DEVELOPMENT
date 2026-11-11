@@ -6,12 +6,14 @@
 ; =====================================================================
 
 ; ZX-UX boot-only cassette bootstrap.
-; The cassette's 24 turbo blocks are received by a 256-byte turbo loader, kept
-; unmodified in turbo_loader.bin (code FF00-FFB3, "LD ERR" message FFB4-FFBA),
-; copied to FF00h and run there. Only three things in it are patched, all at run
-; time below:
+; The BASIC loader loads this code at D000h and runs it. The cassette's 25 turbo blocks (the loading screen,
+; read straight into display memory, then the 24 parts of the system image) are received by a 256-byte turbo
+; loader, kept unmodified in turbo_loader.bin (code FF00-FFB3, "LD ERR" message FFB4-FFBA), copied to FF00h
+; and run there. Five things in it are patched, all at run time below:
 ;   FF04  the end of its block table,
-;   FF07  its block count (24),
+;   FF07  its block count (25),
+;   FF73  the bit reader's CALL 05E3h (the ROM's LD-EDGE-2) now calls edge2 below,
+;   FF78  the threshold that tells a one from a zero (the pulses are twice as fast as the ROM's),
 ;   FF8C  the code after each block (POP HL, POP BC, then DEC B) becomes a jump
 ;         to part_done, which does the same and draws the progress row.
 ; A block is the data followed by one parity byte, so that the XOR of all of its
@@ -22,22 +24,17 @@
 ;
         org 0D000h
 LOADER  equ 0FF00h
-COUNT   equ 24              ; the 24 blocks (turbo_segments.COUNT)
+COUNT   equ 25              ; the loading screen and the 24 parts of the image
+THRESH  equ 0C2h            ; a bit is a one when the loader's count passes this: zero pulses count about 12
+                            ; above B0h, one pulses about 27 (pulses of 428 and 855 T-states)
 ; start: Begin. The cassette is in charge.
 start:  di
         ld sp,0CEFFh
         ld iy,05C3Ah
         xor a
         out (0FEh),a
-; BASIC has just performed CLS and drawn the four ribbon cells; preserve its bitmap and attributes during
-; all 24 progress rows.
-        ld (row_index),a
-; Show the heading before block 1. This leaves the final information line visible while block 24 is
-; still loading.
-        ld hl,progress_lines
-        call render_text_row
-        ld (text_cursor),hl
-        ld a,1
+; The progress rows are drawn after each block, the first one after the loading screen has arrived (it
+; would be overwritten by it before).
         ld (row_index),a
         ld hl,loader_image
         ld de,LOADER
@@ -47,6 +44,10 @@ start:  di
         ld (LOADER+04h),hl
         ld a,COUNT
         ld (LOADER+07h),a
+        ld hl,edge2
+        ld (LOADER+73h),hl
+        ld a,THRESH
+        ld (LOADER+78h),a
         ld a,0C3h                ; JP part_done in place of POP HL, POP BC, DEC B
         ld (LOADER+8Ch),a
         ld hl,part_done
@@ -62,8 +63,8 @@ part_done:
         jr z,all_loaded
         push bc
         push hl
-; Blocks 1..23 verified: draw rows 2..24. Never delay the final handover to draw a line after block 24: it
-; must already be visible while loading.
+; Blocks 1..24 verified (the screen, then image parts 1..23): draw rows 1..24. Never delay the final handover
+; to draw a line after the last block: row 24 must already be visible while it loads.
         ld hl,(text_cursor)
         call render_text_row
         ld (text_cursor),hl
@@ -87,7 +88,7 @@ all_loaded:
         out (0FEh),a             ; black border at ZX-UX handover.
         ld (05C48h),a            ; BORDCR internal attribute must match black.
 ; The kernel clears the bitmap but not the attributes: give it the white-on-black screen it expects, not the
-; banner's colours.
+; loading screen's colours.
         ld hl,05800h
         ld de,05801h
         ld bc,002FFh
@@ -95,11 +96,21 @@ all_loaded:
         ldir
         jp 06000h
 
+; edge2: measure two edges for one bit, in place of the ROM's LD-EDGE-2 (05E3h). Same sampling loop (LD-SAMPLE,
+; 05EDh), but entered without the fixed delay (22 loops, about 350 T-states) that the ROM's LD-EDGE-1 puts
+; before each edge. That delay is what limits the loader to the ROM's own pulse lengths; without it a bit can
+; take half the time. Returns as the ROM routine does: carry set when both edges came, B the count.
+edge2:  and a
+        call 005EDh
+        ret nc
+        and a
+        jp 005EDh
+
 ; render_text_row: 132 bytes. Draw one text line. The pixels get their jobs.
 render_text_row:
 ; 4x8 font from the existing ZX-UX SDK (96 glyphs). Each 4-pixel character follows the previous one. Only
 ; the left half of the row is drawn (32 glyphs = 16 screen bytes) and only its 16 attribute cells are
-; painted: the right half belongs to the banner the BASIC loader printed, and is never touched.
+; painted: the right half belongs to the loading screen, and is never touched.
         push hl
         pop ix
         ld a,(row_index)
