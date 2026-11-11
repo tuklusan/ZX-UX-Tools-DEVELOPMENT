@@ -100,14 +100,10 @@ PrpLabel:
         ld c,a
         jp PrintStrPx
 PnlPaint:
-        ld a,(PnlX)
-        ld (FrX),a
-        ld a,(PnlY)
-        ld (FrY),a
-        ld a,(PnlW)
-        ld (FrW),a
-        ld a,(PnlH)
-        ld (FrH),a
+        ld hl,PnlX             ; x, y, width, height: the same four bytes as FrX..FrH
+        ld de,FrX
+        ld bc,4
+        ldir
         ld hl,$ffff
         ld (FrPat),hl
         call DevFillRect

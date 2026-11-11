@@ -68,14 +68,14 @@ start:
         jp c,restore
         ld a,1
         ld (owned),a
-        ld (FontBase),hl       ; _screen returns the OS-owned font64
         ld a,e
         or a
         jp nz,release
+        ld (FontBase),hl       ; _screen returns the OS-owned font64
         xor a
         ld (NoteBuf),a         ; Notes starts with an empty page
-        ld hl,TxtMem           ; /dev/mem: peek at the kernel's key queue
-        ld de,0
+        ld hl,TxtMem           ; /dev/mem: peek at the kernel's key queue, clear MODE
+        ld de,2
         ld a,5
         call zx_syscall
         jr c,StNoMem
@@ -148,12 +148,13 @@ desktop_key:
         jp z,JoyNext
         jr mainloop
 open_key:
-        call WndOpen
-        jp repaint
+        call WndOpen           ; paints the desktop itself, or shows the notice
+        jp mainloop
 ; Wait for a key without blocking forever: sleep 4 ticks (1/50 s), and while the
 ; kernel's raw-key queue is empty redraw the clock when its second changes.
 ; ZXDesk has no interrupt of its own and must not hook the kernel's.
 WaitKey:
+        call ClrMode
         call KeyReady
         ret nz
         ld hl,4
@@ -166,19 +167,9 @@ WaitKey:
         jr WaitKey
 ; NZ when a key is waiting (or when it cannot be told: then the read blocks).
 KeyReady:
-        ld a,(MemFd)
-        or a
-        jr z,KrYes
-        ld l,a
-        ld h,0
         ld de,$5b68            ; ttyhd, then ttytl: the raw-key queue head and tail
-        ld bc,0
-        ld a,19                ; absolute seek in /dev/mem
-        call zx_syscall
+        call MemSeek
         jr c,KrYes
-        ld a,(MemFd)
-        ld l,a
-        ld h,0
         ld de,KeyPair
         ld bc,2
         ld a,3
@@ -191,6 +182,33 @@ KeyReady:
 KrYes:
         or 1
         ret
+; DE = address: seek there in /dev/mem. C if it is not open or the seek failed;
+; else HL = its file descriptor.
+MemSeek:
+        ld a,(MemFd)
+        or a
+        scf
+        ret z
+        ld l,a
+        ld h,0
+        push hl
+        ld bc,0
+        ld a,19                ; absolute seek
+        call zx_syscall
+        pop hl
+        ret
+; CAPS SHIFT+9 (GRAPHICS), between RIGHT (CAPS+8) and DELETE (CAPS+0), switches
+; the ROM keyboard to graphics mode, where EDIT and the letters stop working,
+; and ZX-UX never switches it back (not even for its shell after BREAK).
+; ZXDesk never wants it: zero MODE (5C41h) whenever it waits for a key.
+ClrMode:
+        ld de,$5c41
+        call MemSeek
+        ret c
+        ld de,ModeZero
+        ld bc,1
+        ld a,4
+        jp zx_syscall
 ; Interface 2 joystick 1 electrically acts as the digit keys 6/7/8/9/0.
 ; No direct port reads. Never translate digits when typing Note/Console.
 ; Elsewhere: 6=left, 7=right, 8=down, 9=up, 0=enter.
@@ -243,11 +261,10 @@ JtUp:
 ; Linear navigation is reliable even with the unequal icon positions.
 JoyPrevious:
         ld a,(DskSelected)
-        or a
-        jr nz,JpDec
-        ld a,5
-JpDec:
         dec a
+        jr nc,JpSave
+        ld a,4
+JpSave:
         ld (DskSelected),a
         jp repaint
 JoyNext:
@@ -272,8 +289,8 @@ next_window:
         cp 2
         jp c,repaint
         ld a,(WndZ+1)
-        call WndFocusTo
-        jp repaint
+        call WndFocusTo        ; raises it and repaints everything
+        jp mainloop
 close_key:
         call MenuClose
         call WndClose
@@ -603,12 +620,19 @@ BgFill:
         jr z,DdStat
         ld hl,TxtMove
 DdStat:
-        ld c,1
+        ld c,0
+        call PrintStrPx
+        ld c,27                ; ZX-UX in the last five cells: a letter and a colour in each
+        ld hl,TxtLogo
         call PrintStrPx
         ld hl,ATTRS
         ld de,ATTRS+1
         ld bc,767
         ld (hl),$78
+        ldir
+        ld hl,AttrLogo
+        ld de,ATTRS+23*32+27
+        ld bc,5
         ldir
         ret
 
@@ -619,12 +643,15 @@ MenuSel: db 0
 BgRow: db 0
 key: db 0
 TxtMenu: db 'ZX DESK           FILE          VIEW          HELP',0
-TxtStatus: db 'EDIT (CAPS+1): MENU THEN M=MOVE N=NEXT X=CLOSE Q=QUIT ZX DESK',0
-TxtMove: db 'ARROWS MOVE THE WINDOW  ENTER=DONE',0
+TxtStatus: db 'EDIT (CAPS+1): Menu, then M=Move N=Next X=Close Q=Quit',0
+TxtMove: db 'Arrows move the window, Enter=Done',0
+TxtLogo: db ' Z X - U X',0
+AttrLogo: db $50,$70,$60,$68,$47   ; bright red, yellow, green, cyan, and black with white ink
 MoveMode: db 0
 KeyPaint: db 0
 TxtMem: db '/dev/mem',0
 MemFd: db 0
+ModeZero: db 0
 KeyPair: ds 2
 JoyApps: db 0,2,3,1,4          ; desktop icon order: Notes Clock Files About Console
 SetJoyEnabled: db 0            ; Sinclair joystick navigation, toggled from the ZX DESK menu

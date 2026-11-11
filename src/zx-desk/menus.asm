@@ -93,14 +93,10 @@ MenuClose:
         ld (MenuOpen),a
         ret
 MenuPaint:
-        ld a,(MnX)
-        ld (FrX),a
-        ld a,(MnY)
-        ld (FrY),a
-        ld a,(MnW)
-        ld (FrW),a
-        ld a,(MnH)
-        ld (FrH),a
+        ld hl,MnX              ; x, y, width, height: the same four bytes as FrX..FrH
+        ld de,FrX
+        ld bc,4
+        ldir
         ld hl,$ffff
         ld (FrPat),hl
         call DevFillRect

@@ -60,7 +60,12 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   loop: it peeks at the kernel raw-key queue head and tail through
   `/dev/mem` (`ttyhd`/`ttytl` at `$5B68`), and while the queue is empty it
   sleeps 4 ticks (`_sleep`, 1/50 s) and calls `ClkTick`; a waiting key is
-  then read at once (at most about 80 ms of latency). When the second has
+  then read at once (at most about 80 ms of latency). The same loop zeroes the
+  ROM keyboard variable `MODE` (`$5C41`, one byte written through `/dev/mem`,
+  opened read/write) on every pass: CAPS SHIFT+9 (GRAPHICS) sits between
+  RIGHT (CAPS+8) and DELETE (CAPS+0), switches the ROM to graphics mode where
+  EDIT and the letters stop working, and ZX-UX never clears it, not even for
+  its shell after BREAK. When the second has
   changed, `ClkTick` redraws the Clock window alone, without touching focus
   or the other windows, and only if no window above it overlaps it; it does
   nothing while a menu or a notice is on screen or the Clock is closed.
@@ -85,11 +90,13 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
 - Keyboard: EDIT (CAPS SHIFT+1) opens the menu bar and cycles the menu
   headings. After EDIT, M moves the front window (arrow keys, 8 pixels at
   a time, kept inside the desktop; Enter or EDIT drops it and the status
-  bar shows `ARROWS MOVE THE WINDOW  ENTER=DONE` meanwhile), N cycles
+  bar shows `Arrows move the window, Enter=Done` meanwhile), N cycles
   windows, X closes the front window and Q quits at once. There are no
   digit or other letter shortcuts. BREAK is reserved by ZX-UX as a process
   interrupt, so it is never a GUI shortcut. The status bar reads `EDIT
-  (CAPS+1): MENU THEN M=MOVE N=NEXT X=CLOSE Q=QUIT ZX DESK`.
+  (CAPS+1): Menu, then M=Move N=Next X=Close Q=Quit`, and its last five
+  attribute cells show ZX-UX, one letter per cell, on bright red, yellow,
+  green, cyan and black (the last with white ink).
 - Menus: ZX DESK lists Clock, Console, Files and Notes alphabetically, a
   grey dotted separator, `SINCLAIR JOY OFF/ON` (toggle) and Quit. FILE
   holds Open (launches Files); VIEW holds Cascade and Tile; HELP holds
@@ -153,7 +160,7 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
 
 **Memory budget:** the resident program (SSX1 image + bss + stack; `image`
 and `bss` are in the SSX1 header, the stack is 192: the deepest use measured
-over every regression scenario is 79 bytes) totals 8591 bytes. ZX-UX
+over every regression scenario is 79 bytes) totals 8609 bytes. ZX-UX
 lets files use only the arena below the lent window, so a program above
 about 9.9 KB would leave no room to create a file and reading a packed file
 could fail; ZXDesk creates no files, and keeping it under about 9.8 KB
