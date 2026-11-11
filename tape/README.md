@@ -100,13 +100,17 @@ pilot of 288 ms of which the loader needs about 95 ms to lock).
 
 The first turbo block is the loading screen, a 6912-byte SCREEN$ read straight into
 display memory (`src/zx-ux/loading.scr`); its left half is black. It was made from
-the supplied picture (a 256x192 screen): every pixel of the picture is kept, and
-each 8x8 cell has at most two colours (an ink on black paper, all bright). In 39
-cells the picture has two colours besides the black (yellow lightning touching
-the white mountains, and the keyboard outline running through the four rainbow
-stripes), which a Spectrum cell cannot show; there the pixels of the less common
-colour take the cell's main colour: 228 of the 49,152 pixels (0.46%) differ in
-colour from the picture, none in shape.
+the supplied picture (a 256x192 screen): every pixel of the artwork is kept, and
+the small lettering (the "Unix for 48K / ZX Spectrum" subtitle, "DEC", "PDP11" and
+the monitor's "v1 unix / $ _") is redrawn in clean pixel letters, because the
+picture's own letters had come out ragged at this size. Each 8x8 cell has at most
+two colours (an ink on black paper, all bright). In 37 cells the picture has two
+colours besides the black (yellow lightning touching the white mountains, and the
+keyboard outline running through the four rainbow stripes), which a Spectrum cell
+cannot show; there the pixels of the less common colour take the cell's main
+colour: 218 of the 49,152 pixels (0.44%) differ in colour from the artwork, none in
+shape. The monitor text stays clear of the screen's right-hand cell column so that
+the monitor's cyan edge does not share a cell with white letters.
 
 After each block (the first one after the screen has arrived) the bootstrap draws
 one of the 24 lines of `turbo_lines.txt` (32 characters of the 4x8 font) in the left
