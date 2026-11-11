@@ -16,7 +16,6 @@
         extern WndRepaintAll
         extern WndPaintOne
         extern TermRepaintLine
-        extern WndFocusTo
         extern WndCount
         extern WndZ
         extern MenuOpen
@@ -191,8 +190,18 @@ next_window:
         ld a,(WndCount)
         cp 2
         jp c,repaint
-        ld a,(WndZ+1)
-        call WndFocusTo        ; raises it and repaints everything
+        ld a,(WndZ)            ; the front window goes to the back, the others come up
+        push af                ; one place: N steps through every window in turn
+        ld a,(WndCount)
+        dec a
+        ld c,a
+        ld b,0
+        ld hl,WndZ+1
+        ld de,WndZ
+        ldir
+        pop af
+        ld (de),a              ; DE = WndZ + count - 1
+        call WndRepaintAll
         jp mainloop
 close_key:
         call MenuClose

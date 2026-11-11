@@ -91,8 +91,8 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   between the menus, Up and Down move within one, Enter chooses, and EDIT
   again closes the menu without doing anything. After EDIT, M moves the front window (arrow keys, 8 pixels at
   a time, kept inside the desktop; Enter or EDIT drops it and the status
-  bar shows `Arrows move the window, Enter=Done` meanwhile), N cycles
-  windows, X closes the front window and Q quits at once. There are no
+  bar shows `Arrows move the window, Enter=Done` meanwhile), N sends the
+  front window to the back so repeated N steps through every window, X closes the front window and Q quits at once. There are no
   digit or other letter shortcuts. BREAK is reserved by ZX-UX as a process
   interrupt, so it is never a GUI shortcut. The status bar reads `EDIT
   (CAPS+1): Menu, then M=Move N=Next X=Close Q=Quit`, and its last five
@@ -155,7 +155,7 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
 and `bss` are in the SSX1 header, the stack is 128: the deepest use measured
 over every regression scenario and random-key fuzzing is 80 bytes, and
 the kernel runs syscalls and the 50 Hz interrupt on that same stack, so do
-not trim it further) totals 8339 bytes. ZX-UX
+not trim it further) totals 8357 bytes. ZX-UX
 lets files use only the arena below the lent window, so a program above
 about 9.9 KB would leave no room to create a file and reading a packed file
 could fail; ZXDesk creates no files, and keeping it under about 9.8 KB
