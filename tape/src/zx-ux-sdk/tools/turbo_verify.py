@@ -2,10 +2,10 @@
 
 This module deliberately does not call the turbo segment writer/parser. It
 reads raw TZX bytes, checks both independent ROM bootstrap pairs and all 24
-CRC-protected image segments, and bans noncompact waveform/audio blocks.
+image segments (each the part's bytes and one parity byte, as the Bloodaxe
+loader reads them), and bans noncompact waveform/audio blocks.
 """
 from __future__ import annotations
-import binascii
 from pathlib import Path
 import struct
 
@@ -40,12 +40,12 @@ def check_tzx(path: Path, image: bytes, bootstrap: bytes, *, load_base: int):
         elif kind == 0x11:
             ensure(pos+19 <= len(tape), 'truncated turbo timing')
             timing = struct.unpack_from('<6H', tape, pos+1)
-            ensure(timing == (2042, 875, 613, 513, 1025, 247), 'unapproved pulse timing')
+            ensure(timing == (2042, 875, 613, 513, 1025, 494), 'unapproved pulse timing')
             ensure(tape[pos+13] == 8, 'non-byte-aligned turbo segment')
             pause = struct.unpack_from('<H', tape, pos+14)[0]
             size = int.from_bytes(tape[pos+16:pos+19], 'little')
             head, end = pos+19, pos+19+size
-            ensure(11 <= size <= 1200 and end <= len(tape), 'bad turbo size')
+            ensure(2 <= size <= 1200 and end <= len(tape), 'bad turbo size')
             records.append((kind, pause, tape[head:end]))
         else:
             raise ValueError('TZX cannot contain waveform/audio/unknown block %02x' % kind)
@@ -68,17 +68,13 @@ def check_tzx(path: Path, image: bytes, bootstrap: bytes, *, load_base: int):
     position = 0
     for ordinal, (_, pause, packet) in enumerate(records[4:], 1):
         n = q+(ordinal<=r)
-        ensure(pause in (0,400), 'unreviewed turbo pause')
-        ensure(len(packet) == n+11, 'segment length mismatch')
-        ensure(packet[:4] == b'ZX\x01'+bytes((ordinal,)), 'segment magic/version/ordinal')
-        ensure(struct.unpack_from('<HH',packet,4) == (position,n), 'segment destination/size')
+        ensure(pause == 0, 'turbo blocks must follow each other with no gap')
+        ensure(len(packet) == n+1, 'segment length mismatch')
         xor = 0
         for byte in packet:
             xor ^= byte
         ensure(xor == 0, 'segment XOR parity')
-        expected_crc = binascii.crc_hqx(packet[:-3], 0xffff)
-        ensure(packet[-3:-1] == struct.pack('<H', expected_crc), 'segment CRC16')
-        ensure(packet[8:-3] == image[position:position+n], 'segment differs from canonical image')
+        ensure(packet[:-1] == image[position:position+n], 'segment differs from canonical image')
         position += n
     ensure(position == len(image), 'incomplete reconstructed memory')
     return {'tzx_bytes': len(tape), 'boot_segments': COUNT,

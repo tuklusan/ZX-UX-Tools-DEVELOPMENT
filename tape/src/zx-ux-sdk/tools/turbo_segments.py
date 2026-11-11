@@ -1,9 +1,14 @@
-"""Boot-only ZX-UX beta-0.0.7 TZX segment framing (not userland tape I/O).
+"""Boot-only ZX-UX TZX segment framing (not userland tape I/O).
+
+The image is cut into 24 parts. Each part is one TZX turbo block holding the
+part's bytes followed by one parity byte (so the XOR of the whole block is
+zero), which is the block format of the turbo loader of Brian Bloodaxe (The
+Edge, 1985) that receives them (turbo_boot.asm). The loader reads each part
+straight to its final address and needs no header, ordinal or CRC.
 
 This module is intentionally a packet generator, not a substitute for a
-reviewed Z80 bootstrap or a genuine speed/ROM/FUSE load test.  A caller must
-provide separately checked bootstrap and BASIC blocks before a bootable TZX
-can be considered. No historical commercial loader instructions are used.
+genuine speed/ROM/FUSE load test.  A caller must provide separately checked
+bootstrap and BASIC blocks before a bootable TZX can be considered.
 """
 from __future__ import annotations
 
@@ -15,22 +20,17 @@ COUNT = 24
 MAX_TZX_BYTES = 30_000
 LOAD_BASE = 0x5D98
 ENTRY = 0x6000
-MAGIC = b'ZX'
-VERSION = 1
-TIMINGS = (2042, 875, 613, 513, 1025, 247)
+# pilot, sync1, sync2, zero, one, pilot pulses: the timings of the second turbo block of the Bloodaxe tape,
+# with its pilot doubled (it has 247 pulses). The loader needs about 62 pilot pulse pairs (it counts 60 good
+# pairs once it has found a pulse); 494 pulses are 247 pairs, four times that, before each of the 24 parts.
+# The parts follow each other with no gap (PAUSE_MS), so the pilot is also the time the bootstrap has to draw
+# a progress row (about 15 ms) between two parts: the pilot lasts 494 * 2042 T-states = 288 ms.
+TIMINGS = (2042, 875, 613, 513, 1025, 494)
+PAUSE_MS = 0
 
 
 class TurboFormatError(ValueError):
     """A malformed, missing, or misordered boot segment."""
-
-
-def crc16_ccitt_false(data: bytes) -> int:
-    crc = 0xffff
-    for byte in data:
-        crc ^= byte << 8
-        for _ in range(8):
-            crc = ((crc << 1) ^ (0x1021 if crc & 0x8000 else 0)) & 0xffff
-    return crc
 
 
 def xor_bytes(data: bytes) -> int:
@@ -59,45 +59,36 @@ def layout(image_length: int, *, load_base: int = LOAD_BASE):
 
 
 def make_segments(image: bytes, *, load_base: int = LOAD_BASE):
-    """Encode v1 ZX envelope, CRC16 and XOR; offsets are image-relative."""
+    """The 24 blocks: each part's bytes followed by their XOR (so the XOR of a block is zero)."""
     if not isinstance(image, bytes):
         raise TypeError('image must be bytes')
-    packets = []
-    for index, (offset, size) in enumerate(layout(len(image), load_base=load_base), start=1):
-        envelope = MAGIC + bytes((VERSION, index)) + struct.pack('<HH', offset, size) + image[offset:offset+size]
-        with_crc = envelope + struct.pack('<H', crc16_ccitt_false(envelope))
-        packets.append(with_crc + bytes((xor_bytes(with_crc),)))
-    return tuple(packets)
+    blocks = []
+    for offset, size in layout(len(image), load_base=load_base):
+        data = image[offset:offset+size]
+        blocks.append(data + bytes((xor_bytes(data),)))
+    return tuple(blocks)
 
 
 def pack_turbo_record(packet: bytes, *, pause_ms: int) -> bytes:
     if not 0 <= pause_ms <= 0xffff:
         raise TurboFormatError('turbo pause outside TZX unsigned 16-bit value')
-    if not 11 <= len(packet) <= 0xffffff:
-        raise TurboFormatError('invalid turbo record length')
     if not isinstance(packet, bytes):
         raise TypeError('packet must be bytes')
+    if not 2 <= len(packet) <= 0xffffff:
+        raise TurboFormatError('invalid turbo record length')
     pilot, sync1, sync2, zero, one, count = TIMINGS
     return (bytes([0x11]) + struct.pack('<HHHHHHBH', pilot, sync1, sync2,
                                        zero, one, count, 8, pause_ms)
             + len(packet).to_bytes(3, 'little') + packet)
 
 
-def read_packet(packet: bytes, *, ordinal: int, offset: int, size: int) -> bytes:
-    """Fail closed; no tape-supplied destination can override linked layout."""
-    if len(packet) != size + 11:
+def read_packet(packet: bytes, *, size: int) -> bytes:
+    """Fail closed: the block must be size bytes and a parity byte, XOR zero."""
+    if len(packet) != size + 1:
         raise TurboFormatError('segment length mismatch')
-    if packet[:2] != MAGIC or packet[2] != VERSION:
-        raise TurboFormatError('segment magic/version mismatch')
-    if packet[3] != ordinal:
-        raise TurboFormatError('segment ordinal mismatch')
-    if struct.unpack('<HH', packet[4:8]) != (offset, size):
-        raise TurboFormatError('segment offset/length mismatch')
     if xor_bytes(packet) != 0:
         raise TurboFormatError('segment XOR mismatch')
-    if struct.unpack('<H', packet[-3:-1])[0] != crc16_ccitt_false(packet[:-3]):
-        raise TurboFormatError('segment CRC mismatch')
-    return packet[8:-3]
+    return packet[:-1]
 
 
 def read_segments(packets, *, image_length: int, load_base: int = LOAD_BASE) -> bytes:
@@ -105,9 +96,8 @@ def read_segments(packets, *, image_length: int, load_base: int = LOAD_BASE) -> 
     if len(packets) != COUNT:
         raise TurboFormatError('expected exactly 24 segments')
     result = bytearray(image_length)
-    for ordinal, ((offset, size), packet) in enumerate(zip(plan, packets), start=1):
-        result[offset:offset+size] = read_packet(packet, ordinal=ordinal,
-                                                  offset=offset, size=size)
+    for (offset, size), packet in zip(plan, packets):
+        result[offset:offset+size] = read_packet(packet, size=size)
     return bytes(result)
 
 

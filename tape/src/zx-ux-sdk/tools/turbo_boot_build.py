@@ -1,7 +1,9 @@
 """Offline boot-only turbo transport compiler, staged under retained tmp/.
 
-Produces a compact timing/data TZX; independent verification gates must pass
-before the staged distribution can replace last-good release/dist.
+Produces a compact timing/data TZX: two ROM blocks of BASIC, two of the bootstrap
+(turbo_boot.asm, which carries the Bloodaxe turbo loader unmodified in
+bloodaxe_loader.bin) and 24 turbo blocks. Independent verification gates must
+pass before the staged distribution can replace last-good release/dist.
 """
 from __future__ import annotations
 import importlib.util
@@ -11,7 +13,7 @@ import subprocess
 import struct
 import sys
 
-from turbo_segments import layout, pack_tzx, read_segments, make_segments, COUNT, LOAD_BASE, ENTRY, MAX_TZX_BYTES, TurboFormatError
+from turbo_segments import layout, pack_tzx, read_segments, make_segments, COUNT, LOAD_BASE, ENTRY, MAX_TZX_BYTES, PAUSE_MS, TurboFormatError
 import osbuild
 
 HERE = Path(__file__).resolve().parent
@@ -54,15 +56,16 @@ def packed_line(line: str):
     return line.ljust(64)
 
 
-def create_tzx(sjasm: str, syms: dict, kernel: int, free: int, *, pause_ms=400, output_name="ZX-UX-turbo-experimental.tzx"):
+def create_tzx(sjasm: str, syms: dict, kernel: int, free: int, *, pause_ms=PAUSE_MS, output_name="ZX-UX-turbo-experimental.tzx"):
     raw = (OUT/'merged-image.bin').read_bytes()
     if syms['LOWK'] != LOAD_BASE or len(raw) + LOAD_BASE > 0xCE00:
         raise TurboFormatError('merged image or protected loader stack address changed')
     plan = layout(len(raw), load_base=syms['LOWK'])
     lines = progress_lines(len(raw), syms, kernel, free)
-    (SRC/'turbo_plan.inc').write_text(
-        f'MAX_SEG_LEN equ {max(n for _,n in plan)}\n' +
-        ''.join(f'        dw {off},{length}\n' for off, length in plan))
+    # The loader walks its table from the last entry back to the first: block 1 is the last entry.
+    # Each entry: data length, address it is read to, two unused bytes.
+    (SRC/'turbo_table.inc').write_text(
+        ''.join(f'        dw {length},{syms["LOWK"] + off},0\n' for off, length in reversed(plan)))
     (SRC/'turbo_lines.inc').write_text(
         ''.join(f'        db "{packed_line(line)}"\n' for line in lines))
     shutil.copyfile(ORIGINAL, SRC/'turbo_boot.asm')
@@ -75,6 +78,8 @@ def create_tzx(sjasm: str, syms: dict, kernel: int, free: int, *, pause_ms=400, 
     code = loader.read_bytes()
     if not 100 < len(code) < 0x1000:
         raise TurboFormatError('bootstrap outside inspected D000-DFFF range')
+    if (SRC/'bloodaxe_loader.bin').read_bytes() not in code:
+        raise TurboFormatError('the Bloodaxe loader is not in the bootstrap unmodified')
     standard = (osbuild.header(0,'ZX-UX UNIX',len(encode_basic()),10,len(encode_basic())),
                 osbuild.tap_block(0xFF,encode_basic()))
     bootstrap = (osbuild.header(3,'ZX-UX BOOT',len(code),0xD000,0x8000),
