@@ -153,7 +153,7 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
 
 **Memory budget:** the resident program (SSX1 image + bss + stack; `image`
 and `bss` are in the SSX1 header, the stack is 192: the deepest use measured
-over every regression scenario is 79 bytes) totals 8629 bytes. ZX-UX
+over every regression scenario is 79 bytes) totals 8591 bytes. ZX-UX
 lets files use only the arena below the lent window, so a program above
 about 9.9 KB would leave no room to create a file and reading a packed file
 could fail; ZXDesk creates no files, and keeping it under about 9.8 KB

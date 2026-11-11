@@ -279,18 +279,18 @@ TcFound:
         jp (hl)
 TcUnknown:
         ld hl,TextUnknown
-        jp TermSay
+        jr TermSay
 TermHelp:
         ld hl,TextHelp1
         call TermSay
         ld hl,TextHelp2
-        jp TermSay
+        jr TermSay
 TermPwd:
         ld hl,TermCwd
-        jp TermSay
+        jr TermSay
 TermEcho:
         ld hl,(TermArg)
-        jp TermSay
+        jr TermSay
 TermClear:
         xor a
         ld hl,TermRows
@@ -626,7 +626,7 @@ TpsAdvance:
         inc a
         ld (TermPsSlot),a
         cp 4
-        jp c,TpsNext
+        jr c,TpsNext
         ret
 TpsFail:
         ld hl,(TermFD)
@@ -646,7 +646,6 @@ TermPsNumber:
         ld de,10
         call TpsDigit
         ld de,1
-        jp TpsDigit
 TpsDigit:
         ld b,'0'
 TpdAgain:

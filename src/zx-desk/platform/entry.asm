@@ -134,7 +134,7 @@ mainloop:
 desktop_key:
         ld a,(SetJoyEnabled)
         or a
-        jp z,mainloop          ; apps launch from the ZX DESK menu
+        jr z,mainloop          ; apps launch from the ZX DESK menu
         ld a,b
         cp '0'
         jp z,JoyActivate
@@ -146,7 +146,7 @@ desktop_key:
         jp z,JoyNext
         cp '8'
         jp z,JoyNext
-        jp mainloop
+        jr mainloop
 open_key:
         call WndOpen
         jp repaint
@@ -312,10 +312,10 @@ menu_dispatch:
         jr menu_navigation
 menu_cycle:
         call MenuClose
-        jp next_window
+        jr next_window
 menu_close_front:
         call MenuClose
-        jp close_key
+        jr close_key
 menu_navigation:
         ld a,b
         cp 8
@@ -363,7 +363,7 @@ MpvLoop:
         jr z,MpvLoop
         ld a,b
         ld (MenuSel),a
-        jp menu_redraw
+        jr menu_redraw
 menu_next:
         ld a,(MenuSel)
         ld b,a
@@ -378,7 +378,7 @@ MnxLoop:
         jr z,MnxLoop
         ld a,b
         ld (MenuSel),a
-        jp menu_redraw
+        jr menu_redraw
 menu_choose:
         ld a,(MenuOpen)
         ld (MnLastMenu),a
@@ -460,10 +460,10 @@ move_start:
         call MenuClose
         ld a,(WndCount)
         or a
-        jp z,repaint
+        jr z,repaint
         ld a,1
         ld (MoveMode),a
-        jp repaint
+        jr repaint
 move_key:
         ld a,b
         cp 7
@@ -500,7 +500,7 @@ mv_top:
         ld a,9
 mv_putY:
         ld (WinY),a
-        jp repaint
+        jr repaint
 mv_left:
         ld a,(WinX)
         or a
@@ -508,7 +508,7 @@ mv_left:
         dec a
 mv_putX:
         ld (WinX),a
-        jp repaint
+        jr repaint
 mv_right:
         ld a,(WinX)
         ld hl,WinW
@@ -532,7 +532,6 @@ clean_exit:
         xor a
         ld (hl),a
         ldir
-        jp release
 
 release:
         ld a,(owned)
