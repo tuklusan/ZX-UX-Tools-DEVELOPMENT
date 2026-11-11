@@ -586,7 +586,7 @@ BgFill:
         jr c,BgLoop
         xor a
         ld (PrintInv),a
-        ld a,1
+        xor a                  ; text rows 0..7: the rule on row 8 stays clear of the glyph tails
         ld (PxRow),a
         ld c,1
         ld hl,TxtMenu
@@ -596,7 +596,7 @@ BgFill:
         ld a,183
         call FillRowSolid
         call DskPaintAll
-        ld a,185
+        ld a,184               ; rows 184..191: stays out of the attribute area
         ld (PxRow),a
         ld hl,TxtStatus
         ld a,(MoveMode)
