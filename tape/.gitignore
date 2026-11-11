@@ -1,5 +1,6 @@
-# Disposable build intermediates and the generated cassette.
+# Disposable build intermediates. The cassette itself, build/out/ZX-UX.tzx, is tracked.
 /build/src/
-/build/out/
+/build/out/*
+!/build/out/ZX-UX.tzx
 __pycache__/
 *.pyc

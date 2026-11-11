@@ -5,4 +5,5 @@
 *.bin binary
 *.rom binary
 *.xz binary
+*.tzx binary
 sjasmplus-*-linux-amd64 binary

@@ -14,8 +14,8 @@ Python 3.8+ and SJASMPlus 1.24.0, looked up as the argument, then `sjasmplus` on
 the PATH, then the Linux binary in `build/dependencies/sjasmplus/` (it needs
 glibc 2.38, as on Debian 13; on any other system build it from the
 `sjasmplus-1.24.0-src.tar.xz` beside it, or use the official Windows release).
-The cassette is written to `build/out/ZX-UX.tzx`; `build/src` and `build/out`
-are disposable and ignored by git.
+The cassette is written to `build/out/ZX-UX.tzx`, which is tracked in git; the
+other files in `build/out` and all of `build/src` are disposable and ignored.
 
 Verified: with SJASMPlus 1.24.0 (the official Windows release, Python 3.12) the
 build reproduces `zx-ux/tzx/ZX-UX.tzx` byte for byte, and so also the upstream's
