@@ -66,9 +66,14 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   RIGHT (CAPS+8) and DELETE (CAPS+0), switches the ROM to graphics mode where
   EDIT and the letters stop working, and ZX-UX never clears it, not even for
   its shell after BREAK. When the second has
-  changed, `ClkTick` redraws the Clock window alone, without touching focus
-  or the other windows, and only if no window above it overlaps it; it does
-  nothing while a menu or a notice is on screen or the Clock is closed.
+  changed, `ClkTick` builds the two lines again, compares them with the 20
+  characters the window shows (`ClkShown`, saved by every full draw) and
+  prints only the characters that differ, usually the last digit of the
+  seconds; the frame, title and focus are not redrawn. It does this for the
+  Clock window alone, without touching the other windows, and only if no
+  window above it overlaps it; it does nothing while a menu or a notice is
+  on screen or the Clock is closed. A full repaint always redraws the whole
+  Clock and refreshes `ClkShown`.
 - Repainting: a full repaint (`WndRepaintAll`: desktop, then every window
   back to front) is only done when the picture under a window can have
   changed (open, close, next window, arrange, move, a notice closing, a menu
@@ -155,7 +160,7 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
 and `bss` are in the SSX1 header, the stack is 128: the deepest use measured
 over every regression scenario and random-key fuzzing is 80 bytes, and
 the kernel runs syscalls and the 50 Hz interrupt on that same stack, so do
-not trim it further) totals 8357 bytes. ZX-UX
+not trim it further) totals 8452 bytes. ZX-UX
 lets files use only the arena below the lent window, so a program above
 about 9.9 KB would leave no room to create a file and reading a packed file
 could fail; ZXDesk creates no files, and keeping it under about 9.8 KB
