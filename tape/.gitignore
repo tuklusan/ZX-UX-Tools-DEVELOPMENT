@@ -1,0 +1,5 @@
+# Disposable build intermediates and the generated cassette.
+/build/src/
+/build/out/
+__pycache__/
+*.pyc

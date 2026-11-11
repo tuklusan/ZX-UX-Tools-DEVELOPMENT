@@ -1,0 +1,8 @@
+# The cassette must build byte for byte the same on every host. The manuals in
+# src/zx-ux/*.doc are copied into its file system as they are, so a CRLF checkout
+# (Windows autocrlf) would make a different, larger tape. Keep text as LF.
+* text=auto eol=lf
+*.bin binary
+*.rom binary
+*.xz binary
+sjasmplus-*-linux-amd64 binary
