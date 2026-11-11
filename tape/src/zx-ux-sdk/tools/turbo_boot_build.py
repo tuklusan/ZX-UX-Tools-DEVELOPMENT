@@ -39,21 +39,74 @@ def progress_lines(size: int, syms: dict, kernel: int, free: int):
 def encode_basic():
     def val(n):
         return b'\xb0"' + str(n).encode() + b'"'
-    # Keep the four bottom-right attribute cells set during boot. The 64-column progress renderer
-    # leaves these four 32-column cells alone. One honest check beats ten confident guesses.
+    # The BASIC loader prints the banner on the right half of the screen and keeps the four bottom-right
+    # attribute cells (the ribbon) set. The bootstrap's progress rows only ever touch the left half.
     line = (b'\xe7' + val(0) + b':' + b'\xda' + val(0) + b':' +
             b'\xd9' + val(7) + b':' + b'\xfd' + val(0xCEFF) + b':' +
             b'\xef""\xaf:' + b'\xfb:' +
+            b'\xf5"' + banner_text() + b'";:' +    # PRINT "banner"; the right half, then the ribbon
             osbuild.ribbon_print(val) + b':' +
             b'\xf9\xc0' + val(0xD000) + b'\r')
     return struct.pack('>H', 10) + struct.pack('<H', len(line)) + line
 
 
 def packed_line(line: str):
-    """Write 64 adjacent 4-pixel character cells; pad only at the right."""
-    if not line.isascii() or len(line) > 64:
-        raise TurboFormatError('loader display line outside 64-character width')
-    return line.ljust(64)
+    """The left half of a row: 32 adjacent 4-pixel character cells; pad only at the right."""
+    if not line.isascii() or len(line) > 32:
+        raise TurboFormatError('loader display line outside 32-character width')
+    return line.ljust(32)
+
+
+# The banner of the right half of the screen, printed by the BASIC loader in one PRINT of one string
+# (so it needs no numbers in the BASIC, and takes a fraction of a second): ROM control codes inside the
+# string set the position and the colours. Rows are text rows 0..20 of the upper screen, 16 characters
+# wide from column 16; row 21 is left alone (its last column would scroll the screen) and so are rows 13 and
+# 14 (the byte 0Dh ends a BASIC line, and 0Eh marks a number there).
+# Each entry: (row, paper, ink, bright, text).
+BANNER = (
+    (0, 1, 7, 1, ' ZX-UX  UNIX v1 '),
+    (1, 1, 5, 1, ' for the 48K ZX  '[:16]),
+    (2, 1, 5, 1, ' Spectrum       '),
+    (4, 0, 7, 0, 'login: any name'),
+    (5, 0, 7, 0, '(1-8 chars)'),
+    (6, 0, 7, 0, 'no password'),
+    (8, 0, 6, 1, 'Keys'),
+    (9, 0, 7, 0, 'ENTER  end line'),
+    (10, 0, 7, 0, 'DELETE erase'),
+    (11, 0, 7, 0, 'EDIT   Ctrl-D'),
+    (12, 0, 7, 0, 'BREAK  interrupt'),
+    (15, 0, 6, 1, 'Commands'),
+    (16, 0, 7, 0, 'ls cat cp mv rm'),
+    (17, 0, 7, 0, 'mkdir df ps top'),
+    (18, 0, 7, 0, 'date wc od vi'),
+    (19, 0, 7, 0, 'more tar zxpack'),
+    (20, 0, 7, 0, 'man: /usr/doc'),
+)
+BANNER_COLUMN = 16
+RAINBOW_ROW = 3                      # four blocks of four cells: red, yellow, green, cyan paper
+
+
+def banner_text() -> bytes:
+    """The string printed by the BASIC loader (control codes: 10h INK, 11h PAPER, 13h BRIGHT, 16h AT)."""
+    out = bytearray()
+    def at(row):
+        out.extend((0x16, row, BANNER_COLUMN))
+    def colours(paper, ink, bright):
+        out.extend((0x13, bright, 0x11, paper, 0x10, ink))
+    at(RAINBOW_ROW)
+    out.extend((0x13, 1))
+    for paper in (2, 6, 4, 5):
+        out.extend((0x11, paper))
+        out.extend(b'    ')
+    for row, paper, ink, bright, text in BANNER:
+        if len(text) > 32 - BANNER_COLUMN or not text.isascii() or '"' in text:
+            raise TurboFormatError('banner line outside 16 ASCII characters')
+        at(row)
+        colours(paper, ink, bright)
+        out.extend(text.encode())
+    if any(c in out for c in (0x0D, 0x0E, 0x22)):
+        raise TurboFormatError('banner contains a byte BASIC cannot hold in a string')
+    return bytes(out)
 
 
 def create_tzx(sjasm: str, syms: dict, kernel: int, free: int, *, pause_ms=PAUSE_MS, output_name="ZX-UX-turbo-experimental.tzx"):

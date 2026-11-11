@@ -87,13 +87,20 @@ all_loaded:
         xor a
         out (0FEh),a             ; black border at ZX-UX handover.
         ld (05C48h),a            ; BORDCR internal attribute must match black.
+; The kernel clears the bitmap but not the attributes: give it the white-on-black screen it expects, not the
+; banner's colours.
+        ld hl,05800h
+        ld de,05801h
+        ld bc,002FFh
+        ld (hl),7
+        ldir
         jp 06000h
 
 ; render_text_row: 132 bytes. Draw one text line. The pixels get their jobs.
 render_text_row:
-; 64-column, 4x8 font from the existing ZX-UX SDK (96 glyphs). Each 4-pixel character follows the previous
-; one, with padding at the right edge only (32 message glyphs + 32 blank glyphs). In row 24 keep the last 8
-; half-cells (4 Spectrum cells) intact.
+; 4x8 font from the existing ZX-UX SDK (96 glyphs). Each 4-pixel character follows the previous one. Only
+; the left half of the row is drawn (32 glyphs = 16 screen bytes) and only its 16 attribute cells are
+; painted: the right half belongs to the banner the BASIC loader printed, and is never touched.
         push hl
         pop ix
         ld a,(row_index)
@@ -106,11 +113,7 @@ render_text_row:
         inc hl
         ld d,(hl)
         ld (screen_pos),de
-        ld a,(row_index)
-        cp 23
-        ld c,32
-        jr nz,.pair
-        ld c,28                  ; preserve columns 29-32 (last 4 bytes).
+        ld c,16                  ; 16 screen bytes = 32 glyphs.
 .pair:
         push bc
         ld a,(ix+0)
@@ -168,7 +171,7 @@ render_text_row:
         pop bc
         dec c
         jr nz,.pair
-; Paint only columns 1..28 of the bottom row so ribbon survives.
+; Paint only the 16 attribute cells of the left half.
         ld a,7
         call paint_attribute
         push ix
@@ -203,14 +206,7 @@ paint_attribute:
         ld de,05800h
         add hl,de
         pop af
-        ld b,32
-        push af
-        ld a,(row_index)
-        cp 23
-        jr nz,.attr_count
-        ld b,28
-.attr_count:
-        pop af
+        ld b,16
 .attr: ld (hl),a
         inc hl
         djnz .attr

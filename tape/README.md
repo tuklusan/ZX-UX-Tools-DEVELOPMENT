@@ -84,6 +84,24 @@ the 24 blocks. With no gap, the pilot is also the time the bootstrap has to draw
 a progress row (about 15 ms, against a pilot of 284 ms of which the loader needs
 70 ms to lock).
 
+## The banner
+
+While the tape loads, the left half of the screen shows the 24 progress lines
+(32 characters each, from `turbo_lines.txt`) and the right half shows a banner of
+the Unix v1 basics: the system name, how to log in (any name of 1 to 8
+characters, no password), the keys (ENTER ends a line, DELETE erases, EDIT is
+Ctrl-D, BREAK interrupts) and the commands and manuals (`/bin` names from
+`programs.txt`, `/usr/doc`). The BASIC loader prints it, in one `PRINT` of one
+string whose embedded control codes (AT, INK, PAPER, BRIGHT) place and colour
+it, so it needs no numbers in the BASIC and appears at once, before the first
+part loads. It is defined by `BANNER` in `turbo_boot_build.py`: text rows 0 to
+20, 16 characters wide from column 16 (not rows 13 and 14 or the last row: the
+bytes 0Dh and 0Eh cannot be in a BASIC string, and a character in the last
+column of the last row scrolls). The bootstrap only ever draws the 16 left
+screen bytes and 16 left attribute cells of a row, so the banner is never
+touched; just before the handover it resets all attributes to white on black,
+because the kernel clears the bitmap but not the attributes.
+
 Tested in Fuse 1.10 with every loading helper off (no auto-load, phantom typist,
 loader detection, fast loading, tape traps or accelerate loaders) at 100% speed:
 attach the tape, type `LOAD ""`, press F8. It loads to the `login:` prompt.
