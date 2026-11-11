@@ -259,12 +259,13 @@ WinH:           db      88
 WinTitle:       dw      0
 WinApp:         dw      0
 CloseBox:       db      $FF,$81,$BD,$BD,$BD,$BD,$81,$FF
-AboutLines: dw TxtAb1,TxtAb2,TxtAb3,TxtAb4,TxtAb5,TxtAb6,TxtAb7,0
+AboutLines: dw TxtAb1,TxtAb2,TxtAb3,TxtAb4,TxtAb5,TxtAbU,TxtAb6,TxtAb7,0
 TxtAb1: db 'ZX-Desk',0
-TxtAb2: db 127,'  2026 Damian Cooper',0
+TxtAb2: db 127,' 2026 Damian Cooper',0
 TxtAb3: db 'Adapted for ZX-UX',0
 TxtAb4: db 0
 TxtAb5: db 'ZX-UX',0
+TxtAbU: db 'Unix for 48K ZX Spectrum',0
 TxtAb6: db 127,' 2026 Supratim Sanyal',0
 TxtAb7: db 'SANYALnet Labs',0
 WndZ:           db      0,1,2,3

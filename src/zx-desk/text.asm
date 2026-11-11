@@ -27,12 +27,7 @@ PrintCharPx:
         jr nc,PcpCase
         add a,32
 PcpCase:
-        cp 127                  ; copyright marker used by About credits
-        jr nz,PcpRegular
-        ld de,CopyGlyph
-        jr PcpPointerReady
-PcpRegular:
-        sub 32
+        sub 32                  ; every glyph, the copyright mark (127) included, is the kernel's
         cp 96
         jr c,PcpValid
         xor a
@@ -44,7 +39,6 @@ PcpValid:
         ld de,(FontBase)
         add hl,de
         ex de,hl
-PcpPointerReady:
         push de
         ld a,(PxRow)
         call AddrAt
@@ -123,8 +117,6 @@ PspLoop:
         jr PspLoop
 
         section data
-; Circle/C mark in 4x8 half-byte rows; ASCII 127 is private to About.
-CopyGlyph: db $69,$A8,$A9,$60
 FontBase: dw 0
 PrintInv: db 0
 PrintDim: db 0

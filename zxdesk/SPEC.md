@@ -29,8 +29,8 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   instead of retaining a 384-byte row table. ZX-UX delivers keyboard events
   directly; unused mouse hit testing and its event queue are omitted. The
   glyphs use ZX-UX's native 4x8 font64, read through the `_screen` return pointer.
-  No second font is stored in the ZXDesk SSX1 image; a four-byte
-  copyright glyph renders the About credits.
+  No second font is stored in the ZXDesk SSX1 image and ZXDesk draws no
+  glyph of its own: the About copyright marks are the font's glyph 127.
 - Original `windows.asm`, `wm.asm` and `arrange.asm` provide window
   records, focus, z-order, title chrome, back-to-front composition and
   Cascade/Tile. Up to four different application windows may be open;
@@ -66,14 +66,17 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
   RIGHT (CAPS+8) and DELETE (CAPS+0), switches the ROM to graphics mode where
   EDIT and the letters stop working, and ZX-UX never clears it, not even for
   its shell after BREAK. When the second has
-  changed, `ClkTick` builds the two lines again, compares them with the 20
-  characters the window shows (`ClkShown`, saved by every full draw) and
-  prints only the characters that differ, usually the last digit of the
-  seconds; the frame, title and focus are not redrawn. It does this for the
-  Clock window alone, without touching the other windows, and only if no
-  window above it overlaps it; it does nothing while a menu or a notice is
-  on screen or the Clock is closed. A full repaint always redraws the whole
-  Clock and refreshes `ClkShown`.
+  changed, `ClkTick` reads the clock again; unless it is a new minute (or
+  the minute differs from `ClkDrawnM`, which every full draw saves) it
+  reprints only the two digits of the seconds and does not redraw the
+  frame, title or the rest of the text, and at a new minute it redraws the
+  whole Clock. It does this for the Clock window alone, without touching
+  the other windows, and only if no window above it overlaps it; it does
+  nothing while a menu or a notice is on screen or the Clock is closed.
+  Keeping a copy of the 20 characters on screen to compare with was tried
+  and dropped: its 95 bytes pushed the program past the size at which the
+  zxpack man page can still be unpacked for Notes (about 8,440 bytes in
+  RVM); see the memory budget.
 - Repainting: a full repaint (`WndRepaintAll`: desktop, then every window
   back to front) is only done when the picture under a window can have
   changed (open, close, next window, arrange, move, a notice closing, a menu
@@ -160,11 +163,14 @@ under `src/zx-desk/platform/`. All ZXDesk source lives under
 and `bss` are in the SSX1 header, the stack is 128: the deepest use measured
 over every regression scenario and random-key fuzzing is 80 bytes, and
 the kernel runs syscalls and the 50 Hz interrupt on that same stack, so do
-not trim it further) totals 8452 bytes. ZX-UX
+not trim it further) totals 8409 bytes. ZX-UX
 lets files use only the arena below the lent window, so a program above
-about 9.9 KB would leave no room to create a file and reading a packed file
-could fail; ZXDesk creates no files, and keeping it under about 9.8 KB
-keeps reads reliable. Do not grow past that without cutting something.
+about 9.9 KB would leave no room to create a file, and reading a packed
+file needs room for the whole unpacked file. Measured in RVM, the zxpack
+man page (the largest page Notes is expected to open) opens up to a total
+of 8,437 bytes and fails at 8,452, so the real limit is about 8,440 bytes,
+not 9.8 KB. Keep the total under about 8,400 and do not grow past that
+without cutting something. (tar's page never fits, and shows a notice.)
 
 **Not planned:** the Calendar and KEYS applications, the settings panel,
 the Setup icon, sound, plain desktop, any save, copy, delete, rm or

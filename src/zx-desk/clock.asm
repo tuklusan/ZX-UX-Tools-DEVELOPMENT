@@ -8,6 +8,7 @@
         extern ApiWinPrint
         extern WndFlush
         extern WndSelect
+        extern WndPaintOne
         extern WndZ
         extern WndCount
         extern WndTab
@@ -137,6 +138,8 @@ CdCent:
 ; Draw both lines in full (the window was just painted or repainted).
 ClkDraw:
         call ClkBuild
+        ld a,(ClkM)
+        ld (ClkDrawnM),a       ; the minute this full draw shows
         ld hl,ClkText
         ld b,1                 ; first text line, centred over the date
         ld c,1
@@ -144,50 +147,7 @@ ClkDraw:
         ld hl,ClkDate
         ld b,10
         ld c,0
-        call ApiWinPrint
-; Remember what the window now shows: ClkText and ClkDate are 20 bytes together.
-ClkSave:
-        ld hl,ClkText
-        ld de,ClkShown
-        ld bc,20
-        ldir
-        ret
-
-; The window shows ClkShown: print only the characters that differ from a fresh
-; reading. HL = new text, DE = text on screen, B = pixel row, C = character column.
-ClkDiff:
-        ld a,(hl)
-        or a
-        ret z
-        ld a,(de)
-        cp (hl)
-        jr z,CdfSame
-        ld a,(hl)
-        ld (ClkOne),a
-        push bc
-        push de
-        push hl
-        ld hl,ClkOne
-        call ApiWinPrint
-        pop hl
-        pop de
-        pop bc
-CdfSame:
-        inc hl
-        inc de
-        inc c
-        jr ClkDiff
-ClkUpdate:
-        call ClkBuild
-        ld hl,ClkText
-        ld de,ClkShown
-        ld bc,$0101            ; row 1, column 1
-        call ClkDiff
-        ld hl,ClkDate
-        ld de,ClkShown+9
-        ld bc,$0a00            ; row 10, column 0
-        call ClkDiff
-        jr ClkSave
+        jp ApiWinPrint
 
 ; A = 0..99 -> two digits at (HL), HL advanced past them.
 ClkPut2:
@@ -292,7 +252,21 @@ CtDraw:
         add hl,de
         ld a,(hl)              ; the Clock's slot
         call WndSelect
-        call ClkUpdate         ; only the characters that changed
+        call ClkBuild          ; ClkS, ClkM and the text for a fresh reading
+        ld a,(ClkS)
+        or a
+        jr z,CtFull            ; a new minute: draw the whole window
+        ld a,(ClkM)
+        ld hl,ClkDrawnM
+        cp (hl)
+        jr nz,CtFull           ; or a tick was missed
+        ld hl,ClkText+6        ; otherwise only the two digits of the seconds change
+        ld bc,$0107            ; row 1, character column 7
+        call ApiWinPrint
+        jr CtBack
+CtFull:
+        call WndPaintOne
+CtBack:
         ld a,(WndZ)
         jp WndSelect           ; put the front window's record back
 ; A = z index -> HL = that window's 8-byte record.
@@ -313,13 +287,12 @@ CtRec:
         section data
 ClkMonths: db 31,28,31,30,31,30,31,31,30,31,30,31
 ClkLast: dw 0
-ClkOne: db 0,0               ; one character and its end mark
         section bss
 ClkText: ds 9
-ClkDate: ds 11            ; ClkShown follows: what the window shows now
-ClkShown: ds 20
+ClkDate: ds 11
 ClkH: ds 1
 ClkM: ds 1
+ClkDrawnM: ds 1
 ClkS: ds 1
 ClkYrs: ds 1
 ClkLeap: ds 1

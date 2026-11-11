@@ -72,16 +72,16 @@ AcNone:
  ; One descriptor per app. No duplicate state-copy metadata or unused callbacks.
 AppTable:
         dw NoteInit,NoteDrawInterior,NoteKey,TxtWinTitle
-        db 8,48,18,72
+        db 7,48,18,72
         dw 0,WdAbout,0,TxtAboutTitle
-        db 10,44,21,92
+        db 5,44,21,92
 AppClock:
         dw 0,ClkDraw,0,TxtClockTitle
         db 25,153,7,30         ; x + width = 32 and y + height = 183: the bottom right corner
         dw CmdInit,CmdDraw,CmdKey,TxtCmdTitle
         db 1,24,30,112
         dw TermInit,TermDraw,TermKey,TxtTermTitle
-        db 11,48,20,72
+        db 6,48,20,72
 TxtWinTitle: db 'NOTES',0
 TxtAboutTitle: db 'ABOUT',0
 TxtClockTitle: db 'CLOCK',0

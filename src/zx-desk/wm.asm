@@ -155,9 +155,8 @@ WoBitReady:
         ld a,(hl)
         ld (WinH),a
         pop hl
-        ld a,(WndCount)
-        add a,a
-        add a,(hl)
+        ld a,(WndCount)        ; the descriptor's x centres the window; each window
+        add a,(hl)             ; already open moves a new one one byte right
         ld c,a
         ld a,(WinW)
         neg
