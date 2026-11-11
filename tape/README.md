@@ -5,10 +5,10 @@ the upstream project `tuklusan/ZX-UX-The-ZX-Spectrum-48K-Unix-Project-DEVELOPMEN
 (files under its `src/zx-ux`, `src/zx-ux-sdk/tools` and `build/dependencies`).
 The upstream is read-only for this repository; nothing here is written back.
 
-This copy differs from the upstream in one way: the cassette is received by the
-turbo loader of the game Brian Bloodaxe (The Edge, 1985) instead of the
-upstream's own bootstrap receiver (see "The loader" below). So the cassette
-built here is no longer the same as `zx-ux/tzx/ZX-UX.tzx`, which is unchanged.
+This copy differs from the upstream in one way: the cassette is received by a
+different turbo loader instead of the upstream's own bootstrap receiver (see
+"The loader" below). So the cassette built here is no longer the same as
+`zx-ux/tzx/ZX-UX.tzx`, which is unchanged.
 
 ## Build
 
@@ -53,7 +53,7 @@ bytes larger). With the upstream's own receiver restored, this build (SJASMPlus
 3. `src/zx-ux-sdk/tools/turbo_boot_build.py` wraps the image as the cassette:
    it writes `turbo_table.inc` (the 24 blocks: length and address) and
    `turbo_lines.inc` (the 24 progress lines from `turbo_lines.txt`), assembles
-   `turbo_boot.asm` (the bootstrap; it includes `bloodaxe_loader.bin` and
+   `turbo_boot.asm` (the bootstrap; it includes `turbo_loader.bin` and
    `font4x8.bin`), and `turbo_segments.py` lays the image out as 24 turbo-speed
    TZX blocks behind a standard BASIC header block and the `ZX-UX BOOT` code
    block. `turbo_verify.py` and an independent reconstruction then check the
@@ -63,24 +63,21 @@ bytes larger). With the upstream's own receiver restored, this build (SJASMPlus
 
 The ROM loads the BASIC program and the `ZX-UX BOOT` code block (`turbo_boot.asm`,
 at D000h) as usual. The bootstrap draws the first of the 24 progress rows, copies
-the loader to FF00h and runs it. The loader is the 256-byte routine hidden in
-the `REM` line of the second BASIC program of the Brian Bloodaxe tape, used byte
-for byte (`src/zx-ux/bloodaxe_loader.bin`: the code, FF00-FFB3, and its `LD ERR`
+the loader to FF00h and runs it. The loader is a 256-byte routine kept
+unmodified in `src/zx-ux/turbo_loader.bin` (the code, FF00-FFB3, and its `LD ERR`
 message, FFB4-FFBA). It is the ROM's own loading method (the ROM's edge-timing
 routines at 05E3h and 05E7h with its own thresholds). Three things in it are
-patched after the copy: the end of its block table, its block count (it loaded
-two blocks, ours are 24), and the code after each block, which now jumps to
-`part_done` in the bootstrap to draw the next progress row (and, after the last
-block, to hand over to the kernel at 6000h).
+patched after the copy: the end of its block table, its block count (24), and
+the code after each block, which jumps to `part_done` in the bootstrap to draw
+the next progress row (and, after the last block, to hand over to the kernel at
+6000h).
 
 A block is the part of the image followed by one parity byte (the XOR of the
 part), and the loader reads it straight to its final address and checks the
 parity. There is no header, ordinal or CRC, and no retry: on an error it prints
-`LD ERR` and stops, as it does in the game. The pulses are those of the second
-turbo block of the Bloodaxe tape (pilot 2042, sync 875 and 613, zero 513, one
-1025 T-states), with each part's pilot doubled to 494 pulses (the loader needs
-about 62 pulse pairs; Bloodaxe's own blocks have 247 pulses) and no gap between
-the 24 blocks. With no gap, the pilot is also the time the bootstrap has to draw
+`LD ERR` and stops. The pulses are pilot 2042, sync 875 and 613, zero 513, one
+1025 T-states, with a pilot of 494 pulses before each part (the loader needs
+about 62 pulse pairs) and no gap between the 24 blocks. With no gap, the pilot is also the time the bootstrap has to draw
 a progress row (about 15 ms, against a pilot of 284 ms of which the loader needs
 70 ms to lock).
 

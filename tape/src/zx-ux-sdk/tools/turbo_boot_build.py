@@ -1,8 +1,8 @@
 """Offline boot-only turbo transport compiler, staged under retained tmp/.
 
 Produces a compact timing/data TZX: two ROM blocks of BASIC, two of the bootstrap
-(turbo_boot.asm, which carries the Bloodaxe turbo loader unmodified in
-bloodaxe_loader.bin) and 24 turbo blocks. Independent verification gates must
+(turbo_boot.asm, which carries the turbo loader unmodified in
+turbo_loader.bin) and 24 turbo blocks. Independent verification gates must
 pass before the staged distribution can replace last-good release/dist.
 """
 from __future__ import annotations
@@ -131,8 +131,8 @@ def create_tzx(sjasm: str, syms: dict, kernel: int, free: int, *, pause_ms=PAUSE
     code = loader.read_bytes()
     if not 100 < len(code) < 0x1000:
         raise TurboFormatError('bootstrap outside inspected D000-DFFF range')
-    if (SRC/'bloodaxe_loader.bin').read_bytes() not in code:
-        raise TurboFormatError('the Bloodaxe loader is not in the bootstrap unmodified')
+    if (SRC/'turbo_loader.bin').read_bytes() not in code:
+        raise TurboFormatError('the turbo loader is not in the bootstrap unmodified')
     standard = (osbuild.header(0,'ZX-UX UNIX',len(encode_basic()),10,len(encode_basic())),
                 osbuild.tap_block(0xFF,encode_basic()))
     bootstrap = (osbuild.header(3,'ZX-UX BOOT',len(code),0xD000,0x8000),

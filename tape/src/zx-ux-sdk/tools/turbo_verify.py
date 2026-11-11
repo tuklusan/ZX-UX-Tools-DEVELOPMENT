@@ -2,7 +2,7 @@
 
 This module deliberately does not call the turbo segment writer/parser. It
 reads raw TZX bytes, checks both independent ROM bootstrap pairs and all 24
-image segments (each the part's bytes and one parity byte, as the Bloodaxe
+image segments (each the part's bytes and one parity byte, as the turbo
 loader reads them), and bans noncompact waveform/audio blocks.
 """
 from __future__ import annotations

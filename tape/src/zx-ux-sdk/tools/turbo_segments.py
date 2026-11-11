@@ -2,9 +2,9 @@
 
 The image is cut into 24 parts. Each part is one TZX turbo block holding the
 part's bytes followed by one parity byte (so the XOR of the whole block is
-zero), which is the block format of the turbo loader of Brian Bloodaxe (The
-Edge, 1985) that receives them (turbo_boot.asm). The loader reads each part
-straight to its final address and needs no header, ordinal or CRC.
+zero), which is the block format of the turbo loader that receives them
+(turbo_boot.asm, turbo_loader.bin). The loader reads each part straight to its
+final address and needs no header, ordinal or CRC.
 
 This module is intentionally a packet generator, not a substitute for a
 genuine speed/ROM/FUSE load test.  A caller must provide separately checked
@@ -20,9 +20,9 @@ COUNT = 24
 MAX_TZX_BYTES = 30_000
 LOAD_BASE = 0x5D98
 ENTRY = 0x6000
-# pilot, sync1, sync2, zero, one, pilot pulses: the timings of the second turbo block of the Bloodaxe tape,
-# with its pilot doubled (it has 247 pulses). The loader needs about 62 pilot pulse pairs (it counts 60 good
-# pairs once it has found a pulse); 494 pulses are 247 pairs, four times that, before each of the 24 parts.
+# pilot, sync1, sync2, zero, one, pilot pulses: the timings the turbo loader is built for. The loader needs
+# about 62 pilot pulse pairs (it counts 60 good pairs once it has found a pulse); 494 pulses are 247 pairs,
+# four times that, before each of the 24 parts.
 # The parts follow each other with no gap (PAUSE_MS), so the pilot is also the time the bootstrap has to draw
 # a progress row (about 15 ms) between two parts: the pilot lasts 494 * 2042 T-states = 288 ms.
 TIMINGS = (2042, 875, 613, 513, 1025, 494)

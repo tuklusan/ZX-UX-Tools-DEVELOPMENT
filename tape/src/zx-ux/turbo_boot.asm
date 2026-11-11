@@ -6,13 +6,12 @@
 ; =====================================================================
 
 ; ZX-UX boot-only cassette bootstrap.
-; The cassette's 24 turbo blocks are received by the turbo loader of the 1985
-; game Brian Bloodaxe (The Edge): its 256-byte routine, copied byte for byte
-; from the REM line of that tape's second BASIC program and run at FF00h (see
-; bloodaxe_loader.bin: code FF00-FFB3, "LD ERR" message FFB4-FFBA). Only three
-; things in it are patched, all at run time below:
-;   FF04  the end of its block table (it took two blocks, now 24),
-;   FF07  its block count,
+; The cassette's 24 turbo blocks are received by a 256-byte turbo loader, kept
+; unmodified in turbo_loader.bin (code FF00-FFB3, "LD ERR" message FFB4-FFBA),
+; copied to FF00h and run there. Only three things in it are patched, all at run
+; time below:
+;   FF04  the end of its block table,
+;   FF07  its block count (24),
 ;   FF8C  the code after each block (POP HL, POP BC, then DEC B) becomes a jump
 ;         to part_done, which does the same and draws the progress row.
 ; A block is the data followed by one parity byte, so that the XOR of all of its
@@ -220,9 +219,9 @@ video_rows:
         dup 24, n
         dw 04000h + ((n / 8) * 0800h) + ((n % 8) * 32)
         edup
-; loader_image: the Bloodaxe loader, unmodified here (it is patched after the copy to FF00h).
+; loader_image: the turbo loader, unmodified here (it is patched after the copy to FF00h).
 loader_image:
-        incbin "bloodaxe_loader.bin"
+        incbin "turbo_loader.bin"
 loader_end:
 ; block_table: for each block the data length and the address it is read to (and two unused bytes), in
 ; the order the loader walks it: from the last entry back to the first, so block 1 is the last entry.
