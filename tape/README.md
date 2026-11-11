@@ -100,17 +100,21 @@ pilot of 288 ms of which the loader needs about 95 ms to lock).
 
 The first turbo block is the loading screen, a 6912-byte SCREEN$ read straight into
 display memory (`src/zx-ux/loading.scr`); its left half is black. It was made from
-the supplied picture (a 256x192 screen): every pixel of the artwork is kept, and
-the small lettering (the "Unix for 48K / ZX Spectrum" subtitle, "DEC", "PDP11" and
-the monitor's "v1 unix / $ _") is redrawn in clean pixel letters, because the
-picture's own letters had come out ragged at this size. Each 8x8 cell has at most
-two colours (an ink on black paper, all bright). In 37 cells the picture has two
-colours besides the black (yellow lightning touching the white mountains, and the
-keyboard outline running through the four rainbow stripes), which a Spectrum cell
-cannot show; there the pixels of the less common colour take the cell's main
-colour: 218 of the 49,152 pixels (0.44%) differ in colour from the artwork, none in
-shape. The monitor text stays clear of the screen's right-hand cell column so that
-the monitor's cyan edge does not share a cell with white letters.
+the supplied picture (a 256x192 screen): the artwork is kept, the small lettering
+(the "Unix for 48K / ZX Spectrum" subtitle, "DEC", "PDP11" and the monitor's
+"v1 unix / $ _") is redrawn in clean pixel letters because the picture's own letters
+had come out ragged at this size, and the ZX Spectrum at the bottom is redrawn after
+a photograph of the real machine: four rows of keys in the real stagger (ten keys,
+ten, nine and ENTER, CAPS SHIFT and ten with SYMBOL SHIFT and a wide SPACE) and the
+rainbow flash as the real machine has it, running up the right-hand corner at 2:1.
+Each 8x8 cell has at most two colours (an ink and a paper, all bright). In 27 cells
+of the upper picture there are two colours besides the black (yellow lightning
+touching the white mountains, and so on), which a Spectrum cell cannot show; there
+the pixels of the less common colour take the cell's main colour: 115 of the 49,152
+pixels (0.23%) differ in colour from the drawing, none in shape. The keyboard area
+has no such pixels: the four rainbow bands are 8 pixels wide across and the keys stop
+short of the cells they cross, so every cell there is two clean colours (the stripe's
+cells use the neighbouring bands as ink and paper).
 
 After each block (the first one after the screen has arrived) the bootstrap draws
 one of the 24 lines of `turbo_lines.txt` (32 characters of the 4x8 font) in the left
