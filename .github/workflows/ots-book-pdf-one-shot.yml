@@ -1,0 +1,69 @@
+name: One-shot Over the Spectrum book PDF fetch
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/ots-book-pdf-one-shot.yml
+permissions:
+  contents: read
+jobs:
+  fetch-book:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Read one-shot workflow source
+        uses: actions/checkout@v4
+      - name: Download original book PDF
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deliver
+          page='https://datassette.org/pt-br/livros/sinclair/zx-spectrum/uk-reino-unido/over-spectrum'
+          if curl -fLsS --retry 2 --connect-timeout 20 --max-time 90 -A 'Mozilla/5.0 (compatible; ZX-UX research)' "$page" -o "$RUNNER_TEMP/bookpage.html"; then
+            PAGE_URL="$page" PAGE_FILE="$RUNNER_TEMP/bookpage.html" python3 - <<'PY' > "$RUNNER_TEMP/urls.txt"
+          import html, os, re
+          from urllib.parse import urljoin
+          raw = open(os.environ["PAGE_FILE"], encoding="utf-8", errors="replace").read()
+          base = os.environ["PAGE_URL"]
+          links = []
+          for m in re.finditer(r'(?is)<a\b[^>]*href\s*=\s*["\']([^"\']+)["\'][^>]*>(.*?)</a>', raw):
+              url = html.unescape(m.group(1).strip())
+              label = re.sub('<[^>]+>', '', html.unescape(m.group(2))).strip()
+              if re.search(r'\.pdf(?:$|[?#])', url, re.I) or re.search(r'over\s*the\s*spectrum|overthespectrum\.pdf', label, re.I):
+                  links.append(urljoin(base, url))
+          for match in re.findall(r'(?i)["\'](https?://[^"\']*over[^"\']*spectrum[^"\']*\.pdf[^"\']*)["\']', raw):
+              links.append(html.unescape(match))
+          for url in dict.fromkeys(links):
+              print(url)
+          PY
+          else
+            touch "$RUNNER_TEMP/urls.txt"
+          fi
+          cat >> "$RUNNER_TEMP/urls.txt" <<'EOF'
+          https://worldofspectrum.net/pub/sinclair/books/o/OverTheSpectrum.pdf
+          https://worldofspectrum.net/pub/sinclair/books/o/OverTheSpectrum.pdf.zip
+          EOF
+          while IFS= read -r url; do
+            [ -n "$url" ] || continue
+            echo "Trying $url"
+            if curl -fLsS --retry 2 --connect-timeout 20 --max-time 150 -A 'Mozilla/5.0' "$url" -o "$RUNNER_TEMP/bookdownload"; then
+              if [ "$(head -c 5 "$RUNNER_TEMP/bookdownload")" = '%PDF-' ] && [ "$(wc -c < "$RUNNER_TEMP/bookdownload")" -gt 1000000 ]; then
+                mv "$RUNNER_TEMP/bookdownload" deliver/OverTheSpectrum-PhilipWilliams-1982.pdf
+                echo "Downloaded PDF size: $(wc -c < deliver/OverTheSpectrum-PhilipWilliams-1982.pdf) bytes"
+                if command -v pdfinfo >/dev/null 2>&1; then
+                  pdfinfo deliver/OverTheSpectrum-PhilipWilliams-1982.pdf | grep -E '^(Pages|Page size|File size|Title):' || true
+                fi
+                break
+              fi
+              echo "Response was not a book PDF; continuing"
+            fi
+          done < "$RUNNER_TEMP/urls.txt"
+          test -s deliver/OverTheSpectrum-PhilipWilliams-1982.pdf
+          cp .github/workflows/ots-book-pdf-one-shot.yml deliver/download_ots_book_workflow.yml
+      - name: Upload book and acquisition script
+        uses: actions/upload-artifact@v4
+        with:
+          name: over-the-spectrum-book-and-script
+          path: deliver/*
+          if-no-files-found: error
+          retention-days: 1
