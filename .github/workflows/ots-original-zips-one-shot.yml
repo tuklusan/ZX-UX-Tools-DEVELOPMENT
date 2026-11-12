@@ -1,0 +1,39 @@
+name: One-shot OverTheSpectrum original ZIP acquisition
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/ots-original-zips-one-shot.yml
+permissions:
+  contents: read
+jobs:
+  retrieve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download all three original ZIP archives unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p originals
+          for n in 1 2 3; do
+            file="OverTheSpectrumCassette${n}.tzx.zip"
+            curl -fLSs --retry 3 --connect-timeout 20 --max-time 100 \
+              "https://worldofspectrum.net/pub/sinclair/compilations/o/${file}" \
+              -o "originals/${file}"
+            unzip -tq "originals/${file}"
+            echo "== ${file} =="
+            unzip -Z1 "originals/${file}"
+            count="$(unzip -Z1 "originals/${file}" | grep -ic '\.tzx$' || true)"
+            if [ "$count" -ne 2 ]; then
+              echo "::error::Expected 2 side TZX images inside ${file}; got ${count}"
+              exit 1
+            fi
+          done
+      - name: Upload original unmodified ZIP archives
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-three-over-the-spectrum-zips
+          path: originals/*.zip
+          if-no-files-found: error
+          retention-days: 1
