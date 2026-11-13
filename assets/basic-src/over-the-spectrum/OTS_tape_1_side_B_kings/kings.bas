@@ -1,0 +1,69 @@
+ 100 DIM p(3)
+ 110 RANDOMIZE 
+ 120 LET s=0
+ 130 FOR i=1 TO 25
+ 140 GO SUB 500
+ 150 LET c$=a$
+ 160 GO SUB 500
+ 170 LET b$=a$
+ 180 IF b$=c$ THEN GO TO 160
+ 190 GO SUB 500
+ 200 IF a$=b$ OR a$=c$ THEN GO TO 190
+ 210 PRINT i;". Who was monarch in "; n;" ?"
+ 220 LET p(1)=INT (3*RND)+1
+ 230 LET p(2)=INT (3*RND)+1
+ 240 IF p(2)=p(1) THEN GO TO 230
+ 250 LET p(3)=6-p(1)-p(2)
+ 260 FOR t=1 TO 3
+ 270 PRINT AT 5+t,5;t;". ";
+ 280 IF t=p(1) THEN PRINT a$
+ 290 IF t=p(2) THEN PRINT b$
+ 300 IF t=p(3) THEN PRINT c$
+ 310 NEXT t
+ 320 PRINT AT 12,0;
+ 330 LET x$= INKEY$: IF x$<"1" OR x$>"3" THEN GO TO 330
+ 340 IF VAL x$=p(1) THEN PRINT "GREAT": LET s=s+1: BEEP .5,2: BEEP .2,5: BEEP .2,7: GO TO 370
+ 350 PRINT "NO - it was ";a$
+ 360 FOR j=1 TO 8: BEEP RND/4,10*RND-30: NEXT j: BEEP 1,-25
+ 370 PRINT FLASH 1;AT 20,0;"Press any key for the next one"
+ 380 LET x$=INKEY$
+ 390 IF x$="" THEN GO TO 380
+ 400 CLS 
+ 410 NEXT i
+ 420 PRINT "YOU SCORED ";4*s;" PERCENT"
+ 430 STOP 
+ 500 LET n=INT (396*RND)+1066
+ 510 LET a$=" "
+ 520 GO SUB n
+ 530 IF a$=" " THEN GO SUB n+1
+ 540 RETURN 
+1087 LET a$="William 1"
+1088 RETURN 
+1100 LET a$="William 2"
+1101 RETURN 
+1135 LET a$="Henry 1"
+1136 RETURN 
+1154 LET a$="Stephen"
+1155 RETURN 
+1189 LET a$="Henry 2"
+1190 RETURN 
+1199 LET a$="Richard 1"
+1200 RETURN 
+1216 LET a$="John"
+1217 RETURN 
+1272 LET a$="Henry 3"
+1273 RETURN 
+1307 LET a$="Edward 1"
+1308 RETURN 
+1327 LET a$="Edward 2"
+1328 RETURN 
+1377 LET a$="Edward 3"
+1378 RETURN 
+1399 LET a$="Richard 2"
+1400 RETURN 
+1413 LET a$="Henry 4"
+1414 RETURN 
+1422 LET a$="Henry 5"
+1423 RETURN 
+1461 LET a$="Henry 6"
+1462 RETURN 

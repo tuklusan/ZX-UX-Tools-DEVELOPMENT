@@ -1,0 +1,77 @@
+ 100 DATA 14,31,28,24,16,16,16,16,112,248,56,24,8,8,8,8: REM wings resting shape -AB
+ 110 DATA 3,15,63,127,127,127,255,227,192,240,252,254,254,254,255,199: REM top half body shape - CD
+ 120 DATA 227,227,99,99,127,63,7,0,199,199,198,198,254,252,224,0: REM bottom half body shape - EF
+ 130 DATA 240,112,56,248,124,62,255,30,15,14,28,31,62,124,255,120,7,0,0,0,0,0,0,0,224,0,0,0,0,0,0,0: REM wings up shape -GHIJ
+ 140 DATA 0,0,0,0,0,0,0,7,0,0,0,0,0,0,0,224,30,255,62,124,248,56,112,240,120,255,124,62,31,28,14,15: REM wings down shape - KLMN
+ 150 DATA 16,16,16,16,24,28,31,14,8,8,8,8,24,56,248,112: REM shape of falling wings - OP
+ 160 DATA 0,0,12,15,31,63,127,255,24,60,60,255,255,255,231,129,0,0,48,240,248,252,254,255: REM shape of laser base -QRS
+ 170 DATA 66,66,38,27,15,7,3,1,66,66,100,216,240,224,192,128: REM shape of enemy bullets - TU
+ 180 FOR i=USR "{90}" TO USR "{90}"+167
+ 190 READ x: POKE i,x
+ 200 NEXT i
+ 210 BORDER 7: PAPER 7: INK 0: OVER 0: CLS 
+ 220 LET v=21
+ 230 LET s=1
+ 240 LET g=5
+ 250 LET x=3+4*s
+ 260 LET y=0
+ 270 PRINT TAB x;
+ 280 FOR i=1 TO 5-s
+ 290 PRINT " {10}{02}{92}{93}  ";
+ 300 NEXT i
+ 310 PRINT : PRINT TAB x;
+ 320 FOR i=1 TO 5-s
+ 330 PRINT "{10}{04}{90}{10}{02}{94}{95}{10}{04}{91} ";
+ 340 NEXT i
+ 500 LET g=g+(g<27)*(INKEY$="c")-(g>1)*(INKEY$="x")
+ 510 PRINT AT v,g;" {10}{02}{A0}{A1}{A2} ";AT y,x;"    ";AT y+1,x;"    "
+ 520 LET x=x+(y>3)-(y<4)+2*SGN (g-x)*(RND>.5): IF x>28 THEN LET x=0
+ 530 LET y=y+1
+ 540 PRINT AT y,x;"{10}{00}{96}{10}{01}{92}{93}{10}{00}{97}";AT y+1,x;"{98}{10}{01}{94}{95}{10}{00}{99}"
+ 550 IF y=v-2 THEN GO TO 1400
+ 560 IF RND>.15 THEN GO TO 600
+ 570 FOR i=y+2 TO v-1: BEEP .02,v-i: PRINT AT i,x+1;"  ";AT i+1,x+1;"{A3}{A4}": NEXT i
+ 580 PRINT AT i,x+1;"  "
+ 590 IF g=x OR g=x-1 THEN GO TO 1300
+ 600 IF INKEY$<>"m" THEN GO TO 650
+ 610 LET m=150: IF g=x OR g=x-1 THEN LET m=157-8*y
+ 620 PLOT 19+8*g,8: DRAW 0,m: BEEP .1,0: IF m<150 THEN GO TO 1000
+ 630 DRAW INVERSE 1;0,1: DRAW INVERSE 1;0,-m-1
+ 640 REM second cycle
+ 650 LET g=g+(g<27)*(INKEY$="c")-(g>1)*(INKEY$="x")
+ 660 PRINT AT v,g;" {10}{02}{A0}{A1}{A2} ";AT y,x;"    ";AT y+1,x;"    "
+ 670 LET x=x+(y>3)-(y<4)+2*SGN (g-x)*(RND>.5): IF x>28 THEN LET x=0
+ 680 LET y=y+1
+ 690 PRINT AT y,x;"{10}{00}{9A}{10}{01}{92}{93}{10}{00}{9B}";AT y+1,x;"{9C}{10}{01}{94}{95}{10}{00}{9D}"
+ 700 IF y=v-2 THEN GO TO 1400
+ 710 IF RND>.15 THEN GO TO 750
+ 720 FOR i=y+2 TO v-1: BEEP .01,v-i: PRINT AT i,x+1;"  ";AT i+1,x+1;"{A3}{A4}": NEXT i
+ 730 PRINT AT i,x+1;"  "
+ 740 IF g=x OR g=x-1 THEN GO TO 1300
+ 750 IF INKEY$<>"m" THEN GO TO 500
+ 760 LET m=150: IF g=x OR g=x-1 THEN LET m=157-8*y
+ 770 PLOT 19+8*g,8: DRAW 0,m: BEEP .1,0: IF m<150 THEN GO TO 1000
+ 780 DRAW INVERSE 1;0,1: DRAW INVERSE 1;0,-m-1
+ 790 GO TO 500
+1000 FOR y=y+1 TO v-2
+1005 BEEP .02,y/2
+1010 PRINT AT y-1,x;"    ";AT y,x;"{10}{02}{9E}{10}{06}{92}{93}{10}{02}{9F}{10}{00}";AT y+1,x;" {10}{06}{94}{95}{10}{00} "
+1015 NEXT y
+1020 PRINT AT y-1,x;"    "
+1200 LET s=s+1
+1210 PRINT AT y,x;"    ";AT y+1,x;"    ";AT 0,0;: IF s<5 THEN GO TO 250
+1220 IF s=5 THEN GO TO 1500
+1300 PRINT AT v,g+1;"{A0}{A1}{A2}"; OVER 1;AT v,x+1;"{A3}{A4}": FOR i=1 TO 11: BEEP .1,-10: PRINT OVER 1;AT v,g;" {A0}{A1}{A2}": BEEP .02,4: NEXT i
+1310 PAUSE 50
+1320 CLS 
+1330 RUN 220
+1400 PRINT AT y,x;"    ";AT y+1,x;"    ";AT 0,0;
+1410 IF ABS (x-g)>1 THEN GO TO 250
+1420 PRINT AT v,g+1;"{10}{02}{A0}{A1}{A2}"; OVER 1;AT y+1,x;"{10}{00}{96}{10}{01}{92}{93}{10}{00}{97}";AT y+2,x;"{10}{01}{98}{94}{95}{99}": FOR i=1 TO 11: BEEP .1,-10: PRINT OVER 1;AT v,g;"{10}{02} {A0}{A1}{A2}": BEEP .02,4: NEXT i
+1430 PAUSE 50
+1440 RUN 100
+1500 PRINT AT 5,0;"Congratulations - you have      destroyed the entire enemy fleet"
+1510 BEEP .3,1: BEEP .05,0: BEEP .05,-1: BEEP .5,9: BEEP .05,0: BEEP .05,-1: BEEP .6,1: BEEP .5,10
+1520 PRINT FLASH 1; PAPER 2; INK 7;AT 10,0;"WATCH OUT - HERE THEY COME AGAIN"
+1530 FOR i=1 TO 3: BEEP 1,20: BEEP .1,0: NEXT i
+1540 RUN 100

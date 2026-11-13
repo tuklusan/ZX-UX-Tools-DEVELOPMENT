@@ -1,0 +1,65 @@
+ 100 BORDER 7: PAPER 7: INK 0: OVER 0: CLS 
+ 110 LET b$="N23456789TAJQK"
+ 120 LET a=0: LET m=100
+ 130 GO SUB 8000
+ 140 DIM p(4)
+ 150 IF m=0 THEN PRINT AT 10,1;"Kitty stands at $0";AT 19,1;"Sory, your credit has run out.  Come again when you have more   money.": STOP 
+ 160 PRINT AT 10,1;"Kitty stands at $";m: PRINT "How much do you want to bet?" 
+ 170 INPUT b
+ 180 CLS 
+ 190 IF b>m THEN GO TO 160
+ 200 LET m=m-b
+ 210 PRINT INK 0;AT 0,0;"YOUR CARDS";AT 11,0;"SPECTRUM CARDS"
+ 220 PRINT AT 9,1;"Total=";AT 20,1;"Total="
+ 230 FOR i=2 TO 1 STEP -1
+ 240 GO SUB 500
+ 250 NEXT i
+ 260 FOR i=1 TO 2
+ 270 LET a=p(i)=11
+ 280 IF i=1 THEN INPUT FLASH 1; PAPER 2; INK 7;"Do you want another card? ";a$: LET a$=a$+" ": IF a$(1)="n" THEN GO TO 340
+ 290 GO SUB 500
+ 300 IF p(i)>21 THEN LET i=2: GO TO 340
+ 310 IF p(i+2)=5 THEN GO TO 340
+ 320 IF i=2 AND p(i)>16 THEN GO TO 340
+ 330 GO TO 280
+ 340 NEXT i
+ 350 IF p(1)<=21 AND p(3)=5 AND (p(2)<>21 OR p(4)<>2) THEN GO TO 380
+ 360 IF p(1)=21 AND p(3)=2 AND (p(2<>21 OR p(4)<>2)) THEN LET b=b*1.5: PRINT FLASH 1;AT 5,18;"BLACKJACK": GO TO 380
+ 370 IF (p(2)<=21 AND p(2)>=p(1)) OR p(1)>21 THEN LET b=0
+ 380 LET m=m+2*b
+ 390 GO TO 130
+ 500 LET p(i+2)=p(i+2)+1
+ 510 LET c=INT (13*RND)+2
+ 520 IF c=11 THEN LET a=a+1
+ 530 LET p(i)=p(i)+c*(c<12)+10*(c>11)
+ 540 IF p(i)<22 OR a=0 THEN GO TO 570
+ 550 LET a=a-1
+ 560 LET p(i)=p(i)-10
+ 570 GO SUB 8500
+ 580 GO SUB 9000
+ 590 PRINT INK 0;AT 11*i-2,9;p(i)
+ 600 RETURN 
+8000 DATA 0,78,209,81,81,81,78,0
+8010 DATA 102,255,255,255,126,60,24,24
+8020 DATA 24,60,126,255,255,126,60,24
+8030 DATA 24,60,126,255,255,219,24,60
+8040 DATA 60,60,219,231,231,219,24,24
+8050 RESTORE 8000
+8060 FOR k=USR "e" TO USR "e"+39: READ x: POKE k,x: NEXT k
+8070 RETURN 
+8500 LET p=11*i-7: LET q=6*p(i+2)-5
+8510 INK 5: PRINT AT p-3,q;"{85}{83}{83}{83}{83}{8A}": FOR k=1 TO 5: PRINT AT p-3+k,q;"{85}    {8A}": NEXT k: PRINT AT p+3,q;"{81}{83}{83}{83}{83}{82}": INK 0
+8520 LET suit=1+INT (4*RND): INK 2*(suit<3): PRINT AT p-2,q+3;CHR$ (148+suit)
+8530 RETURN 
+9000 LET x=USR "a"
+9010 FOR k=0 TO 31: POKE x+k,0: NEXT k
+9020 LET s=8*CODE b$(c)+15360: IF b$(c)="T" THEN LET s=USR "e"
+9030 FOR j=0 TO 7: LET v=PEEK (s+j): LET c=0: LET d=256
+9040 FOR k=8 TO 1 STEP -1: LET d=d/2: IF v>=d THEN LET c=c+3*d*d: LET v=v-d
+9050 NEXT k
+9060 LET h=INT (c/256): LET l=c-256*h
+9070 POKE x,h: POKE x+1,h: POKE x+8,l: POKE x+9,l
+9080 LET x=x+2+8*(j=3)
+9090 PRINT AT p,q+2;"{90}{91}";AT p+1,q+2;"{92}{93}"
+9100 NEXT j
+9110 RETURN 

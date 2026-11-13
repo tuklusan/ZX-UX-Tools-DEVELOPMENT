@@ -1,0 +1,112 @@
+ 100 DATA 0,31,63,63,123,113,225,225,0,248,252,252,222,142,135,135,255,127,111,111,199,192,240,240,255,254,246,246,227,3,15,15
+ 110 DATA 7,63,127,65,193,199,255,124,224,252,254,131,131,227,254,62,124,127,51,48,112,88,136,248,254,204,142,26,17,31,0,0
+ 120 DATA 31,63,63,115,113,225,225,255,248,252,252,206,142,135,135,255,127,111,103,103,96,48,60,60,254,246,230,230,6,12,60,60
+ 130 DATA 7,63,127,193,193,199,127,124,224,252,254,130,131,227,255,62,127,51,113,88,136,248,0,0,62,254,204,12,14,26,17,31
+ 140 DATA 24,24,24,24,60,126,231,231,7,31,63,60,112,112,248,248,224,248,252,60,14,14,31,31
+ 150 DATA 18,26,14,14,7,3,1,0,36,44,56,56,112,96,192,128
+ 160 FOR i=USR "a" TO USR "a"+167: READ x: POKE i,x: NEXT i
+ 200 BORDER 7: PAPER 7: INK 0: CLS 
+ 210 PRINT AT 0,0;"score";AT 0,23;"lives ^^^"
+ 220 LET f=2
+ 230 LET sc=0
+ 250 LET q=f: LET f=f+1: IF f=11 THEN STOP 
+ 300 LET c$="                                 "
+ 310 LET s=144
+ 320 GO SUB 9000
+ 330 LET k$=a$+b$+c$
+ 340 GO SUB 9000
+ 350 LET l$=a$+b$+c$
+ 360 GO SUB 9000
+ 370 LET m$=a$+b$+c$
+ 380 GO SUB 9000
+ 390 LET n$=a$+b$+c$
+ 400 LET a$=k$+l$+k$+l$: LET a$=a$( TO 343)
+ 410 LET b$=m$+n$+m$+n$: LET b$=b$( TO 343)
+ 500 LET k$="{84}{8B}{83}{87}{88}   ": LET l$="{89}{89}{83}{86}{86}   ": LET m$="{87}{82} {81}{8B}   ": LET n$=""
+ 510 PRINT INK 4;AT 16,2;k$;k$;k$;k$;l$;l$;l$;l$;m$;m$;m$;m$
+ 590 LET l=0
+ 600 LET r=0: LET s=10: LET t=1
+ 610 LET u=0: LET v=0: LET x=0: LET y=0
+ 615 LET d=21: LET e=12
+ 620 PRINT AT 20,30;c$
+ 625 LET li=3
+1000 FOR p=r TO s STEP t
+1010 BEEP .005,1: PRINT AT q,0;c$( TO p);a$;AT 20,l;" {A0}                              {A1}{83}{A2} "
+1020 IF u<q THEN GO TO 1050
+1035 IF SCREEN$ (u,v)<>" " THEN GO SUB 5000
+1040 IF u>=q THEN PRINT AT u,v;"{A0}";AT u+1,v;" "
+1050 LET l=l+(l<28)*(INKEY$="c")-(l>0)*(INKEY$="z")
+1060 IF u>q-1 OR INKEY$<>"m" THEN GO TO 1080
+1070 LET u=20: LET v=l+1
+1100 IF d>20 THEN GO TO 1200
+1110 IF SCREEN$ (d,e)<>" " THEN GO SUB 6000
+1115 IF SCREEN$ (d,e+1)<>" " THEN GO SUB 6000
+1120 IF d<=20 THEN PRINT AT d-1,e;"  "; INK 2;AT d,e;"{A3}{A4}"
+1200 LET u=u-1
+2010 PRINT AT q,0;c$( TO p);b$;AT 20,l;" {A0}                              {A1}{83}{A2} "
+2020 IF u<q THEN GO TO 2050
+2035 IF SCREEN$ (u,v)<>" " THEN GO SUB 5000
+2040 IF u>=q THEN PRINT AT u,v;"{A0}";AT u+1,v;" "
+2050 LET l=l+(l<28)*(INKEY$="c")-(l>0)*(INKEY$="z")
+2060 IF u>q-1 OR INKEY$<>"m" THEN GO TO 2080
+2070 LET u=20: LET v=l+1
+2100 IF d<=20 THEN GO TO 2130
+2110 LET w=INT (6*RND): LET x$=a$(LEN a$-4*w-2): IF x$<>"{92}" AND x$<>"{96}" THEN GO TO 2130
+2120 LET d=q+1+INT (LEN a$/32): LET e=p-4*w+20+t
+2125 IF e=31 THEN LET e=30
+2130 IF d=20 THEN PRINT AT 20,e;"  "
+2200 LET u=u-1
+2210 LET d=d+1
+2999 NEXT p
+3000 IF t=-1 THEN GO TO 3500
+3010 LET t=-1: LET r=9: LET s=0
+3020 GO TO 1000
+3500 IF LEN a$>55 THEN GO TO 3510
+3505 IF a$(23 TO )=c$ THEN GO TO 250
+3510 IF a$(LEN a$-32 TO )=c$ THEN LET a$=a$( TO LEN a$-96): LET b$=b$( TO LEN a$)
+3520 IF 32*q+LEN a$>609 THEN GO TO 8500
+3525 LET r=0: LET s=10: LET t=1
+3530 PRINT AT q,0;c$: LET q=q+1: GO TO 1000
+5000 IF ATTR (u,v)=60 THEN GO TO 5100
+5005 IF ATTR (u,v)=58 THEN GO TO 6000
+5010 LET h=v-p+32*(u-q-1)
+5015 BEEP .05,8
+5020 IF h>=0 THEN GO SUB 5200
+5030 LET h=h+32: IF h<LEN a$ THEN GO SUB 5200
+5040 LET h=h+32: IF h<LEN a$ THEN GO SUB 5200
+5050 LET h=4-INT (h/96)
+5060 LET sc=sc+100*h: PRINT AT 0,6;sc
+5100 REM create an explosion
+5110 PRINT INK 6;AT u,v;"{91}{90}";AT u+1,v;"{A2}{A1}": BEEP .05,10: PRINT AT u,v;"  ";AT u+1,v;"  "
+5120 LET u=0
+5130 RETURN 
+5200 IF h=0 THEN LET h=1
+5205 LET a$(h TO h+2)="   "
+5210 LET b$(h TO h+2)="   "
+5220 RETURN 
+6000 REM look where alien bullet hit
+6005 IF d=20 THEN GO TO 6018
+6010 PRINT AT d-1,e;"  "; INK 2;AT d,e;"{90}{91}": BEEP .05,-10: PRINT AT d,e;"  "
+6012 IF (v=e OR v=e+1) AND d=u THEN PRINT AT u,v;" ";AT u+1,v;" ": LET u=0
+6015 LET d=21: RETURN 
+6020 PRINT AT d-1,e;"  "; INK 2;AT d,e;"{90}{91}": BEEP .05,10: PRINT AT d,e;"  "
+6030 FOR k=1 TO 10: PRINT OVER 1;AT 21,l;"{A1}{83}{A2}": BEEP .1,0: NEXT k
+6040 LET li=li-1
+6050 PRINT AT 0,29;"   ";AT 0,29;"^^^"( TO li)
+6060 IF li=0 THEN GO TO 8510
+6500 REM missiles hit each other
+6510 IF d<=20 THEN PRINT INK 6;AT d,e;"{91}{90}";AT d+1,e;"{A2}{A1}": BEEP .05,10: PRINT AT d,e;"  ";AT d+1,e;"  "
+6520 LET u=0: LET d=21
+6530 RETURN 
+8500 PRINT AT q,0;c$;a$
+8510 PRINT AT 5,0;"  The aliens have overrun you.": PRINT "  All is lost."
+8520 INPUT "Do you want to try again?";n$
+8530 IF LEN n$=0 THEN GO TO 8520
+8540 IF n$(1)="y" OR n$(1)="Y" THEN RUN 200
+8550 STOP 
+9000 LET a$=CHR$ (s)+CHR$ (s+1)+"  ": LET a$=a$+a$+a$+a$+a$+a$+"        "
+9010 LET b$=CHR$ (s+2)+CHR$ (s+3)+"  ": LET b$=b$+b$+b$+b$+b$+b$+"       "
+9020 LET s=s+4
+9030 RETURN 
+9998 LET u=19: LET v=1: LET d=16: LET e=0: CONTINUE 
+9999 PRINT PEEK 23730+256*PEEK 23731-PEEK 23653-256*PEEK 23654

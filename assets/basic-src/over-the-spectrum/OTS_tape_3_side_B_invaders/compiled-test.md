@@ -1,0 +1,3 @@
+# Invaders — MCODER III compatibility
+
+**Incompatible as supplied.** The unchanged source contains `CONTINUE` at line 9998, which MCODER III's manual explicitly lists as unsupported (it advises a suitable `GO TO` instead). During the genuine compiler run, the compiler's token-dispatch table sent that `CONTINUE` through address `0000h`, restarting the Spectrum ROM. After 5,500 frames the original-source compile attempt displayed the Sinclair copyright startup screen with its BASIC area empty, not `0 OK`. No genuinely compiled standalone TZX from the unchanged source exists. The original BASIC cassette runs through the separately recorded interpreted-game walkthrough; no source edits are counted or retained as compatible.

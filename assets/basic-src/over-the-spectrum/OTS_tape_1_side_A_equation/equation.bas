@@ -1,0 +1,88 @@
+ 100 REM EQUATION
+ 101 REM 
+ 110 REM simultaneous equation
+ 120 BORDER 7: INK 1: PAPER 7: FLASH 0: INVERSE 0: CLS 
+ 130 PRINT AT 0,5; INVERSE 1;"SIMULTANEOUS EQUATIONS"
+ 140 PRINT AT 2,0; INK 2; INVERSE 1;"a1X+b1Y+c1=0"
+ 150 PRINT AT 2,16; PAPER 6; INK 0;"a2X+b2Y+c2=0"
+ 160 PRINT AT 4,0;"a1=";AT 4,16;"a2=";AT 5,0;"b1=";AT 5,16;"b2=";AT 6,0;"c1=";AT 6,16;"c2="
+ 170 DIM C(6): REM coeficient array
+ 180 DIM S$(7)
+ 190 DIM X$(7)
+ 200 DIM Y$(7)
+ 500 REM 
+ 510 REM input first equation
+ 520 FOR I=1 TO 3
+ 530 PRINT AT I+3,3; FLASH 1;">"; FLASH 0; INK 2; INVERSE 1;"            "
+ 540 INPUT S$: LET C(I)=VAL S$
+ 550 PRINT AT I+3,3;"             ";AT I+3,4;ABS C(I)
+ 560 IF SGN C(I)=-1 THEN PRINT AT I+3,3;"-"
+ 570 NEXT I
+ 600 REM 
+ 610 REM input second equation
+ 620 FOR I=4 TO 6
+ 630 PRINT AT I,19; FLASH 1;">"; FLASH 0; PAPER 6;"            "
+ 640 INPUT S$: LET C(I)=VAL S$
+ 650 PRINT AT I,19;"             ";AT I,20;ABS C(I)
+ 660 IF SGN C(I)=-1 THEN PRINT AT I,19;"-"
+ 670 NEXT I
+ 800 REM 
+ 810 REM calculates solution
+ 820 PRINT AT 7,0;
+ 830 LET D=C(2)*C(4)-C(1)*C(5)
+ 840 IF D=0 THEN PRINT INVERSE 1;"DEGENERATE:"; INVERSE 0;" "; FLASH 1;"NO SOLUTIONS": RUN 
+ 850 LET A=(C(3)*C(5)-C(2)*C(6))/D
+ 860 LET X$=STR$ A: LET A=VAL X$
+ 870 LET B=(C(1)*C(6)-C(3)*C(4))/D
+ 880 LET Y$=STR$ B: LET B=VAL Y$
+ 890 PRINT INVERSE 1;"SOLUTIONS"; INVERSE 0;" X= ";X$;"  Y= ";Y$
+ 900 REM 
+ 910 REM plot axis
+ 920 IF A>=0 AND B>=0 THEN LET ox=72: LET oy=0: PRINT AT 21,8;"O";AT 8,8;"Y";AT 21,23;"X"
+ 930 IF A>=0 AND B<0 THEN LET ox=72: LET oy=111: PRINT AT 8,8;"O";AT 21,8;"Y";AT 8,23;"X"
+ 940 IF A<0 AND B>=0 THEN LET ox=183: LET oy=0: PRINT AT 21,23;"O";AT 21,8;"X";AT 8,23;"Y"
+ 950 IF A<0 AND B<0 THEN LET ox=183: LET oy=111: PRINT AT 8,23;"O";AT 8,8;"X";AT 21,23;"Y"
+ 960 LET dx=(SGN A>=0)-(SGN A<0)
+ 970 LET dy=(SGN B>=0)-(SGN B<0)
+ 980 PLOT ox,oy: DRAW INK 0;dx*111,0: PLOT ox,oy: DRAW INK 0;0,dy*111
+ 990 GO SUB 1500: REM plot lines
+1000 INPUT "More equation?(y or n)";k$
+1100 IF k$="n" OR k$="N" THEN STOP 
+1110 IF k$="y" OR k$="Y" THEN RUN 
+1120 GO TO 1000
+1500 REM 
+1510 LET rx=ABS (55/A): LET ry=ABS (55/B)
+1520 REM draw first line
+1530 PRINT AT 2,0; INK 2; OVER 1; FLASH 1;"            "
+1540 IF C(1)=0 THEN LET ix1=0: LET iy1=-C(3)/C(2): LET ix2=2*A: LET iy2=iy1: GO TO 1620
+1550 IF C(2)=0 THEN LET iy1=0: LET ix1=-C(3)/C(1): LET iy2=2*B: LET ix2=ix1: GO TO 1620
+1560 LET ix1=2*A: LET iy1=-(C(3)+C(1)*ix1)/C(2)
+1570 IF dy*iy1<0 THEN LET iy1=0: GO TO 1590
+1580 IF (ABS iy1-ABS (2*B))>0 THEN LET iy1=2*B
+1590 LET ix2=0: LET iy2=-C(3)/C(2)
+1600 IF dy*iy2<0 THEN LET iy2=0: GO TO 1620
+1610 IF (ABS iy2-ABS (2*B))>0 THEN LET iy2=2*B
+1620 PLOT ox+rx*ix1,oy+ry*iy1
+1630 DRAW (ix2-ix1)*rx,(iy2-iy1)*ry
+1640 PAUSE 100
+1650 PRINT AT 2,0; INK 2; INVERSE 1;"a1X+b1Y+c1=0"
+1800 REM 
+1810 REM draw second line
+1820 PRINT AT 2,16; OVER 1; FLASH 1; PAPER 6; INK 0;"            "
+1830 PLOT OVER 1;ox+rx*ix1,oy+ry*iy1
+1840 DRAW OVER 1;(ix2-ix1)*rx,(iy2-iy1)*ry
+1850 IF C(4)=0 THEN LET ix3=0: LET iy3=-C(6)/C(5): LET ix4=2*A: LET iy4=iy3: GO TO 1930
+1860 IF C(5)=0 THEN LET iy3=0: LET ix3=-C(6)/C(4): LET iy4=2*B: LET ix4=ix3: GO TO 1930
+1870 LET ix3=2*A: LET iy3=-(C(6)+C(4)*ix3)/C(5)
+1880 IF dy*iy3<0 THEN LET iy3=0: GO TO 1900
+1890 IF (ABS iy3-ABS (2*B))>0 THEN LET iy3=2*B
+1900 LET ix4=0: LET iy4=-C(6)/C(5)
+1910 IF dy*iy4<0 THEN LET iy4=0: GO TO 1930
+1920 IF (ABS iy4-ABS (2*B))>0 THEN LET iy4=2*B
+1930 PLOT ox+ix3*rx,oy+iy3*ry
+1940 DRAW (ix4-ix3)*rx,(iy4-iy3)*ry
+1950 PAUSE 100
+1960 PRINT AT 2,16; INK 0; PAPER 6;"a2X+b2Y+c2=0"
+1970 PLOT ox+ix1*rx,oy+iy1*ry
+1980 DRAW (ix2-ix1)*rx,(iy2-iy1)*ry
+1990 RETURN 

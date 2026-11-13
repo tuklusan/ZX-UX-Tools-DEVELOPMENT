@@ -1,0 +1,132 @@
+ 100 RESTORE 2000
+ 110 FOR i=USR "a" TO USR "k"-1
+ 120 READ x: POKE i,x
+ 130 NEXT i
+ 140 RESTORE 3000: CLEAR 32500
+ 150 FOR i=32500 TO 32535: READ x: POKE i,x: NEXT i
+ 160 BORDER 1: PAPER 1: INK 0: CLS 
+ 170 PLOT 0,8
+ 180 LET y=8
+ 190 LET p=-1
+ 200 FOR j=1 TO 3
+ 210 LET a=3+INT (7*RND)
+ 220 GO SUB 8100
+ 230 DRAW 4,15-y: DRAW 8,0
+ 240 LET y=15
+ 250 LET p=p+a+1
+ 260 FOR k=1 TO INT (4*RND)+1: PRINT INK 5; OVER 1;AT 20-k,p;"{92}": NEXT k: PRINT INK 3;AT 20-k,p;"{91}";AT 19-k,p;"{90}"
+ 270 NEXT j
+ 280 LET a=30-p
+ 290 GO SUB 8100
+ 300 DRAW 11,8-y
+ 310 LET sx=3: LET sy=10
+ 320 LET ax=INT (15*RND): LET ay=26
+ 330 LET bx=INT (RND*15): LET by=30: IF bx=ax THEN GO TO 330
+ 340 LET t=0
+ 350 LET e=0: LET h=3
+ 360 LET dm=0: LET sc=0
+1000 PRINT INK 1;AT sx,sy;" {95}{96}{97}{98}"
+1010 PRINT INK 4;AT ax,ay;" {93}{94}"
+1020 PRINT INK 2;AT bx,by;" {99}"
+2000 DATA 1,57,189,187,146,254,124,124,56,56,56,104,76,68,68,198: REM shape of humanoids
+2010 DATA 126,36,60,24,60,102,195,255: REM shape of platform
+2020 DATA 63,99,193,193,127,28,7,3,252,198,131,131,254,56,224,192: REM shape of aliens
+2030 DATA 255,63,15,7,3,7,255,0,192,240,252,255,255,255,240,3,0,0,31,249,224,255,252,240,0,0,0,192,248,255,0,0: REM space ship shape
+2040 DATA 28,28,244,199,227,47,56,56
+3000 DATA 33,1,64,17,0,64,26,1,31,0,237,176,18,35,19,62,88,188,32,242,6,22,197,26,1,31,0,237,176,18,35,19,193,16,243,201
+5000 LET v=USR 32500
+5010 LET x$=INKEY$
+5020 LET nx=sx+(x$="x")*(sx<18)-(x$="w")*(sx>0)
+5030 IF nx=sx THEN GO TO 5060
+5040 LET v$=SCREEN$ (nx,sy+1): LET w$=SCREEN$ (nx,sy+2): LET x$=SCREEN$ (nx,sy+3): LET v$=v$+w$+x$
+5050 IF v$<>"   " THEN GO TO 8500
+5060 IF SCREEN$ (nx,sy+4)<>" " THEN GO TO 8500
+5070 PRINT OVER 1;AT sx,sy-1;" {95}{96}{97}{98}";AT nx,sy;"{10}{06} {95}{96}{97}{98}"{10}{00}
+5080 LET sx=nx
+5090 LET by=by-1: IF by<0 THEN LET by=31
+5100 IF RND>.7 OR by=31 THEN GO TO 5140
+5110 LET nx=bx+(sx-1>bx)-(sx-1<bx)+(by=sy+2)
+5120 PRINT OVER 1;AT bx,by;" {99}";AT nx,by;"{10}{02} {99}"
+5130 LET bx=nx
+5140 IF bx=sx AND ABS (by-sy-1)<=1 THEN GO TO 8500
+5200 IF x$<>"p" THEN GO TO 5290
+5210 BEEP .1,4
+5220 PLOT INK 3; OVER 1;8*sy+43,170-8*sx
+5230 DRAW INK 3; OVER 1;212-8*sy,0
+5240 BEEP .1,8
+5250 PLOT INK 0; OVER 1;8*sy+43,170-8*sx
+5260 DRAW INK 0; OVER 1;212-8*sy,0
+5270 IF ax=sx AND ay>sy+4 AND ay<30 THEN FOR k=1 TO 11: BEEP .1,5: PRINT OVER 1;AT ax,ay-1;" {93}{94}": NEXT k: LET ax=INT (15*RND): LET ay=29: PRINT AT ax,ay-1;"{10}{04} {93}{94}"{10}{00}: LET sc=sc+100
+5280 IF bx=sx AND by>sy+4 AND by<30 THEN FOR k=1 TO 5: BEEP .1,10: PRINT OVER 1;AT bx,by;"{10}{02} {99}": NEXT k: LET bx=1+INT (RND*14): LET by=30: PRINT AT bx,by;"{10}{02} {99}"{10}{00}: LET sc=sc+20
+5290 LET ay=ay-1: IF ay<0 THEN LET ay=31
+5300 IF RND>.7 OR ay>=29 THEN GO TO 5000
+5310 LET nx=ax+(ax<18)-t: IF ax=18 THEN GO TO 5330
+5320 LET v$=SCREEN$ (nx,ay+1): LET w$=SCREEN$ (nx,ay+2): IF v$+w$<>"  " THEN GO TO 7000
+5330 LET ny=ay+(ax=18)
+5340 IF ny<>ay AND SCREEN$ (nx,ny+2)<>" " THEN GO TO 7000
+5350 PRINT OVER 1;AT ax,ay;" {93}{94}";AT nx,ny;"{10}{04} {93}{94}"{10}{00}
+5360 LET ay=ny: LET ax=nx
+6000 GO TO 5000
+7000 IF ABS (bx-ax)<=1 AND ABS (by-ay)<=1 THEN FOR k=1 TO 11: BEEP .1,5: PRINT OVER 1;AT ax,ay;" {93}{94}": NEXT k: LET ax=INT (15*RND): LET ay=29: PRINT AT ax,ay;"{10}{04} {93}{94}"{10}{00}
+7010 IF ABS (sx-ax)<=2 AND ABS (by-sy)<=2 THEN GO TO 8500
+7020 PRINT OVER 1;AT ax,ay;" {93}{94}";AT ax-1,ay;"{10}{04} {93}{94}"{10}{00}
+7030 LET ax=ax-1: LET ay=ay-1: LET by=by-1
+7040 IF ay<0 THEN LET ay=31
+7050 IF by<0 THEN LET by=31
+7060 LET v=USR 32500
+7070 PRINT OVER 1;AT sx,sy-1;" {95}{96}{97}{98}";AT sx,sy;"{10}{06} {95}{96}{97}{98}"{10}{00}
+7080 LET f=0
+7090 FOR x=ax-3 TO ax+3
+7095 IF x>20 THEN GO TO 7125
+7100 FOR y=ay+1 TO ay+3
+7105 IF y<0 OR y>31 THEN GO TO 7120
+7110 IF ATTR (x,y)=11 THEN PRINT AT x,y; INK 1;" ": LET f=f+1
+7120 NEXT y
+7125 NEXT x
+7130 IF f=2 THEN GO TO 7200
+7140 PRINT AT ax,ay+3; INK 1;" ";AT ax+1,ay+2;"   ";AT ax+2,ay+2;"   "
+7145 LET ay=ay+1: PRINT OVER 1;AT ax,ay-1;" {93}{94}";AT ax,ay;"{10}{04} {93}{94}"{10}{00}
+7150 LET e=e+1: IF e=3 THEN GO TO 8550
+7160 GO TO 5000
+7200 PRINT OVER 1;AT ax,ay;" {93}{94}";AT ax-1,ay;"{10}{04} {93}{94}"{10}{00}
+7210 LET ax=ax-1: REM {F1}ay=ay-1:{FA}ay<0{CB}{F1}ay=31
+7220 LET by=by-1: IF by<0 THEN LET by=31
+7230 LET v=USR 32500
+7240 PRINT INK 4;AT ax+1,ay;" {90}";AT ax+2,ay;" {91}"
+7250 FOR k=ax-1 TO 0 STEP -1
+7260 PRINT OVER 1; INK 4;AT k+1,ay;"{93}{94}";AT k+2,ay;" {90}";AT k+3,ay;" {91}";AT k,ay;"{93}{94}";AT k+1,ay;" {90}";AT k+2,ay;" {91}"
+7270 BEEP .2,15-k/2
+7280 NEXT k
+7290 LET e=0: LET h=h-1: IF h=0 THEN GO TO 8550
+7300 PRINT OVER 1;AT sx,sy-1;" {95}{96}{97}{98}";AT sx,sy;"{10}{06} {95}{96}{97}{98}"{10}{00}
+7310 PRINT INK 1;AT 1,ay;"  ";AT 2,ay;"  "
+7320 LET ax=0: LET ay=ay-1: IF ay<0 THEN LET ay=31
+7330 GO TO 5000
+8100 FOR i=0 TO 2*a-2
+8110 LET ly=INT (36*RND)-18
+8120 IF y+ly<0 THEN LET ly=-y
+8130 IF y+ly>22 THEN LET ly=22-y
+8140 DRAW 4,ly
+8150 LET y=y+ly
+8160 NEXT i
+8170 RETURN 
+8500 PRINT INK 5; FLASH 1;AT 21,0;"Damage to ship"
+8510 LET dm=dm+1: IF dm<3 THEN GO TO 8700
+8520 PRINT AT 21,14; FLASH 1; INK 7;" IRREPARABLE": FOR s=22944 TO 23104
+8530 IF PEEK s=11 THEN BEEP .5,10: POKE s,9: POKE s+32,9
+8540 NEXT s
+8550 FOR k=1 TO 15
+8560 PRINT OVER 1;AT sx,sy-1;" {10}{06}{95}{96}{97}{98}"{10}{00}: BEEP k/50,12-2*k: NEXT k
+8570 PRINT AT 1,0; INK 7;"Life support systems for humans no longer functioning. You have failed to protect the planet."
+8580 PRINT INK 2;AT 10,0;"Your score= ";sc
+8600 INPUT "Would you like to try again? ";a$
+8610 LET a$=a$+" ": IF a$(1)="y" THEN RUN 100
+8650 STOP 
+8700 FOR k=1 TO 15
+8710 PRINT OVER 1;AT sx,sy-1;" {10}{06}{95}{96}{97}{98}"{10}{00}: BEEP .1,15-2*k: NEXT k
+8720 PRINT INK 1; FLASH 0;AT 21,0;"              "
+8730 PRINT OVER 1;AT ax,ay-1;" {93}{94}";AT bx,by-1;" {99}"
+8740 LET ax=INT (15*RND): LET ay=26
+8750 LET bx=INT (15*RND): LET by=30: IF bx=ax THEN GO TO 8750
+8760 GO TO 1000
+9999 BORDER 7: PAPER 7: INK 0: CLS 

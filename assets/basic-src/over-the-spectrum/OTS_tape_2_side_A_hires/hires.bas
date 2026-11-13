@@ -1,0 +1,152 @@
+ 100 REM USR
+ 110 REM User define GRAPHIC
+ 120 GO TO 8000
+1000 REM Draw character set
+1010 REM Input r,c;starting coordinates
+1020 PRINT AT 8,11;"  ": PRINT AT 9,11;"  ": FOR H=1 TO nc
+1030 LET hr=8*(H=3 OR H=4): LET hc=8*(H=2 OR H=4)
+1040 FOR I=1 TO 8
+1050 FOR J=1 TO 8
+1060 PRINT AT (I+r+hr),(J+c+hc);
+1070 IF B(I+hr,J+hc)=0 THEN PRINT PAPER 6; INK 0;" ": GO TO 1090
+1080 PRINT PAPER 7; INK 1;"{8F}": PLOT 87+J+hc,112-I-hr
+1090 NEXT J
+1100 NEXT I
+1110 NEXT H
+1120 LET L$="                                "
+1130 RETURN 
+2000 REM 
+2010 REM char into array
+2020 REM Input K$,Output B(I,J)
+2030 REM 
+2040 FOR H=1 TO nc
+2050 LET hr=8*(H>2): LET hc=8*(H=2 OR H=4)
+2060 FOR I=1 TO 8
+2070 LET m=PEEK (s(H)+I-1)
+2080 FOR J=8 TO 1 STEP -1
+2090 LET B(I+hr,J+hc)=m-2*INT (m/2)
+2100 LET m=INT (m/2)
+2110 NEXT J
+2120 NEXT I
+2130 NEXT H
+2140 RETURN 
+3000 REM Edit CHAR,x=row,y=col
+3010 REM Input B(I,J)
+3020 LET hr=8*(nc>2): LET hc=8*(nc=2 OR nc=4)
+3030 LET x=r+1: LET y=c+1
+3040 LET a=22528+32*x+y: POKE a,PEEK a+128: PAUSE 200
+3050 IF INKEY$="" THEN GO TO 3050
+3060 LET M$=INKEY$: POKE a,PEEK a-128: REM unflash old pos
+3070 IF M$<"5" OR M$>"8" THEN GO TO 3150
+3080 LET y=y+(M$="8" AND (x<>8+hr OR y<>22+hc))-(M$="5" AND (x<>1 OR y<>c+1))
+3090 LET x=x+(M$="6")-(M$="7")
+3100 IF x>8+hr THEN LET x=1
+3110 IF x<1 THEN LET x=8+hr
+3120 IF y>22+hc THEN LET y=c+1: LET x=x+1
+3130 IF y<15 THEN LET y=22+hc: LET x=x-1
+3140 GO TO 3040
+3150 IF M$<>"0" AND M$<>"1" THEN GO TO 3190
+3160 PRINT AT x,y;
+3170 IF B(x-r,y-c)=1 AND M$="0" THEN LET B(x-r,y-c)=0: PRINT PAPER 6; INK 0;" ": PLOT OVER 1;87+y-c,112-x+r: GO TO 3040
+3180 IF B(x-r,y-c)=0 AND M$="1" THEN LET B(x-r,y-c)=1: PRINT PAPER 7; INK 1;"{8F}": PLOT 87+y-c,112-x+r: GO TO 3040
+3190 IF {10}{00}M$<>"f" AND M$<>"F" AND M$<>"b" AND M$<>"B" THEN GO TO 3240
+3200 LET b=(M$="f" OR M$="F")
+3210 GO SUB 4000: REM init ARRAY
+3220 GO SUB 1000: REM draw char
+3230 GO TO 3030: REM start again
+3240 IF M$<>"E" THEN GO TO 3260
+3250 PRINT AT 19,0; INK 2;"No change to this character!": RETURN 
+3260 IF M$<>"s" AND M$<>"S" THEN GO TO 3320: REM edit inkey
+3270 PRINT AT 18,0;"Store this? (y or n) ";
+3280 LET e$=INKEY$: IF e$<>"y" AND e$<>"n" THEN GO TO 3280
+3290 PRINT INK 2;e$: PAUSE 50
+3300 IF e$="y" THEN GO SUB 5000: RETURN 
+3310 FOR M=1 TO 3: PRINT AT 17+M,0;: PRINT "                                ";: NEXT M: GO TO 3030
+3320 IF M$<>"m" AND M$<>"M" THEN GO TO 3040
+3330 PRINT AT 0,26; FLASH 1; INVERSE 1; INK 3;"MIRROR": LET fc=INT (bc/2+.5)
+3340 FOR I=1 TO br
+3350 FOR J=1 TO fc
+3360 LET M=B(I,J)
+3370 LET B(I,J)=B(I,bc-J+1)
+3380 LET B(I,bc-J+1)=M
+3390 NEXT J
+3400 NEXT I
+3410 PRINT AT 0,26;"      "
+3420 GO SUB 1000
+3430 GO TO 3040
+4000 REM Initialise simulation ARRAY
+4010 FOR I=1 TO br
+4020 FOR J=1 TO bc
+4030 LET B(I,J)=b
+4040 NEXT J
+4050 NEXT I
+4060 RETURN 
+4070 REM 
+5000 REM Transpose array to mem
+5010 PRINT AT {10}{00}0,25; FLASH 1; PAPER 3; INK 7;"SAVING"
+5020 FOR H=1 TO nc
+5030 LET hr=8*(H>2): LET hc=8*(H=2 OR H=4)
+5040 FOR I=1 TO 8
+5050 LET t=0
+5060 FOR J=8 TO 1 STEP -1
+5070 IF B(I+hr,J+hc)=1 THEN LET t=t+2^(8-J)
+5080 NEXT J
+5090 POKE (s(H)+I-1),t
+5100 NEXT I
+5110 NEXT H
+5120 PRINT AT 0,25;"      "
+5130 PRINT AT 0,25; PAPER 3; INK 7;"SAVED!!"
+5140 RETURN 
+6000 REM 
+6010 REM list memory value of char
+6020 PRINT AT 0,0;"        "
+6030 FOR H=1 TO nc
+6040 LET hc=(H=2 OR H=4)*5+1: LET hr=(H>2)*9
+6050 PRINT AT hr,hc-1; PAPER 1; INK 7;"  ";CHR$ (CODE K$+H-1);" "
+6060 FOR I=1 TO 8
+6070 PRINT AT hr+I,hc;PEEK (S(H)+I-1)
+6080 NEXT I
+6090 NEXT H
+6100 LET UG=CODE K$+79: PRINT AT 8,11; OVER 0;CHR$ UG;
+6110 IF nc>=2 THEN PRINT CHR$ (UG+1)
+6120 IF nc=4 THEN PRINT {10}{00}AT 9,11; OVER 0;CHR$ (UG+2);CHR$ (UG+3)
+6130 RETURN 
+8000 BORDER 5: INK 0: PAPER 7: OVER 0: FLASH 0: CLS 
+8010 REM key repre of char:{E9}K$(1)
+8020 PRINT "Which CHARACTER to be redefined?": PRINT "(A to U)"
+8030 LET K$=INKEY$: IF K$>="A" AND K$<="U" THEN GO TO 8060
+8040 IF K$<"a" OR K$>"u" THEN GO TO 8030
+8050 LET K$=CHR$ (CODE K$-32)
+8060 PRINT K$: PRINT : PRINT "How many characters? (1 - 4) ";
+8070 LET nc=((CODE INKEY$)-48): IF nc<1 OR nc>4 OR (CODE K$+nc+79-1)>164 THEN GO TO 8070
+8080 IF nc=3 THEN LET nc=4
+8090 PRINT nc: FOR I=1 TO 50: NEXT I: CLS 
+8100 DIM S(nc): REM memory location of character set
+8110 LET br=8*(1+(nc=4)): LET bc=8*(1+(nc>1))
+8120 DIM C(bc): DIM B(br,bc): REM simulation array
+8130 FOR I=0 TO nc-1
+8140 PRINT INK 2;CHR$ (CODE K$+I);" ";: REM print chars
+8150 LET S(I+1)=USR CHR$ (CODE K$+I): REM mem loc of char set
+8160 NEXT I
+8170 PRINT AT 0,25; FLASH 1; PAPER 1{10}{00}; INK 7;"LOADING"
+8180 LET b=0: GO SUB 4000: REM initialise ARRAY
+8190 GO SUB 2000: REM char to array
+8200 LET r=0: LET c=14
+8210 GO SUB 1000: REM Restore CHAR
+8220 PRINT AT 0,25;"       "
+8230 GO SUB 3000: REM Edit CHAR
+8240 GO SUB 6000: REM list memory value
+8250 PRINT AT 20,0;"Copy onto printer? (y or n)";
+8260 LET g$=INKEY$: IF g$<>"y" AND g$<>"n" THEN GO TO 8260
+8270 PRINT g$
+8280 IF g$="n" THEN GO TO 8320
+8290 PRINT AT 21,0;"Press any key when ready.": PAUSE 2000
+8300 IF INKEY$="" THEN GO TO 8300
+8310 COPY 
+8320 PRINT AT 20,0;L$: PRINT AT 21,0;L$
+8330 PRINT AT 21,0;L$
+8340 PRINT AT 20,0;"Change any other chars? (y or n)";: PAUSE 200
+8350 LET g$=INKEY$: IF g$<>"y" AND g$<>"n" THEN GO TO 8350
+8360 PRINT g$
+8370 IF g$="n" THEN STOP 
+8380 CLS : RUN 

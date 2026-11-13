@@ -1,0 +1,37 @@
+ 100 LET a$="*"
+ 110 LET n=0
+ 120 LET a=0
+ 130 LET b=0
+ 140 LET c=0
+ 150 LET d=0
+ 160 LET t=1
+ 170 LET x=12
+ 180 LET r=INT (27*RND)
+ 190 PRINT AT 21,r; INK (4*RND);a$
+ 200 POKE 23692,255
+ 210 PRINT AT 21,31;"  "
+ 220 BEEP .3,0
+ 230 PRINT AT 10,x-2;"      "
+ 240 PRINT AT 11,x;"{86}{89}"
+ 250 PRINT AT 21,31;"  "
+ 260 LET n=n+t
+ 270 IF n=100 THEN LET a$="{89}{88}"
+ 280 IF n=104 THEN LET t=2
+ 290 LET e=d
+ 300 LET d=c
+ 310 LET c=b
+ 320 LET b=a
+ 330 LET a=r
+ 340 PRINT AT 10,x-2;"      "
+ 350 PRINT AT 11,x;"{86}{89}"
+ 360 IF x>=e-2 AND x<=e+t THEN GO TO 410
+ 370 BEEP .2,5
+ 380 IF INKEY$="5" THEN LET x=x-t
+ 390 IF INKEY$="8" THEN LET x=x+t
+ 400 GO TO 180
+ 410 PRINT AT 11,x-1;"CRASH"
+ 420 PRINT AT 0,0;"SCORE=";n
+ 430 BEEP 2,-12
+ 440 PRINT AT 21,0;"Press any key to try again"
+ 450 IF INKEY$="" THEN GO TO 450
+ 460 RUN 
